@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14196027823",
+    "project_id": "lsvem24-5cb7d",
+    "storage_bucket": "lsvem24-5cb7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14196027823:android:c37f2a95e761129ef7bf5a",
+        "android_client_info": {
+          "package_name": "com.lsvem24.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRqfp7qc_Q_B3n6pKl4MXFbASrEn7ua0g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
