@@ -12,7 +12,20 @@
           "package_name": "com.lsvem24.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "14196027823-bh0779ikfirh6hhksubc9akmnlq8f9l5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lsvem24.app",
+            "certificate_hash": "05ae4b6ce923af2a64e603dbf2c81618d7d7809f"
+          }
+        },
+        {
+          "client_id": "14196027823-f9jnmsu7hu5q1qdt564jvbv4t341u3fu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCRqfp7qc_Q_B3n6pKl4MXFbASrEn7ua0g"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14196027823-f9jnmsu7hu5q1qdt564jvbv4t341u3fu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "14196027823-gn0q6mdr7nh2mjr5g62gur0miri5hb6k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.meTube.live"
+              }
+            }
+          ]
         }
       }
     }
