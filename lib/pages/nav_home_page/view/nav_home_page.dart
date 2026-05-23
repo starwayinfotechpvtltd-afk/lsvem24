@@ -13,7 +13,7 @@ import 'package:metube/pages/video_details_page/video_details_model.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/services/preview_image.dart';
-import 'package:metube/utils/settings/app_settings.dart';
+import 'package:metube/utils/settings/app_settings.dart'; 
 import 'package:metube/utils/string/app_string.dart';
 
 VideoDetailsModel? videoDetailsModel;
@@ -181,10 +181,17 @@ class _NavHomePageViewState extends State<NavHomePageView> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("${AppStrings.videoUploading.tr}...",
-                                style: GoogleFonts.urbanist(
-                                    fontSize: 16, fontWeight: FontWeight.bold))
-                            .paddingOnly(left: 10),
+                        Obx(
+                          () => Text(
+                            AppSettings.uploadStatusMessage.value.isNotEmpty
+                                ? AppSettings.uploadStatusMessage.value
+                                : "${AppStrings.videoUploading.tr}...",
+                            style: GoogleFonts.urbanist(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ).paddingOnly(left: 10),
+                        ),
                         const SizedBox(height: 5),
                         const LinearProgressIndicator(
                             color: AppColor.primaryColor),

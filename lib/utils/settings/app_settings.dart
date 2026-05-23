@@ -52,6 +52,7 @@ class AppSettings {
   static RxString channelName = "".obs;
 
   static RxBool isUploading = false.obs;
+  static RxString uploadStatusMessage = 'Uploading video...'.obs;
   static RxBool isDownloading = false.obs;
 
   static RxBool isAvailableProfileData = false.obs;

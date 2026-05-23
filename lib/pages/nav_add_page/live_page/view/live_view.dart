@@ -23,6 +23,7 @@ import 'package:metube/utils/string/app_string.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class LivePage extends StatefulWidget {
   const LivePage({
@@ -571,6 +572,7 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                             ),
                             GestureDetector(
                               onTap: () {
+                                if (!AuthService.checkLogin()) return;
                                 if (commentController.text.isNotEmpty) {
                                   FocusManager.instance.primaryFocus?.unfocus();
                                   final data = jsonEncode({

@@ -2602,6 +2602,7 @@ import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class NormalVideoDetailsView extends StatefulWidget {
   const NormalVideoDetailsView(
@@ -5171,11 +5172,12 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none),
-                            hintText: AppStrings.addComments.tr,
+                            hintText: AppStrings.addComments.tr,  
                             hintStyle: GoogleFonts.urbanist(
                                 color: Colors.grey, fontSize: 14),
                             suffixIcon: IconButton(
                               onPressed: () async {
+                                if (!AuthService.checkLogin()) return;
                                 if (controller
                                     .commentController.text.isNotEmpty) {
                                   final commentText =

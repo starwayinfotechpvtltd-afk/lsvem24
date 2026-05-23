@@ -1536,6 +1536,8 @@ class WatchedVideoModel {
   WatchedVideoModel({required this.videoId, required this.videoUrl});
 }*/
 import 'package:metube/utils/constant/app_constant.dart';
+import 'package:metube/utils/services/convert_to_network.dart';
+import 'package:metube/utils/storage/guest_like_storage.dart';
 
 class NormalVideoDetailsController extends GetxController {
   final yourChannelController = Get.find<YourChannelController>();
@@ -1585,6 +1587,7 @@ class NormalVideoDetailsController extends GetxController {
   bool showAd = false;
   bool isAdLoading = false;
   bool isVideoReady = false;
+  bool _videoInitRetried = false;
   bool hasShownMidrollAd = false;
   bool isPreRollAdPhase = false;
   bool mainVideoPlaybackStarted = false;
@@ -1696,6 +1699,7 @@ class NormalVideoDetailsController extends GetxController {
 
   Future<void> init(String videoId, String videoUrl) async {
     this.videoId = videoId;
+    _videoInitRetried = false;
     AppSettings.showLog(
         "🎬 init() called — videoId: $videoId, videoUrl: $videoUrl");
 
@@ -1791,27 +1795,30 @@ class NormalVideoDetailsController extends GetxController {
 
   Future<void> onGetRelatedVideos(String videoId) async {
     mainRelatedVideos = null;
-    _getRelatedVideoModel = await GetRelatedVideoApi.callApi(
-        loginUserId: Database.loginUserId ?? "", videoId: videoId);
-
-    if (_getRelatedVideoModel != null) {
-      mainRelatedVideos = _getRelatedVideoModel?.data ?? [];
-    }
-    AppSettings.showLog(
-        "Playing Related Video Length => ${mainRelatedVideos?.length}");
-
-    mainRelatedVideos?.shuffle();
     update(["onGetRelatedVideos"]);
 
-    if (mainRelatedVideos?.isEmpty ?? true && mainWatchedVideos.length == 1) {
-      isDisableNext(true);
-    }
-
     try {
-      scrollController.animateTo(0,
-          duration: const Duration(milliseconds: 10), curve: Curves.ease);
+      _getRelatedVideoModel =
+          await GetRelatedVideoApi.callApi(videoId: videoId);
+      mainRelatedVideos = _getRelatedVideoModel?.data ?? [];
+      AppSettings.showLog(
+        "Related videos loaded => ${mainRelatedVideos?.length}",
+      );
+      mainRelatedVideos?.shuffle();
+
+      if ((mainRelatedVideos?.isEmpty ?? true) && mainWatchedVideos.length == 1) {
+        isDisableNext(true);
+      }
     } catch (e) {
-      log("Scrolling Failed");
+      AppSettings.showLog("onGetRelatedVideos error => $e");
+      mainRelatedVideos = [];
+    } finally {
+      mainRelatedVideos ??= [];
+      update(["onGetRelatedVideos"]);
+      try {
+        scrollController.animateTo(0,
+            duration: const Duration(milliseconds: 10), curve: Curves.ease);
+      } catch (_) {}
     }
   }
 
@@ -1836,6 +1843,13 @@ class NormalVideoDetailsController extends GetxController {
         customChanges["disLike"] = details?.dislike ?? 0;
         customChanges["comment"] = details?.totalComments ?? 0;
         customChanges["subscribe"] = details?.totalSubscribers ?? 0;
+
+        GuestLikeStorage.applyToUi(
+          videoId: videoId,
+          isLike: isLike,
+          isDisLike: isDisLike,
+          customChanges: customChanges,
+        );
 
         createWatchHistory();
       }
@@ -1965,12 +1979,27 @@ class NormalVideoDetailsController extends GetxController {
       update(["onVideoInitialize"]);
     } catch (e) {
       AppSettings.showLog("❌ initializeVideoPlayer Exception: $e");
+
+      if (!_videoInitRetried) {
+        _videoInitRetried = true;
+        try {
+          await Database.localStorage.remove(videoId);
+        } catch (_) {}
+        final retryPath = ConvertToNetwork.resolve(videoUrl);
+        if (retryPath.isNotEmpty) {
+          AppSettings.showLog("Retrying video init => $retryPath");
+          await initializeVideoPlayer(videoId, videoUrl);
+          return;
+        }
+      }
+
       videoPlayerController?.dispose();
       videoPlayerController = null;
       chewieController?.dispose();
       chewieController = null;
       isVideoReady = false;
-      update(["onVideoInitialize"]);
+      isVideoLoading = false;
+      update(["onVideoInitialize", "onLoading"]);
     }
   }
 
@@ -1984,27 +2013,25 @@ class NormalVideoDetailsController extends GetxController {
 //   return '$base$p';
 // }
 
-// ✅ NEW METHOD: Properly resolves relative or absolute video URLs
+  /// Always resolve from [videoUrl] so host changes / stale cache cannot break playback.
   String _resolveVideoUrl(String videoId, String videoUrl) {
-    // Check cache
-    String? cachedUrl = Database.onGetVideoUrl(videoId);
-    if (cachedUrl != null &&
-        cachedUrl.isNotEmpty &&
-        cachedUrl.startsWith('http')) {
-      AppSettings.showLog("✅ Using cached URL: $cachedUrl");
-      return cachedUrl;
+    if (videoUrl.trim().isNotEmpty) {
+      final resolved = ConvertToNetwork.resolve(videoUrl);
+      if (resolved.isNotEmpty) {
+        Database.onSetVideoUrl(videoId, resolved);
+        AppSettings.showLog("Resolved play URL => $resolved");
+        return resolved;
+      }
     }
 
-    // Already full URL
-    if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
-      return videoUrl;
+    final cached = Database.onGetVideoUrl(videoId);
+    if (cached != null && cached.isNotEmpty) {
+      final resolvedCache = ConvertToNetwork.resolve(cached);
+      AppSettings.showLog("Resolved cached URL => $resolvedCache");
+      return resolvedCache;
     }
 
-    // ✅ Use mediaBaseURL (no /api/) to build media file URL
-    String path = videoUrl.startsWith('/') ? videoUrl : '/$videoUrl';
-    String fullUrl = '${Constant.mediaBaseURL}$path';
-    AppSettings.showLog("✅ Resolved URL: $fullUrl");
-    return fullUrl;
+    return '';
   }
 
 // ✅ Static helper for images too
@@ -2188,6 +2215,13 @@ class NormalVideoDetailsController extends GetxController {
 
     update(
         ['adComplete', 'onVideoPlayPause', 'onShowControls', 'onProgressLine']);
+
+    Future.delayed(const Duration(seconds: 12), () {
+      if (isAdLoading && showAd && currentLongVideoAd?.id == ad.id) {
+        AppSettings.showLog('Ad load timeout — resuming video');
+        onAdFailed();
+      }
+    });
   }
 
   void dismissOverlayAd() {

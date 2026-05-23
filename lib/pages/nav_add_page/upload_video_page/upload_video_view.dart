@@ -100,21 +100,18 @@ class _UploadVideoViewState extends State<UploadVideoView> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     return PopScope(
+      canPop: !AppSettings.isUploading.value,
       // onPopInvoked: (didPop) => controller.onCloseEvent(),
-      child: Scaffold(
+      child: Obx(
+        () => Stack(
+          children: [
+            Scaffold(
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(10),
           child: CustomFilledButton(
             title: AppStrings.uploadVideo.tr,
             callback: () async {
-              AppSettings.showLog("Upload Video On Click");
-
-// Check channel is exists or not before uploading video
-              // if ((Database.isChannel == false || Database.channelId == null) && (controller.channelName.text.trim().isEmpty || controller.channelDescription.text.trim().isEmpty)) {
-              //   Get.to(const CreateChannelView());
-              // } else {
-              //   controller.onUploadVideoProcess(widget.videoPath, widget.videoType, widget.loginUserId, widget.loginUserChannelId);
-              // }
+              if (AppSettings.isUploading.value) return;
               controller.onUploadVideoProcess(
                   widget.videoPath,
                   widget.videoType,
@@ -727,6 +724,22 @@ class _UploadVideoViewState extends State<UploadVideoView> {
               ],
             ),
           ),
+        ),
+            ),
+            if (AppSettings.isUploading.value)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black54,
+                  child: Center(
+                    child: Obx(
+                      () => LoaderUi(
+                        message: AppSettings.uploadStatusMessage.value,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

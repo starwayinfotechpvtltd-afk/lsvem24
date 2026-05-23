@@ -161,7 +161,7 @@ class ShortsPrivateContentWidget extends StatelessWidget {
                   Visibility(
                     visible: channelType == 2,
                     child: GestureDetector(
-                      onTap: subscribe,
+                      onTap: subscribe, 
                       child: BlurryContainer(
                         height: 42,
                         width: 140,

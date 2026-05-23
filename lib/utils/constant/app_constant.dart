@@ -2,9 +2,9 @@ import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 
 class Constant {
   static const baseURL = 
-      "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5000/api/";
+      "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5001/api/";
 
-  static const mediaBaseURL =  "https://api.lsvem24.com";  // "http://192.168.0.104:5000";
+  static const mediaBaseURL = "https://api.lsvem24.com"; // "http://192.168.0.104:5001";
   static const secretKey =
       "lsv123xyz789"; // Ex :- ssf45sd1fs5d1sdf1s56165s15sdf1s
   static const folderStructurePath = "uploads";
@@ -73,6 +73,7 @@ class Constant {
   static const createRazorpayOrder = "client/payment/razorpay/create-order";
   static const verifyRazorpayPayment = "client/payment/razorpay/verify";
   static const razorpayPaymentStatus = "client/payment/razorpay/status";
+  static const razorpayPaymentFailed = "client/payment/razorpay/payment-failed";
 
   // Video Related Api.......
 

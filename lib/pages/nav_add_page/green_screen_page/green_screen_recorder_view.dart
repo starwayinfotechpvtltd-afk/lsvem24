@@ -539,7 +539,6 @@ class _GreenScreenRecorderViewState extends State<GreenScreenRecorderView>
   ///
   // ── Upload ──────────────────────────────────────────────────────────────────
   Future<void> _navigateToUpload(String videoPath) async {
-    _showLoadingDialog('Preparing upload...');
     try {
       if (!File(videoPath).existsSync()) throw Exception('File not found');
 

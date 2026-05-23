@@ -98,7 +98,13 @@ class UploadVideoApi {
           CustomToast.show(AppStrings.videoUploadSuccessfully.tr);
           return true;
         }
-        AppSettings.showLog("Upload Video Api Response => ${_uploadVideoModel?.status}");
+        final msg = _uploadVideoModel?.message?.toString();
+        if (msg != null && msg.isNotEmpty) {
+          CustomToast.show(msg);
+        }
+        AppSettings.showLog(
+          "Upload Video Api failed => $msg",
+        );
       } else {
         AppSettings.showLog("Upload Video Api Status Code Error");
       }

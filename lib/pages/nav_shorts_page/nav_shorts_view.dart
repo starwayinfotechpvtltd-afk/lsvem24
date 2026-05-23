@@ -23,7 +23,7 @@ class _NavShortsViewState extends State<NavShortsView> {
   @override
   void initState() {
     Utils.showLog("GoogleAdHelper.nativeVideoAdUnitId ::  ${GoogleAdHelper.nativeVideoAdUnitId}");
-    controller.init();
+    // controller.init();
     super.initState();
   }
 

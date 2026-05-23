@@ -32,26 +32,45 @@ class NavShortsController extends GetxController {
     super.onInit();
   }
 
-  void init() async {
+  Future<void> init() async {
+  try {
     currentPageIndex.value = 0;
+
     mainShortsVideos.clear();
+
     _adInserter.resetFeed();
+
     _getShortsVideoModel = null;
+
     GetShortsVideoApi.startPagination = 0;
+
     isApiLoading.value = true;
+
     await onGetShortsVideos();
+  } finally {
     isApiLoading.value = false;
   }
+}
 
-  void onPagination(int value) async {
-    if ((mainShortsVideos.length - 1) == value) {
-      if (!isPaginationLoading.value) {
-        isPaginationLoading.value = true;
-        await onGetShortsVideos();
-        isPaginationLoading.value = false;
-      }
+  Future<void> onPagination(
+  int value,
+) async {
+
+  if (isPaginationLoading.value) {
+    return;
+  }
+
+  if (value >= mainShortsVideos.length - 2) {
+
+    isPaginationLoading.value = true;
+
+    try {
+      await onGetShortsVideos();
+    } finally {
+      isPaginationLoading.value = false;
     }
   }
+}
 
   Future<void> onGetShortsVideos() async {
     _getShortsVideoModel =
@@ -75,9 +94,37 @@ class NavShortsController extends GetxController {
       //     // onShortsVideoConvert(i, paginationData[i].id!, paginationData[i].videoUrl!);
       //     // onShortsImageConvert(i, paginationData[i].id!, paginationData[i].videoImage!);
       //   }
-      final batch = List<Shorts>.from(paginationData!);
-      await _adInserter.appendShorts(batch, mainShortsVideos);
-      AppSettings.showLog("Pagination Length: ${mainShortsVideos.length}");
+      if (paginationData == null || paginationData.isEmpty) {
+  GetShortsVideoApi.startPagination--;
+  AppSettings.showLog("Pagination Data Empty !!!");
+  return;
+}
+
+final batch = paginationData
+    .cast<Shorts>()
+    .where(
+      (e) =>
+          e.videoUrl != null &&
+          e.videoUrl!.isNotEmpty,
+    )
+    .toList();
+
+if (batch.isEmpty) {
+  AppSettings.showLog("No valid shorts videos");
+  return;
+}
+
+await _adInserter.appendShorts(
+  batch,
+  mainShortsVideos,
+);
+
+      if (batch.isEmpty) return;
+
+      await _adInserter.appendShorts(
+        batch,
+        mainShortsVideos,
+      );
     } else {
       GetShortsVideoApi.startPagination--;
       AppSettings.showLog("Pagination Data Empty !!!");

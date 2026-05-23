@@ -140,8 +140,20 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
           //     selectedVideo == null) {
           //   CustomToast.show(AppStrings.pleaseFillUpDetails.tr);
           // } else {
-            Get.dialog(const LoaderUi(color: AppColor.white),
-                barrierDismissible: false);
+            Get.dialog(
+              PopScope(
+                canPop: false,
+                child: Obx(
+                  () => LoaderUi(
+                    color: AppColor.white,
+                    message: CreateAdsApi.uploadStatusRx.value.isNotEmpty
+                        ? CreateAdsApi.uploadStatusRx.value
+                        : 'Creating ad...',
+                  ),
+                ),
+              ),
+              barrierDismissible: false,
+            );
 
             final isSuccess = await CreateAdsApi.callApi(
               title: adsTitleController.text.trim(),

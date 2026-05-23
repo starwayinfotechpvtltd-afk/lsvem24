@@ -31,6 +31,7 @@ import 'package:metube/pages/splash_screen_page/api/unlock_private_video_api.dar
 import 'package:metube/pages/video_details_page/video_description_bottom_sheet.dart';
 import 'package:metube/pages/video_details_page/video_details_api.dart';
 import 'package:metube/pages/video_details_page/video_details_model.dart';
+import 'package:metube/utils/storage/guest_like_storage.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/constant/app_constant.dart';
@@ -110,6 +111,13 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
         customChanges["disLike"] = details?.dislike ?? 0;
         customChanges["comment"] = details?.totalComments ?? 0;
         customChanges["share"] = details?.shareCount ?? 0;
+
+        GuestLikeStorage.applyToUi(
+          videoId: widget.videoId,
+          isLike: isLike,
+          isDisLike: isDisLike,
+          customChanges: customChanges,
+        );
 
         isPrivateContent.value =
             (videoDetailsModel?.detailsOfVideo?.videoPrivacyType == 2 &&

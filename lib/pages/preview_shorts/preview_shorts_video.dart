@@ -29,6 +29,7 @@ import 'package:metube/pages/profile_page/your_channel_page/main_page/your_chann
 import 'package:metube/pages/search_page/search_view.dart';
 import 'package:metube/pages/splash_screen_page/api/unlock_private_video_api.dart';
 import 'package:metube/pages/video_details_page/video_description_bottom_sheet.dart';
+import 'package:metube/utils/storage/guest_like_storage.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/icons/app_icons.dart';
@@ -163,6 +164,13 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
         controller.mainShortsVideos[widget.index].shareCount.toString());
     customChanges["comment"] = int.parse(
         controller.mainShortsVideos[widget.index].totalComments.toString());
+
+    GuestLikeStorage.applyToUi(
+      videoId: controller.mainShortsVideos[widget.index].id?.toString() ?? '',
+      isLike: isLike,
+      isDisLike: isDisLike,
+      customChanges: customChanges,
+    );
   }
 
   void onClickLike() async {

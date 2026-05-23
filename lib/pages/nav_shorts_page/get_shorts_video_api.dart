@@ -13,29 +13,36 @@ class GetShortsVideoApi {
   static Future<GetShortsVideoModel?> callApi(String loginUserId) async {
     AppSettings.showLog("Get Shorts Video Api Calling... ");
 
-    startPagination += 1;
+    final nextPage = startPagination + 1;
 
     AppSettings.showLog("Get Shorts Pagination Page => $startPagination");
 
-    final uri = Uri.parse("${Constant.baseURL + Constant.getShortsVideo}?start=$startPagination&limit=$limitPagination");
-
-    AppSettings.showLog("Get Shorts Uri => $uri");
-
-    final headers = {"key": Constant.secretKey};
+    final uri = Uri.parse("${Constant.baseURL + Constant.getShortsVideo}?start=$nextPage&limit=$limitPagination");
 
     try {
-      var response = await http.get(uri, headers: headers);
+    final response = await http
+        .get(
+          uri,
+          headers: {
+            "key": Constant.secretKey,
+          },
+        )
+        .timeout(
+          const Duration(seconds: 20),
+        );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        AppSettings.showLog("Get Shorts Pagination Page => ${response.body}");
-        return GetShortsVideoModel.fromJson(jsonResponse);
-      } else {
-        AppSettings.showLog("Get Shorts Video Api Video StateCode Error");
-      }
-    } catch (error) {
-      AppSettings.showLog("Get Shorts Video Api Video Error => $error");
+    if (response.statusCode == 200) {
+      startPagination = nextPage;
+
+      return GetShortsVideoModel.fromJson(
+        jsonDecode(response.body),
+      );
     }
+  } catch (e) {
+    AppSettings.showLog(
+      "Shorts Error => $e",
+    );
+  }
     return null;
   }
 }

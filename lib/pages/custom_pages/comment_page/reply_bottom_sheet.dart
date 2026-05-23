@@ -17,6 +17,7 @@ import 'package:metube/utils/services/preview_image.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class ReplyBottomSheet {
   static RxInt afterChangeTotalReply = 0.obs;
@@ -204,6 +205,7 @@ class ReplyBottomSheet {
                       hintStyle: GoogleFonts.urbanist(color: Colors.grey, fontSize: 14),
                       suffixIcon: IconButton(
                         onPressed: () async {
+                          if (!AuthService.checkLogin()) return;
                           if (_controller.repliesController.text.isNotEmpty) {
                             FocusScope.of(context).requestFocus(FocusNode());
 

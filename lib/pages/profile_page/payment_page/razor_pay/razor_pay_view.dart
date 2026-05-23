@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_typedefs/rx_typedefs.dart';
 import 'package:metube/custom/custom_method/custom_toast.dart';
 import 'package:metube/database/database.dart';
+import 'package:metube/pages/profile_page/payment_page/razor_pay/get_razorpay_payment_status_api.dart';
+import 'package:metube/pages/profile_page/payment_page/razor_pay/update_razorpay_payment_failed_api.dart';
 import 'package:metube/pages/profile_page/payment_page/razor_pay/verify_razorpay_payment_api.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -52,9 +54,23 @@ class RazorPayService {
 
     if (verified?.status == true) {
       await onComplete();
-    } else {
-      CustomToast.show(verified?.message ?? 'Payment verification failed');
+      return;
     }
+
+    // Webhook may fulfill shortly after verify; poll backend status.
+    final fulfilled = await GetRazorpayPaymentStatusApi.waitUntilFulfilled(
+      userId: userId,
+      orderId: orderId,
+    );
+
+    if (fulfilled) {
+      await onComplete();
+      return;
+    }
+
+    CustomToast.show(
+      verified?.message ?? 'Payment verification failed',
+    );
   }
 
   void razorPayCheckout({
@@ -100,7 +116,16 @@ class RazorPayService {
     }
   }
 
-  void handlePaymentError(PaymentFailureResponse response) {
+  void handlePaymentError(PaymentFailureResponse response) async {
+    final userId = Database.loginUserId ?? '';
+    final orderId = _pendingOrderId ?? '';
+    if (userId.isNotEmpty && orderId.isNotEmpty) {
+      await UpdateRazorpayPaymentFailedApi.callApi(
+        userId: userId,
+        razorpayOrderId: orderId,
+        reason: response.message ?? 'Payment failed or cancelled',
+      );
+    }
     CustomToast.show(response.message ?? 'Payment failed');
   }
 

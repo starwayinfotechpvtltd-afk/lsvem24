@@ -17,6 +17,7 @@ import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
 import 'package:video_player/video_player.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 /// Latest total comment count after opening / posting (read on sheet dismiss).
 class CommentSheetSession {
@@ -137,6 +138,7 @@ class CommentSheetPanel extends StatelessWidget {
                   hintStyle: GoogleFonts.urbanist(color: Colors.grey, fontSize: 14),
                   suffixIcon: IconButton(
                     onPressed: () async {
+                      if (!AuthService.checkLogin()) return;
                       if (_commentController.commentController.text.isNotEmpty) {
                         FocusScope.of(context).requestFocus(FocusNode());
 
