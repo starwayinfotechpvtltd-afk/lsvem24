@@ -45,6 +45,7 @@ import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
 import 'package:metube/pages/nav_add_page/green_screen_page/green_screen_recorder_view.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class NavShortsDetailView extends StatefulWidget {
   const NavShortsDetailView(
@@ -245,6 +246,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onClickLike() async {
+     if (!AuthService.checkLogin()) return;
     if (!isLike.value) {
       if (isDisLike.value) {
         isDisLike.value = false;
@@ -260,6 +262,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onClickDisLike() async {
+     if (!AuthService.checkLogin()) return;
     if (!isDisLike.value) {
       if (isLike.value) {
         isLike.value = false;

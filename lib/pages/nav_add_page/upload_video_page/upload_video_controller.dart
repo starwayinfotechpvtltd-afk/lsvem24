@@ -28,7 +28,7 @@ import 'package:metube/utils/compressor/image_compressor.dart';
 
 class UploadVideoController extends GetxController {
   final libraryController = Get.put(NavLibraryPageController());
-
+  
   TextEditingController videoTitleController = TextEditingController();
   TextEditingController videoDescriptionController = TextEditingController();
   TextEditingController videoHashtagController = TextEditingController();
@@ -155,9 +155,9 @@ class UploadVideoController extends GetxController {
     }
   }
 
-  void _setUploadStatus(String message) {
-    AppSettings.uploadStatusMessage.value = message;
-  }
+  // void _setUploadStatus(String message) {
+  //   AppSettings.uploadStatusMessage.value = message;
+  // }
 
   void _showUploadLoader() {
     if (Get.isDialogOpen ?? false) return;
@@ -316,8 +316,13 @@ if (finalThumb.isEmpty || !File(finalThumb).existsSync()) {
 
 // _setUploadStatus('Uploading thumbnail...');
 
-AppSettings.showLog('Video path => $finalVideo');
-AppSettings.showLog('Thumbnail => $finalThumb');
+AppSettings.showLog(
+"Thumb exists => ${File(finalThumb).existsSync()}"
+);
+
+AppSettings.showLog(
+"Thumb size => ${await File(finalThumb).length()}"
+);
 
 final uploadedThumbnail = await ConvertVideoImageApi.callApi(
   finalThumb,

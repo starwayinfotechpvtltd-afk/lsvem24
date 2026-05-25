@@ -51,13 +51,32 @@ class ConvertVideoImageApi {
 
       final responseBody = await response.stream.bytesToString();
 
-      if (response.statusCode != 200) {
-        AppSettings.showLog("Convert Video Image status error");
-        return null;
-      }
+      AppSettings.showLog(
+        "THUMB STATUS => ${response.statusCode}"
+        );
+
+        AppSettings.showLog(
+        "THUMB RESPONSE => $responseBody"
+        );
+
+        if (response.statusCode != 200) {
+          throw Exception(
+              "Thumbnail upload HTTP ${response.statusCode}");
+        }
 
       final jsonResult = jsonDecode(responseBody) as Map<String, dynamic>;
       _fileUploadModel = FileUploadModel.fromJson(jsonResult);
+      AppSettings.showLog(
+        "status=${_fileUploadModel?.status}"
+        );
+
+        AppSettings.showLog(
+        "url=${_fileUploadModel?.url}"
+        );
+
+        AppSettings.showLog(
+        "message=${_fileUploadModel?.message}"
+        );
 
       if (_fileUploadModel?.status == true &&
           (_fileUploadModel?.url?.isNotEmpty ?? false)) {

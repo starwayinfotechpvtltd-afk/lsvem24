@@ -1,24 +1,52 @@
+import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class ImageCompressor {
 
-static Future<String?> compress(
-String path,
-) async {
+  static Future<String?> compress(
+    String path,
+  ) async {
 
-final output =
-"${path}_small.jpg";
+    final input = File(path);
 
-final result =
-await FlutterImageCompress.compressAndGetFile(
-path,
-output,
-quality: 92,
-minWidth: 1280,
-minHeight: 720,
-);
+    if (!input.existsSync()) {
+      return null;
+    }
 
-return result?.path;
+    final dir =
+        input.parent.path;
 
-}
+    final name =
+        DateTime.now()
+            .millisecondsSinceEpoch;
+
+    final output =
+        "$dir/thumb_$name.jpg";
+
+    final result =
+        await FlutterImageCompress.compressAndGetFile(
+      path,
+      output,
+
+      quality: 85,
+
+      minWidth: 720,
+      minHeight: 720,
+
+      keepExif: false,
+    );
+
+    if (result == null) {
+      return null;
+    }
+
+    final size =
+        await result.length();
+
+    if (size == 0) {
+      return null;
+    }
+
+    return result.path;
+  }
 }

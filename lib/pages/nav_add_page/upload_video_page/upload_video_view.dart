@@ -25,6 +25,7 @@ import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class UploadVideoView extends StatefulWidget {
   const UploadVideoView({
@@ -111,6 +112,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
           child: CustomFilledButton(
             title: AppStrings.uploadVideo.tr,
             callback: () async {
+               if (!AuthService.checkLogin()) return;
               if (AppSettings.isUploading.value) return;
               controller.onUploadVideoProcess(
                   widget.videoPath,

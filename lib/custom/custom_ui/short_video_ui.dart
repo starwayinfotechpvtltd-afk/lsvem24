@@ -15,6 +15,7 @@ import 'package:metube/utils/services/preview_image.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
 import 'package:metube/utils/utils.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class ShortVideoUi extends StatelessWidget {
   const ShortVideoUi({
@@ -161,7 +162,10 @@ class ShortsPrivateContentWidget extends StatelessWidget {
                   Visibility(
                     visible: channelType == 2,
                     child: GestureDetector(
-                      onTap: subscribe, 
+                      onTap: () {
+                        if (!AuthService.checkLogin()) return;
+                        subscribe();
+                      },
                       child: BlurryContainer(
                         height: 42,
                         width: 140,
@@ -173,14 +177,22 @@ class ShortsPrivateContentWidget extends StatelessWidget {
                           children: [
                             Text(
                               AppStrings.subscribe.tr,
-                              style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: GoogleFonts.urbanist(
+                                color: AppColor.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                             5.width,
                             Image.asset(AppIcons.coin, width: 15),
                             2.width,
                             Text(
                               "$subscribeCoin/m",
-                              style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.w800, fontSize: 12),
+                              style: GoogleFonts.urbanist(
+                                color: AppColor.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),

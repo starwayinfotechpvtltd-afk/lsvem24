@@ -4203,6 +4203,7 @@ class PreviewVideoUi extends StatelessWidget {
                                                   Obx(
                                                     () => IconButton(
                                                       onPressed: () async {
+                                                        if (!AuthService.checkLogin()) return;
                                                         if (!controller
                                                             .isLike.value) {
                                                           if (controller
@@ -4240,6 +4241,7 @@ class PreviewVideoUi extends StatelessWidget {
                                                   Obx(
                                                     () => IconButton(
                                                       onPressed: () async {
+                                                        if (!AuthService.checkLogin()) return;
                                                         if (!controller
                                                             .isDisLike.value) {
                                                           if (controller
@@ -4683,18 +4685,23 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                             ? AppIcons.likeBold
                             : AppIcons.like,
                         callback: () async {
+                          if (!AuthService.checkLogin()) return;
+
                           if (!controller.isLike.value) {
                             if (controller.isDisLike.value) {
                               controller.isDisLike.value = false;
                               controller.customChanges["disLike"]--;
                             }
+
                             controller.isLike.value = true;
                             controller.customChanges["like"]++;
+
                             await LikeDisLikeVideoApi.callApi(
                                 controller.videoId, true);
                           }
                         },
                       ).paddingOnly(bottom: 2),
+
                       NormalVideoDetailsIconUi(
                         title: CustomFormatNumber.convert(
                             controller.customChanges["disLike"]),
@@ -4702,13 +4709,17 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                             ? AppIcons.disLikeBold
                             : AppIcons.disLike,
                         callback: () async {
+                          if (!AuthService.checkLogin()) return;
+
                           if (!controller.isDisLike.value) {
                             if (controller.isLike.value) {
                               controller.isLike.value = false;
                               controller.customChanges["like"]--;
                             }
+
                             controller.isDisLike.value = true;
                             controller.customChanges["disLike"]++;
+
                             await LikeDisLikeVideoApi.callApi(
                                 controller.videoId, false);
                           }
