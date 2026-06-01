@@ -4626,6 +4626,9 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
         if (controller.isVideoDetailsLoading.value) {
           return const VideoDetailsShimmerUi();
         }
+        if (controller.videoDetailsModel?.detailsOfVideo == null) {
+            return const SizedBox.shrink();
+          }
         final details = controller.videoDetailsModel?.detailsOfVideo;
         return Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -4954,9 +4957,10 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                               .videoDetailsModel?.detailsOfVideo?.channelId,
                       child: controller.videoDetailsModel?.detailsOfVideo
                                   ?.channelType ==
-                              2
+                              2 
                           ? GestureDetector(
                               onTap: () async {
+                                if (!AuthService.checkLogin()) return;
                                 if (controller.isSubscribe.value == false) {
                                   SubscribePremiumChannelBottomSheet.onShow(
                                     coin: (controller
@@ -4969,7 +4973,7 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                                       Get.dialog(const LoaderUi(),
                                           barrierDismissible: false);
                                       final bool isSuccess =
-                                          await SubscribeChannelApiClass
+                                          await SubscribeChannelApiClass  
                                               .callApi(controller
                                                       .videoDetailsModel
                                                       ?.detailsOfVideo
@@ -5062,6 +5066,7 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
                             )
                           : GestureDetector(
                               onTap: () async {
+                                if (!AuthService.checkLogin()) return;
                                 if (controller.isSubscribe.value) {
                                   controller.isSubscribe.value = false;
                                   controller.customChanges["subscribe"]--;

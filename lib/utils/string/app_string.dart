@@ -225,7 +225,7 @@ abstract class AppStrings {
   static String stopLive = "stopLive";
   static String yesExit = "yesExit";
   static String yesLogOut = "yesLogOut";
-  static String getMetubePremium = "Get LSV24 Premium";
+  static String getMetubePremium = "Get LSVEM24 Premium";
   static String logOutText = "logOutText";
   static String stopLiveDialogText = "stopLiveDialogText";
 
@@ -349,7 +349,7 @@ abstract class AppStrings {
   static String clear = "clear";
   static String normal = "normal";
 
-  static String meTubePremium = "lsv24Premium";
+  static String meTubePremium = "lsvem24Premium";
   static String purchasePlanSubTitle = "purchasePlanSubTitle";
   static String adFreeExperienceWithOfflineViewing = "adFreeExperienceWithOfflineViewing";
   static String dateOfPurchase = "dateOfPurchase";

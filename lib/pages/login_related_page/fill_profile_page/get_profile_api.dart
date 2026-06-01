@@ -43,15 +43,16 @@ class GetProfileApi {
           if (profileModel!.user!.channelId != null &&
               profileModel!.user!.isChannel != null) {
             Database.onSetChannelId(profileModel!.user!.channelId!);
-            Database.onSetIsChannel(profileModel!.user!.isChannel!);
+            Database.onSetIsChannel(profileModel!.user!.isChannel!); 
           }
-          if (profileModel?.user?.image != null) {
-            String image =
-                await ConvertToNetwork.convert(profileModel!.user!.image!);
-
+          final rawImage = profileModel?.user?.image?.trim() ?? '';
+          if (rawImage.isNotEmpty) {
+            final image = ConvertToNetwork.resolve(rawImage);
             AppSettings.showLog("Profile Image => $image");
-            Database.onSetProfileImage(image);
-            AppSettings.profileImage.value = image;
+            if (image.isNotEmpty) {
+              await Database.onSetProfileImage(image);
+              AppSettings.profileImage.value = image;
+            }
           }
           _syncBadgeFromProfile();
         }

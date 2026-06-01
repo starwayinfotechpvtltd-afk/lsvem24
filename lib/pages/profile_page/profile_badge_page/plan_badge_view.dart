@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:metube/database/database.dart';
 import 'package:get/get.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class PlanBadgeWidget extends StatelessWidget {
   const PlanBadgeWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    if (!AuthService.checkLogin()) {
+      return const SizedBox.shrink();
+    }
+
     final badge = Database.purchasedPlanBadgeRx.value;
 
     return _buildBadge(badge);

@@ -1,5 +1,5 @@
 final Map<String, String> enZhCN = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "观看来自世界各地的有趣视频",
   "onBoardingText2": "通过智能手机轻松观看有趣的视频",
   "onBoardingText3": "现在就让我们通过 MeTube 探索世界各地的视频吧！",

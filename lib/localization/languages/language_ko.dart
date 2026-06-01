@@ -1,5 +1,5 @@
 final Map<String, String> enKo = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "전 세계의 흥미로운 동영상을 시청하세요",
   "onBoardingText2": "스마트폰으로 재미있는 영상을 쉽게 감상하세요",
   "onBoardingText3": "지금 MeTube로 전 세계의 동영상을 탐험해 보세요!",

@@ -5,6 +5,7 @@ import 'package:metube/pages/shorts_ads/shorts_feed_ad_model.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 
+
 class GetShortsFeedAdsApi {
   static Future<List<ShortsFeedAd>> callApi() async {
     AppSettings.showLog("Get Shorts Feed Ads Api Calling...");

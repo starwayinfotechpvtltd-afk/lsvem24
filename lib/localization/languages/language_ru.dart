@@ -1,5 +1,5 @@
 final Map<String, String> enRu = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Смотрите интересные видео со всего мира",
   "onBoardingText2": "Легко смотрите интересные видео со своего смартфона",
   "onBoardingText3": "Давайте посмотрим видео по всему миру с помощью MeTube прямо сейчас!",

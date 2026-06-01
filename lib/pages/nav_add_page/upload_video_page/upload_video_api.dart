@@ -8,9 +8,15 @@ import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
 
+class UploadResult {
+  final bool success;
+  final String? message;
+  const UploadResult({required this.success, this.message});
+}
+
 class UploadVideoApi {
   static UploadVideoModel? _uploadVideoModel;
-  static Future<bool> callApi({
+  static Future<UploadResult> callApi({
     required String title,
     required String description,
     required List hashTag,
@@ -36,9 +42,13 @@ class UploadVideoApi {
 
     try {
       final uri = Uri.parse(Constant.baseURL + Constant.uploadVideo);
-      print('URI: ${Constant.baseURL + Constant.uploadVideo}');
+      print('Upload video API URI: ${Constant.baseURL + Constant.uploadVideo}');
 
-      var headers = {'key': Constant.secretKey, 'Content-Type': 'application/json'};
+      var headers = {
+ 'key': Constant.secretKey,
+ 'Content-Type': 'application/json'
+};
+
 
       final body = json.encode(scheduleType == 1 // SCHEDULED
           ? {
@@ -87,7 +97,16 @@ class UploadVideoApi {
               "channelType": AppSettings.channelType.value.toString(),
             });
 
-      final response = await http.post(uri, body: body, headers: headers);
+print("REQUEST BODY:");
+print(body);
+      final response = await http.post(
+        uri,
+        headers: headers,
+        body: body,
+      );
+      print("STATUS: ${response.statusCode}");
+      print("BODY: ${response.body}");
+      print("HEADERS: ${response.headers}");
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
@@ -96,21 +115,23 @@ class UploadVideoApi {
 
         if (_uploadVideoModel?.status ?? false) {
           CustomToast.show(AppStrings.videoUploadSuccessfully.tr);
-          return true;
+          return const UploadResult(success: true);
         }
-        final msg = _uploadVideoModel?.message?.toString();
-        if (msg != null && msg.isNotEmpty) {
-          CustomToast.show(msg);
-        }
-        AppSettings.showLog(
-          "Upload Video Api failed => $msg",
-        );
+        final msg = _uploadVideoModel?.message?.toString() ?? 'Upload failed';
+        AppSettings.showLog('Upload Video Api failed => $msg');
+        return UploadResult(success: false, message: msg);
       } else {
-        AppSettings.showLog("Upload Video Api Status Code Error");
+        AppSettings.showLog(
+          'Upload Video Api Status Code Error => ${response.statusCode}',
+        );
+        return UploadResult(
+          success: false,
+          message: 'Server error (${response.statusCode})',
+        );
       }
     } catch (e) {
-      AppSettings.showLog("Upload Video Api Error => $e");
+      AppSettings.showLog('Upload Video Api Error => $e');
+      return UploadResult(success: false, message: e.toString());
     }
-    return false;
   }
 }

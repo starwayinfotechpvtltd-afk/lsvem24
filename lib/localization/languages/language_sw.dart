@@ -1,5 +1,5 @@
 final Map<String, String> enSw = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Tazama video za kuvutia kutoka duniani kote",
   "onBoardingText2": "Tazama video za kuvutia kwa urahisi kutoka kwa simu yako mahiri",
   "onBoardingText3": "Hebu tuchunguze video kote ulimwenguni kwa kutumia MeTube sasa!",

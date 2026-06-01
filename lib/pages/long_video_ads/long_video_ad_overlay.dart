@@ -269,12 +269,16 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
       final aspectRatio =
           c.value.aspectRatio > 0 ? c.value.aspectRatio : 16 / 9;
 
-      return Center(
-        child: AspectRatio(
-          aspectRatio: aspectRatio,
-          child: VideoPlayer(c),
+      return SizedBox.expand(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: SizedBox(
+            width: c.value.size.width,
+            height: c.value.size.height,
+            child: VideoPlayer(c),
+          ),
         ),
-      );
+);
     }
     return _buildImageFallback();
   }

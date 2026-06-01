@@ -1,5 +1,5 @@
 final Map<String, String> jaJP = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "世界中の興味深いビデオを見る",
   "onBoardingText2": "スマートフォンから気になる動画を手軽に視聴",
   "onBoardingText3": "今すぐ MeTube で世界中のビデオを探索しましょう!",

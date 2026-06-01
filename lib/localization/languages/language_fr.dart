@@ -1,5 +1,5 @@
 final Map<String, String> enFr = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Regardez des vidéos intéressantes du monde entier",
   "onBoardingText2": "Regardez facilement des vidéos intéressantes depuis votre smartphone",
   "onBoardingText3": "Explorons dès maintenant les vidéos du monde entier avec MeTube !",

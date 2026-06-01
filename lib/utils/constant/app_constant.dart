@@ -2,9 +2,9 @@ import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 
 class Constant {
   static const baseURL = 
-      "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5001/api/";
+      "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5003/api/";
 
-  static const mediaBaseURL = "https://api.lsvem24.com"; // "http://192.168.0.104:5001";
+  static const mediaBaseURL =  "https://api.lsvem24.com"; // "http://192.168.0.104:5003";
   static const secretKey =
       "lsv123xyz789"; // Ex :- ssf45sd1fs5d1sdf1s56165s15sdf1s
   static const folderStructurePath = "uploads";
@@ -16,11 +16,11 @@ class Constant {
   static String fileUpload = "client/file/upload-file";
   static const channelImage = "$folderStructurePath/userImage";
   static const shortsVideo = "$folderStructurePath/Shorts";
-  static const shortsVideoImage = "$folderStructurePath/shortsImage";
+  static const shortsVideoImage = "$folderStructurePath/shortsImage"; 
   static const normalVideo = "$folderStructurePath/Videos";
   static const normalVideoImage = "$folderStructurePath/videoImage";
 
-  // >>>>> >>>>> >>>>> >>>>> Video Related Api <<<<< <<<<< <<<<<< <<<<<
+  // >>>>> >>>>> >>>>> >>>>> Video Related Api <<<<< <<<<< <<<<<< <<<<< 
 
   // >>>>> >>>>> >>>>> Home Page Api <<<<< <<<<< <<<<<<
   static const homeVideo = "client/video/videosOfHome";
@@ -67,6 +67,7 @@ class Constant {
   static const setPassword = "client/user/setPassword";
   static const forgotPasswordSendOtp = "client/otp/create";
   static const createAds = "client/videoad/uploadAd";
+  static const calculateBudget = "client/videoad/calculateBudget";
   static const getShortsFeedAds = "client/videoad/getShortsFeedAds";
   static const getLongVideoAds = "client/videoad/getLongVideoAds";
   static const getRazorpayConfig = "client/payment/razorpay-config";

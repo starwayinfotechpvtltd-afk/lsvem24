@@ -26,7 +26,7 @@ import 'package:metube/localization/localizations_delegate.dart';
 import 'package:metube/notification/local_notification_services.dart';
 import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
-import 'package:metube/pages/nav_home_page/controller/nav_home_controller.dart';
+import 'package:metube/pages/nav_home_page/controller/nav_home_controller.dart'; 
 import 'package:metube/pages/nav_shorts_page/nav_shorts_controller.dart';
 import 'package:metube/pages/profile_page/earn_reward_page/earn_reward_controller.dart';
 import 'package:metube/pages/splash_screen_page/view/splash_screen_view.dart';
@@ -34,6 +34,7 @@ import 'package:metube/pages/video_details_page/normal_video_details_controller.
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/constant/app_constant.dart';
+import 'package:metube/utils/services/convert_to_network.dart';
 import 'package:metube/utils/prefrens.dart';
 import 'package:metube/utils/request/permission_handler.dart';
 import 'package:metube/utils/settings/app_settings.dart';
@@ -50,6 +51,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AdminSettingsApi.callApi();
   await GetStorage.init();
+
+  _hydrateProfileImageFromCache();
 
   onInitializeBranchIo();
   CustomCheckInternet.onCheck();
@@ -503,6 +506,20 @@ Future<void> onConnectInternet() async {
   }
 }
 // >>>>> Login Details <<<<<
+
+void _hydrateProfileImageFromCache() {
+  try {
+    final cached = GetStorage().read('profileImage');
+    if (cached != null && cached.toString().trim().isNotEmpty) {
+      final resolved = ConvertToNetwork.resolve(cached.toString());
+      if (resolved.isNotEmpty) {
+        AppSettings.profileImage.value = resolved;
+      }
+    }
+  } catch (e) {
+    AppSettings.showLog('Profile image cache hydrate skipped: $e');
+  }
+}
 
 // F-1 G-2 A-3. E-4
 Future<void> onInitializeBranchIo() async {

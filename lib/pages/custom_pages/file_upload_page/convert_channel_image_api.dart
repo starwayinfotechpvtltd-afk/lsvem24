@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; 
 import 'package:metube/pages/custom_pages/file_upload_page/file_upload_model.dart';
 import 'package:metube/utils/constant/app_constant.dart';
+import 'package:metube/utils/services/convert_to_network.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 
 class ConvertChannelImageApi {
@@ -26,7 +27,7 @@ class ConvertChannelImageApi {
         final jsonResult = jsonDecode(responseBody);
         _fileUploadModel = FileUploadModel.fromJson(jsonResult);
         AppSettings.showLog("Convert Image Api Response => ${_fileUploadModel?.url}");
-        return _fileUploadModel!.url!;
+        return ConvertToNetwork.resolve(_fileUploadModel!.url!);
       } else {
         AppSettings.showLog("Convert Image Api Status Code Error");
       }

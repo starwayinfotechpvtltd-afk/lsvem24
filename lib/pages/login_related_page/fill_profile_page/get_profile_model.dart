@@ -86,6 +86,9 @@ class User {
     int? referralCount,
     int? coin,
     int? purchasedCoin,
+    int? currentCoin,
+    int? totalPurchasedCoin,
+    int? usedForAdsCoin,
     int? subscriptionCost,
     int? videoUnlockCost,
     bool? isMonetization,
@@ -134,6 +137,7 @@ class User {
     _coin = coin;
     _purchasedCoin = purchasedCoin;
     _subscriptionCost = subscriptionCost;
+    _totalPurchasedCoin = totalPurchasedCoin;
     _videoUnlockCost = videoUnlockCost;
     _isMonetization = isMonetization;
     _totalWatchTime = totalWatchTime;
@@ -182,7 +186,10 @@ class User {
     _referralCount = json['referralCount'];
     _coin = json['coin'];
     _purchasedCoin = json['purchasedCoin'];
+    _currentCoin = json['currentCoin'];
     _subscriptionCost = json['subscriptionCost'];
+    _totalPurchasedCoin = json['totalPurchasedCoin'];
+    _usedForAdsCoin = json['usedForAdsCoin'];
     _videoUnlockCost = json['videoUnlockCost'];
     _isMonetization = json['isMonetization'];
     _totalWatchTime = json['totalWatchTime'];
@@ -236,6 +243,9 @@ class User {
   int? _purchasedCoin;
   int? _subscriptionCost;
   int? _videoUnlockCost;
+  int? _currentCoin;
+  int? _totalPurchasedCoin;
+  int? _usedForAdsCoin;
   bool? _isMonetization;
   int? _totalWatchTime;
   int? _totalCurrentWatchTime;
@@ -282,6 +292,9 @@ class User {
     int? coin,
     int? purchasedCoin,
     int? subscriptionCost,
+    int? currentCoin,
+    int? totalPurchasedCoin,
+    int? usedForAdsCoin,
     int? videoUnlockCost,
     bool? isMonetization,
     int? totalWatchTime,
@@ -331,6 +344,9 @@ class User {
         purchasedCoin: purchasedCoin ?? _purchasedCoin,
         subscriptionCost: subscriptionCost ?? _subscriptionCost,
         videoUnlockCost: videoUnlockCost ?? _videoUnlockCost,
+        currentCoin: currentCoin ?? _currentCoin,
+        totalPurchasedCoin: totalPurchasedCoin ?? _totalPurchasedCoin,
+        usedForAdsCoin: usedForAdsCoin ?? _usedForAdsCoin,
         isMonetization: isMonetization ?? _isMonetization,
         totalWatchTime: totalWatchTime ?? _totalWatchTime,
         totalCurrentWatchTime: totalCurrentWatchTime ?? _totalCurrentWatchTime,
@@ -378,6 +394,9 @@ class User {
   int? get purchasedCoin => _purchasedCoin;
   int? get subscriptionCost => _subscriptionCost;
   int? get videoUnlockCost => _videoUnlockCost;
+  int? get currentCoin => _currentCoin;
+  int? get totalPurchasedCoin => _totalPurchasedCoin;
+  int? get usedForAdsCoin => _usedForAdsCoin;
   bool? get isMonetization => _isMonetization;
   int? get totalWatchTime => _totalWatchTime;
   int? get totalCurrentWatchTime => _totalCurrentWatchTime;
@@ -432,6 +451,9 @@ class User {
     map['coin'] = _coin;
     map['purchasedCoin'] = _purchasedCoin;
     map['subscriptionCost'] = _subscriptionCost;
+    map['currentCoin'] = _currentCoin;
+    map['totalPurchasedCoin'] = _totalPurchasedCoin;
+    map['usedForAdsCoin'] = _usedForAdsCoin;
     map['videoUnlockCost'] = _videoUnlockCost;
     map['isMonetization'] = _isMonetization;
     map['totalWatchTime'] = _totalWatchTime;

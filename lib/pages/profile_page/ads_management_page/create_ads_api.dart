@@ -16,11 +16,11 @@ class CreateAdsApi {
   static String uploadStatus = '';
   static final uploadStatusRx = ''.obs;
 
-  static void _setStatus(String value) {
-    uploadStatus = value;
-    uploadStatusRx.value = value;
-    AppSettings.showLog(value);
-  }
+  // static void _setStatus(String value) {
+  //   uploadStatus = value;
+  //   uploadStatusRx.value = value;
+  //   AppSettings.showLog(value);
+  // }
 
   static Future<bool> callApi({
     String? title,
@@ -32,6 +32,9 @@ class CreateAdsApi {
     String? adRuns,
     String? city,
     String? budget,
+    String? placement,
+    int? durationSeconds,
+    double? fileSizeMB,
     File? image,
     File? video,
   }) async {
@@ -57,7 +60,7 @@ class CreateAdsApi {
       final isShortAd = adRuns == 'short videos';
 
       if (image != null) {
-        _setStatus('Optimizing ad image...');
+        // _setStatus('Optimizing ad image...');
         imageUrl = await _compressAndUploadImage(image);
         if (imageUrl == null) {
           message = 'Image upload failed';
@@ -66,7 +69,7 @@ class CreateAdsApi {
       }
 
       if (video != null) {
-        _setStatus('Optimizing ad video...');
+        // _setStatus('Optimizing ad video...');
         videoUrl = await _compressAndUploadVideo(
           video,
           isShort: isShortAd,
@@ -77,7 +80,7 @@ class CreateAdsApi {
         }
       }
 
-      _setStatus('Saving ad...');
+      // _setStatus('Saving ad...');
 
       final uri = Uri.parse(
         '${Constant.baseURL}${Constant.createAds}?userId=$userId',
@@ -100,6 +103,11 @@ class CreateAdsApi {
               'category': category ?? '',
               'budget': budget ?? '',
               'adRuns': adRuns ?? '',
+              'placement': placement ?? 'pre-roll',
+              'durationSeconds': durationSeconds ?? 0,
+              'durationMs': (durationSeconds ?? 0) * 1000,
+              'fileSizeMB': fileSizeMB ?? 0,
+              'mediaType': video != null ? 'video' : 'image',
               'image': imageUrl ?? '',
               'video': videoUrl ?? '',
             }),
@@ -137,7 +145,7 @@ class CreateAdsApi {
       AppSettings.showLog('Ads image compression skipped => $e');
     }
 
-    _setStatus('Uploading ad image...');
+    // _setStatus('Uploading ad image...');
     return _uploadFile(
       file: uploadFile,
       folderStructure: '${Constant.folderStructurePath}/adsImage',
@@ -170,7 +178,7 @@ class CreateAdsApi {
       AppSettings.showLog('Ads video compression skipped => $e');
     }
 
-    _setStatus('Uploading ad video...');
+    // _setStatus('Uploading ad video...');
     return _uploadFile(
       file: uploadFile,
       folderStructure: '${Constant.folderStructurePath}/adsVideo',

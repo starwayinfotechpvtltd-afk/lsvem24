@@ -12,6 +12,7 @@ import 'package:metube/notification/local_notification_services.dart';
 import 'package:metube/pages/custom_pages/file_upload_page/convert_video_api.dart';
 import 'package:metube/pages/custom_pages/file_upload_page/convert_video_image_api.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
+import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/upload_video_api.dart';
 import 'package:metube/pages/nav_library_page/main_page/nav_library_controller.dart';
 import 'package:metube/pages/main_home_page/main_home_view.dart';
@@ -20,11 +21,12 @@ import 'package:metube/pages/profile_page/your_channel_page/channel_video_page/g
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart'; 
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:metube/utils/compressor/video_compressor.dart';
 import 'package:metube/utils/compressor/image_compressor.dart';
+import 'package:metube/utils/helpers/media_path_helper.dart';
 
 class UploadVideoController extends GetxController {
   final libraryController = Get.put(NavLibraryPageController());
@@ -56,23 +58,30 @@ class UploadVideoController extends GetxController {
 
   Future<void> onGetThumbnail(String videoPath) async {
     thumbnail.value = "";
+    if (!localFileExists(videoPath)) return;
+
+    final normalizedVideo = localFilePath(videoPath);
     final appDir = await getApplicationDocumentsDirectory();
     final thumbDir = Directory('${appDir.path}/thumbnails');
     if (!thumbDir.existsSync()) await thumbDir.create(recursive: true);
-    try {
-      final videoThumbnail = await VideoThumbnail.thumbnailFile(
-        video: videoPath,
-        thumbnailPath: (await getTemporaryDirectory()).path,
-        imageFormat: ImageFormat.JPEG,
-        timeMs: -1,
-        maxHeight: 400,
-        quality: 100,
-      );
-      if (videoThumbnail != null) {
-        thumbnail.value = videoThumbnail;
+
+    for (final timeMs in [1000, 0, 3000]) {
+      try {
+        final videoThumbnail = await VideoThumbnail.thumbnailFile(
+          video: normalizedVideo,
+          thumbnailPath: thumbDir.path,
+          imageFormat: ImageFormat.JPEG,
+          timeMs: timeMs,
+          maxHeight: 720,
+          quality: 85,
+        );
+        if (videoThumbnail != null && localFileExists(videoThumbnail)) {
+          thumbnail.value = localFilePath(videoThumbnail);
+          return;
+        }
+      } catch (e) {
+        debugPrint("Get Thumbnail ($timeMs ms) => $e");
       }
-    } catch (e) {
-      debugPrint("Get Thumbnail Error !! => $e");
     }
   }
 
@@ -104,7 +113,12 @@ class UploadVideoController extends GetxController {
   RxBool isPlaying = false.obs;
 
   Future<void> initializeVideoPlayer(String videoUrl) async {
-    videoPlayerController = VideoPlayerController.file(File(videoUrl));
+    if (!localFileExists(videoUrl)) {
+      CustomToast.show(AppStrings.someThingWentWrong.tr);
+      return;
+    }
+    videoPlayerController =
+        VideoPlayerController.file(File(localFilePath(videoUrl)));
     try {
       await videoPlayerController?.initialize();
 
@@ -155,9 +169,26 @@ class UploadVideoController extends GetxController {
     }
   }
 
-  // void _setUploadStatus(String message) {
-  //   AppSettings.uploadStatusMessage.value = message;
-  // }
+  void _setUploadStatus(String message) {
+    AppSettings.uploadStatusMessage.value = message;
+    debugPrint('📤 UPLOAD: $message');
+  }
+
+  Future<void> _ensureVideoDuration(String videoPath) async {
+    if (videoTime.value > 0) return;
+    if (videoPlayerController?.value.isInitialized ?? false) {
+      videoTime.value = videoPlayerController!.value.duration.inMilliseconds;
+      if (videoTime.value > 0) return;
+    }
+    try {
+      final controller = VideoPlayerController.file(File(localFilePath(videoPath)));
+      await controller.initialize();
+      videoTime.value = controller.value.duration.inMilliseconds;
+      await controller.dispose();
+    } catch (e) {
+      AppSettings.showLog('Video duration read failed: $e');
+    }
+  }
 
   void _showUploadLoader() {
     if (Get.isDialogOpen ?? false) return;
@@ -193,188 +224,185 @@ class UploadVideoController extends GetxController {
         return;
       }
 
+      if (!localFileExists(videoPath)) {
+        throw Exception('Video file not found. Please select the video again.');
+      }
+
       onStopVideoPlay();
 
       AppSettings.isUploading.value = true;
       _showUploadLoader();
+      // _setUploadStatus('Preparing video...');
 
-final effectiveChannelId =
-loginUserChannelId.isNotEmpty
-? loginUserChannelId
-: "";
+      final effectiveChannelId =
+          loginUserChannelId.isNotEmpty ? loginUserChannelId : '';
+          print("channelId=$effectiveChannelId");
 
-if (
-channelName.text.trim().isEmpty &&
-(Database.channelId == null ||
-Database.channelId!.isEmpty)
-) {
+      if (channelName.text.trim().isEmpty &&
+          (Database.channelId == null || Database.channelId!.isEmpty)) {
+        channelName.text =
+            'channel_${DateTime.now().millisecondsSinceEpoch}';
+      }
 
-channelName.text =
-"channel_${DateTime.now().millisecondsSinceEpoch}";
+      String safeVideoPath = localFilePath(videoPath);
+      print(
+  "Using original file:"
+);
 
+print(
+  safeVideoPath
+);
+
+      // try {
+      //   final appDir = await getApplicationDocumentsDirectory();
+      //   final uploadDir = Directory('${appDir.path}/pending_uploads');
+      //   if (!uploadDir.existsSync()) {
+      //     await uploadDir.create(recursive: true);
+      //   }
+      //   final copiedFile = File(
+      //     '${uploadDir.path}/video_${DateTime.now().millisecondsSinceEpoch}.mp4',
+      //   );
+      //   await File(safeVideoPath).copy(copiedFile.path);
+      //   safeVideoPath = copiedFile.path;
+      // } catch (e) {
+      //   AppSettings.showLog('Video copy skipped, using original path: $e');
+      // }
+
+      await _ensureVideoDuration(safeVideoPath);
+
+      String finalVideo = safeVideoPath;
+
+      // Optional light compression (skipped for large files; server optimizes too).
+      final sizeMb =
+(await File(safeVideoPath).length()) /
+1024 /
+1024;
+
+if (sizeMb > 300) {
+  // _setUploadStatus(
+  //   "Large video detected. Optimizing..."
+  // );
 }
 
-String safeVideoPath =
-videoPath;
+      // _setUploadStatus("Optimizing video...");
 
 try {
 
-final appDir =
-await getApplicationDocumentsDirectory();
+  final compressed =
+      await VideoCompressor.compress(
+        input: safeVideoPath,
+        isShort: videoType == 2,
+      );
 
-final uploadDir =
-Directory(
-'${appDir.path}/pending_uploads',
-);
+  if (
+      compressed != null &&
+      localFileExists(compressed)) {
 
-if (!uploadDir.existsSync()) {
-await uploadDir.create(
-recursive: true,
-);
-}
+    finalVideo =
+        localFilePath(compressed);
 
-final copiedFile = File(
-'${uploadDir.path}/video.mp4',
-);
+    final mb =
+        await File(finalVideo)
+            .length() /
+        1024 /
+        1024;
 
-await File(videoPath)
-.copy(
-copiedFile.path,
-);
-
-safeVideoPath =
-copiedFile.path;
-
-} catch (_) {}
-
-// _setUploadStatus('Optimizing video...');
-
-String finalVideo = safeVideoPath;
-
-try {
-
-final compressed =
-await VideoCompressor.compress(
-input: safeVideoPath,
-isShort: videoType == 2,
-);
-
-if (
-compressed != null &&
-File(compressed).existsSync()
-) {
-
-finalVideo =
-compressed;
-
-}
+    print(
+      "Final compressed size: "
+      "${mb.toStringAsFixed(2)} MB",
+    );
+  }
 
 } catch (e) {
-
-AppSettings.showLog(
-"Video compression skipped: $e",
-);
-
+  debugPrint(
+    "Compression skipped: $e",
+  );
 }
 
-// _setUploadStatus('Optimizing thumbnail...');
+      // _setUploadStatus('Preparing thumbnail...');
+      if (!localFileExists(thumbnail.value)) {
+        await onGetThumbnail(finalVideo);
+      }
 
-if (thumbnail.value.isEmpty || !File(thumbnail.value).existsSync()) {
-  await onGetThumbnail(safeVideoPath);
-}
+      String finalThumb = thumbnail.value.isNotEmpty
+          ? localFilePath(thumbnail.value)
+          : '';
 
-String finalThumb = thumbnail.value;
+      // Use thumbnail as-is (VideoThumbnail already outputs JPEG).
+      // ImageCompressor can fail on some Android devices (ImageDecoder errors).
 
-try {
+      if (!localFileExists(finalThumb)) {
+        throw Exception('Thumbnail could not be generated');
+      }
 
-final compressedThumb =
-await ImageCompressor.compress(
-thumbnail.value,
-);
+      // _setUploadStatus('Uploading thumbnail...');
+      AppSettings.showLog('Thumb size => ${await File(finalThumb).length()}');
 
-if (
-compressedThumb != null &&
-File(compressedThumb).existsSync()
-) {
+      final compressedThumb =
+        await ImageCompressor.compress(
+        finalThumb,
+        );
 
-finalThumb =
-compressedThumb;
+        if (compressedThumb != null) {
+        finalThumb = compressedThumb;
+        }
 
-}
+      final uploadedThumbnail = await ConvertVideoImageApi.callApi(
+        finalThumb,
+        videoType == 1,
+      );
 
-} catch (e) {
+      if (uploadedThumbnail == null || uploadedThumbnail.isEmpty) {
+        throw Exception('Thumbnail upload failed');
+      }
 
-AppSettings.showLog(
-"Thumb compression skipped: $e",
-);
+      // _setUploadStatus('Uploading video...');
 
-}
+      if (!localFileExists(finalVideo)) {
+        throw Exception('Video file is missing after processing');
+      }
 
-if (finalThumb.isEmpty || !File(finalThumb).existsSync()) {
-  throw Exception('Thumbnail could not be generated');
-}
+      final size = await File(finalVideo).length();
+      AppSettings.showLog(
+        'Upload size => ${(size / 1024 / 1024).toStringAsFixed(2)} MB',
+      );
 
-// _setUploadStatus('Uploading thumbnail...');
+      if (size < 1024) {
+        throw Exception('Video file is too small or corrupted');
+      }
+      final uploadedVideo = await ConvertVideoApi.callApi(
+        finalVideo,
+        videoType == 1,
+      );
 
-AppSettings.showLog(
-"Thumb exists => ${File(finalThumb).existsSync()}"
-);
+      if (uploadedVideo == null || uploadedVideo.isEmpty) {
+        throw Exception('Video upload failed');
+      }
 
-AppSettings.showLog(
-"Thumb size => ${await File(finalThumb).length()}"
-);
+      if (videoTime.value <= 0) {
+        videoTime.value = 1000;
+      }
 
-final uploadedThumbnail = await ConvertVideoImageApi.callApi(
-  finalThumb,
-  videoType == 1,
-);
+      if (videoType == 2) {
+        final maxMs =
+            AdminSettingsApi.adminSettingsModel?.setting?.durationOfShorts ??
+                60000;
+        if (maxMs > 0 && videoTime.value > maxMs) {
+          throw Exception(
+            'Shorts must be ${maxMs ~/ 1000} seconds or less',
+          );
+        }
+      }
 
-if (uploadedThumbnail == null) {
-  throw Exception('Thumbnail upload failed');
-}
+      // _setUploadStatus('Saving video details...');
+      AppSettings.showLog('Uploaded video => $uploadedVideo');
+      AppSettings.showLog('Uploaded thumbnail => $uploadedThumbnail');
 
-// _setUploadStatus('Uploading video...');
-
-if (!File(finalVideo).existsSync()) {
-  throw Exception("Compressed video missing");
-}
-
-final size =
-await File(finalVideo).length();
-
-AppSettings.showLog(
-"Upload size => ${(size/1024/1024).toStringAsFixed(2)} MB"
-);
-
-if (size < 10000) {
-  throw Exception("Compressed file corrupted");
-}
-
-final uploadedVideo =
-await ConvertVideoApi.callApi(
-finalVideo,
-videoType == 1 ? true : false
-);
-
-if (
-uploadedVideo == null
-) {
-
-throw Exception(
-"Video upload failed",
-);
-
-}
-
-// _setUploadStatus('Saving video details...');
-AppSettings.showLog('Uploaded video => $uploadedVideo');
-
-AppSettings.showLog(
-"Uploaded thumbnail => $uploadedThumbnail",
-);
-
-final isSuccess =
-await UploadVideoApi.callApi(
+print("uploadedVideo = $uploadedVideo");
+print("uploadedThumbnail = $uploadedThumbnail");
+print("loginUserId=[$loginUserId]");
+print("channelId=[$effectiveChannelId]");
+      final uploadResult = await UploadVideoApi.callApi(
 
 title:
 videoTitleController
@@ -429,7 +457,9 @@ longitude:
 longitude.toString(),
 
 loginUserId:
-loginUserId,
+loginUserId.isNotEmpty
+    ? loginUserId
+    : (Database.loginUserId ?? ''),
 
 loginChannelId:
 effectiveChannelId,
@@ -449,40 +479,22 @@ channelName.text,
 videoPrivacyType:
 videoChargeType.value,
 
-);
+      );
 
-AppSettings.isUploading.value = false;
-_hideUploadLoader();
+      AppSettings.isUploading.value = false;
+      _hideUploadLoader();
 
-if (isSuccess) {
+      if (uploadResult.success) {
+        sendNotification('Upload Success', videoTitleController.text);
+        await GetProfileApi.callApi(Database.loginUserId ?? '');
+        CustomToast.show('Upload completed');
+        Get.offAll(() => const MainHomePageView());
+      } else {
+        sendNotification('Upload Failed', videoTitleController.text);
+        throw Exception(uploadResult.message ?? 'Upload failed');
+      }
 
-sendNotification(
-"Upload Success",
-videoTitleController.text,
-);
-
-await GetProfileApi.callApi(
-Database.loginUserId ?? "",
-);
-
-CustomToast.show('Upload completed');
-Get.offAll(() => const MainHomePageView());
-
-} else {
-
-sendNotification(
-"Upload Failed",
-videoTitleController.text,
-);
-
-CustomToast.show(
-"Upload failed",
-);
-
-}
-
-await onDeleteDirectory();
-
+      await onDeleteDirectory();
     } catch (e) {
       AppSettings.isUploading.value = false;
       _hideUploadLoader();
@@ -490,8 +502,9 @@ await onDeleteDirectory();
       sendNotification('Upload Failed', videoTitleController.text);
 
       final message = e.toString().replaceFirst('Exception: ', '');
-      CustomToast.show(message);
+      CustomToast.show(message.isNotEmpty ? message : 'Upload failed');
 
+      debugPrint('❌ UPLOAD ERROR: $e');
       AppSettings.showLog('Upload Error => $e');
 
       await onDeleteDirectory();
@@ -538,7 +551,9 @@ await onDeleteDirectory();
           final name = file.path.split('/').last;
           if (name.startsWith('RM_') ||
               name.startsWith('FV_') ||
-              name.startsWith('upload_')) {
+              name.startsWith('upload_') ||
+              name.startsWith('c_')
+              ) {
             try {
               await file.delete(recursive: true);
             } catch (_) {}

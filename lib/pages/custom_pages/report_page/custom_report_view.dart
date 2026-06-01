@@ -9,12 +9,13 @@ import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class CustomReportView {
   static RxInt selectedReport = 0.obs;
   static List reportTypes = [
     "NULL",
-    AppStrings.reportVideo.tr,
+    AppStrings.reportVideo.tr, 
     AppStrings.sexualContent.tr,
     AppStrings.violentOrRepulsiveContent.tr,
     AppStrings.hatefulOrAbusiveContent.tr,
@@ -83,6 +84,7 @@ class CustomReportView {
                           const SizedBox(width: 10),
                           GestureDetector(
                             onTap: () async {
+                              if (!AuthService.checkLogin()) return;
                               if (videoId != "" && selectedReport.value != 0) {
                                 Get.back();
                                 if (selectedReport.value == 1) {

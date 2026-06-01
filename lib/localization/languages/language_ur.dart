@@ -1,5 +1,5 @@
 final Map<String, String> enUr = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "دنیا بھر سے دلچسپ ویڈیوز دیکھیں",
   "onBoardingText2": "اپنے اسمارٹ فون سے آسانی سے دلچسپ ویڈیوز دیکھیں",
   "onBoardingText3": "آئیے اب MeTube کے ساتھ دنیا بھر کے ویڈیوز کو دریافت کریں!",

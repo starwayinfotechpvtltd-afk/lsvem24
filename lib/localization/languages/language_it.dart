@@ -1,5 +1,5 @@
 final Map<String, String> enIt = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Guarda video interessanti da tutto il mondo",
   "onBoardingText2": "Guarda facilmente video interessanti dal tuo smartphone",
   "onBoardingText3": "Esploriamo subito i video di tutto il mondo con MeTube!",

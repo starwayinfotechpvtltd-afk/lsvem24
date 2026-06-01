@@ -1,5 +1,5 @@
 final Map<String, String> enTr = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Dünyanın dört bir yanından ilginç videolar izleyin",
   "onBoardingText2": "İlginç videoları akıllı telefonunuzdan kolayca izleyin",
   "onBoardingText3": "Şimdi MeTube ile dünyadaki videoları keşfedelim!",

@@ -1,5 +1,5 @@
 final Map<String, String> enId = {
-  "appName": "LSV24",
+  "appName": "LSVEM24",
   "onBoardingText1": "Tonton video menarik dari seluruh dunia",
   "onBoardingText2": "Tonton video menarik dengan mudah dari ponsel cerdas Anda",
   "onBoardingText3": "Mari jelajahi video di seluruh dunia dengan MeTube sekarang!",

@@ -719,7 +719,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                       controller.onStopVideoPlay();
 
                       CustomCountryPicker.pickCountry(context);
-                    },
+                    }, 
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -728,19 +728,19 @@ class _UploadVideoViewState extends State<UploadVideoView> {
           ),
         ),
             ),
-            if (AppSettings.isUploading.value)
-              Positioned.fill(
-                child: ColoredBox(
-                  color: Colors.black54,
-                  child: Center(
-                    child: Obx(
-                      () => LoaderUi(
-                        message: AppSettings.uploadStatusMessage.value,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            // if (AppSettings.isUploading.value)
+            //   Positioned.fill(
+            //     child: ColoredBox(
+            //       color: Colors.black54,
+            //       child: Center(
+            //         child: Obx(
+            //           () => LoaderUi(
+            //             message: AppSettings.uploadStatusMessage.value,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       ),

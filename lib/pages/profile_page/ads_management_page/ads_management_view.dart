@@ -19,6 +19,11 @@ import 'package:metube/utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:country_picker/country_picker.dart' as cp;
 import 'package:metube/utils/auth/auth_service.dart';
+import 'package:metube/pages/profile_page/ads_management_page/calculate_budget_api.dart';
+import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
+import 'package:video_player/video_player.dart';
+import 'package:metube/database/database.dart';
+import 'package:video_player/video_player.dart';
 
 class AdsManagementScreen extends StatefulWidget {
   const AdsManagementScreen({super.key});
@@ -36,6 +41,7 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
 
   File? selectedImage;
   File? selectedVideo;
+  VideoPlayerController? previewVideoController;
   final ImagePicker picker = ImagePicker();
 
   final List<String> adsTypes = [
@@ -58,9 +64,15 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
 
   final List<String> adsRuns = ["long videos", "short videos", "both videos"];
 
+  final List<String> placementOptions = ["pre-roll", "mid-roll", "both"];
+
   String? selectedAdsType;
   String? selectedAdsCategory;
   String? selectedAdsRuns;
+  String? selectedPlacement;
+
+  int videoDurationSeconds = 0;
+  bool isCalculatingBudget = false;
 
   // String? selectedCountry;
   cp.Country? selectedCountry;
@@ -68,11 +80,33 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
   List<csc.State> states = [];
   csc.State? selectedState;
 
+  double generatedBudget = 0;
+  double availableCoin = 0;
+  double purchasedCoin = 0;
+
+  int _budgetRequestId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedAdsType = adsTypes.first;
+    selectedPlacement = placementOptions.first;
+    selectedAdsRuns = adsRuns.first;
+    _loadUserCoins();
+  }
+
+  void _loadUserCoins() {
+    availableCoin = (GetProfileApi.profileModel?.user?.currentCoin ?? 0).toDouble();
+    purchasedCoin =
+        (GetProfileApi.profileModel?.user?.totalPurchasedCoin ?? 0).toDouble();
+  }
+
   @override
   void dispose() {
     adsTitleController.dispose();
     adsDescriptionController.dispose();
     adsBudgetController.dispose();
+    previewVideoController?.dispose();
     super.dispose();
   }
 
@@ -82,15 +116,118 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
       setState(() {
         selectedImage = File(image.path);
       });
+      await calculateBudget();
     }
   }
 
   Future<void> pickVideo() async {
     final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
-      setState(() {
-        selectedVideo = File(video.path);
-      });
+      int durationSec = 0;
+      try {
+        final controller = VideoPlayerController.file(File(video.path));
+        await controller.initialize();
+        durationSec = controller.value.duration.inSeconds;
+        await controller.dispose();
+      } catch (e) {
+        AppSettings.showLog('Ad video duration read failed => $e');
+      }
+
+      selectedVideo = File(video.path);
+
+await previewVideoController?.dispose();
+
+previewVideoController =
+    VideoPlayerController.file(selectedVideo!);
+
+await previewVideoController!.initialize();
+
+setState(() {
+  videoDurationSeconds = durationSec;
+});
+      await calculateBudget();
+    }
+  }
+
+  Future<int> _readVideoDurationSeconds(File file) async {
+    try {
+      final controller = VideoPlayerController.file(file);
+      await controller.initialize();
+      final sec = controller.value.duration.inSeconds;
+      await controller.dispose();
+      return sec;
+    } catch (_) {
+      return videoDurationSeconds;
+    }
+  }
+
+  Future<void> calculateBudget() async {
+    if (selectedVideo == null && selectedImage == null) {
+      return;
+    }
+
+    setState(() => isCalculatingBudget = true);
+    final requestId = ++_budgetRequestId;
+
+    try {
+      double sizeMB = 0;
+      if (selectedImage != null) {
+        sizeMB += await selectedImage!.length() / (1024 * 1024);
+      }
+
+      if (selectedVideo != null) {
+        sizeMB += await selectedVideo!.length() / (1024 * 1024);
+      }
+      String mediaType;
+
+        if (selectedImage != null && selectedVideo != null) {
+          mediaType = 'both';
+        } else if (selectedVideo != null) {
+          mediaType = 'video';
+        } else {
+          mediaType = 'image';
+        }
+
+      var durationSec = videoDurationSeconds;
+      if (selectedVideo != null && durationSec <= 0) {
+        durationSec = await _readVideoDurationSeconds(selectedVideo!);
+        videoDurationSeconds = durationSec;
+      }
+
+      final result = await CalculateBudgetApi.callApi(
+        fileSizeMB: sizeMB,
+        durationSeconds: durationSec,
+        type: selectedAdsType ?? 'skippable',
+        placement: selectedPlacement ?? 'pre-roll',
+        mediaType: mediaType,
+      );
+      if (requestId != _budgetRequestId) {
+        return;
+      }
+
+      if (!mounted) return;
+
+      if (result.status && result.budget > 0) {
+        setState(() {
+          generatedBudget = result.budget.toDouble();
+          availableCoin = result.currentCoin.toDouble();
+          purchasedCoin = result.totalPurchasedCoin.toDouble();
+          adsBudgetController.text = result.budget.toString();
+        });
+        if (result.fromLocalFallback) {
+          CustomToast.show(
+            'Budget estimated offline. Connect to server for exact pricing.',
+          );
+        }
+      } else {
+        CustomToast.show(
+          result.message ?? 'Could not calculate ad budget',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isCalculatingBudget = false);
+      }
     }
   }
 
@@ -126,6 +263,31 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
       bottomNavigationBar: GestureDetector(
         onTap: () async {
           if (!AuthService.checkLogin()) return;
+
+          if (selectedImage == null && selectedVideo == null) {
+            CustomToast.show('Please select an image or video for the ad');
+            return;
+          }
+
+          if (generatedBudget <= 0) {
+            await calculateBudget();
+          }
+
+          if (generatedBudget <= 0) {
+            CustomToast.show('Please wait for ad budget to be calculated');
+            return;
+          }
+
+          final budgetCoins = generatedBudget.toInt();
+          final walletCoins = availableCoin.toInt();
+
+          if (budgetCoins > walletCoins) {
+            CustomToast.show(
+              'Insufficient coins. You need $budgetCoins coins but have $walletCoins.',
+            );
+            return;
+          }
+
           AppSettings.showLog("Create Ads Method Called");
           // if (adsTitleController.text.trim().isEmpty ||
           //     adsDescriptionController.text.trim().isEmpty ||
@@ -155,6 +317,9 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
               barrierDismissible: false,
             );
 
+            final mediaFile = selectedVideo ?? selectedImage!;
+            final sizeMB = (await mediaFile.length()) / (1024 * 1024);
+
             final isSuccess = await CreateAdsApi.callApi(
               title: adsTitleController.text.trim(),
               description: adsDescriptionController.text.trim(),
@@ -165,6 +330,9 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
               adRuns: selectedAdsRuns,
               city: cityController.text.trim(),
               budget: adsBudgetController.text.trim(),
+              placement: selectedPlacement ?? 'pre-roll',
+              durationSeconds: videoDurationSeconds,
+              fileSizeMB: sizeMB,
               image: selectedImage,
               video: selectedVideo,
             );
@@ -172,6 +340,8 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
             Get.back();
 
             if (isSuccess) {
+              await GetProfileApi.callApi(Database.loginUserId ?? '');
+              _loadUserCoins();
               CustomToast.show(CreateAdsApi.message?.isNotEmpty == true
                   ? CreateAdsApi.message.toString()
                   : "Ads uploaded successfully");
@@ -402,10 +572,11 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
                           child: Text(type),
                         );
                       }).toList(),
-                      onChanged: (value) {
+                      onChanged: (value){
                         setState(() {
                           selectedAdsType = value;
                         });
+                         calculateBudget();
                       },
                     ),
                   ),
@@ -492,6 +663,48 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
                     ),
                   ),
                   SizedBox(height: SizeConfig.screenHeight / 30),
+                  Text(
+                    'Ad placement',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Container(
+                    height: Get.height / 16,
+                    width: Get.width / 1.1,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    decoration: BoxDecoration(
+                      color: isDarkMode.value
+                          ? AppColor.secondDarkMode
+                          : AppColor.grey_100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: DropdownButtonFormField2<String>(
+                      value: selectedPlacement,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                      hint: Text('Select placement *',
+                          style: fillYourProfileStyle),
+                      items: placementOptions.map((p) {
+                        return DropdownMenuItem<String>(
+                          value: p,
+                          child: Text(p),
+                        );
+                      }).toList(),
+                      onChanged: (value) async {
+                        setState(() {
+                          selectedPlacement = value;
+                        });
+                        await calculateBudget();
+                      },
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.screenHeight / 30),
                   Container(
                     height: SizeConfig.screenHeight / 16,
                     width: SizeConfig.screenWidth / 1.1,
@@ -505,27 +718,43 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
                     ),
                     child: TextFormField(
                       controller: adsBudgetController,
+                      readOnly: true,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
                       ],
-                      decoration: InputDecoration(
-                        hintText: "ADS Budget",
+                     decoration: InputDecoration(
+                        hintText: generatedBudget > 0
+                            ? '${generatedBudget.toInt()} coins'
+                            : 'ADS Budget (auto)',
                         hintStyle: fillYourProfileStyle,
                         isDense: true,
-                        suffixIconConstraints: const BoxConstraints(
-                          minWidth: 2,
-                          minHeight: 2,
-                        ),
-                        prefixIconConstraints: const BoxConstraints(
-                          minWidth: 2,
-                          minHeight: 2,
-                        ),
+
+                        suffixIcon: isCalculatingBudget
+                            ? const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            : generatedBudget > 0
+                                ? const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 20,
+                                  )
+                                : null,
+
                         border: InputBorder.none,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
                   SizedBox(height: SizeConfig.screenHeight / 30),
                   Text(
                     "Upload Image",
@@ -546,12 +775,53 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: selectedImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child:
-                                  Image.file(selectedImage!, fit: BoxFit.cover),
-                            )
-                          : const Center(child: Text("Tap to upload image")),
+    ? Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.file(
+                selectedImage!,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () async {
+                setState(() {
+                  selectedImage = null;
+                });
+
+                if (selectedVideo == null) {
+                  adsBudgetController.clear();
+                  generatedBudget = 0;
+                } else {
+                  await calculateBudget();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
+    : const Center(
+        child: Text("Tap to upload image"),
+      ),
                     ),
                   ),
                   SizedBox(height: SizeConfig.screenHeight / 30),
@@ -574,9 +844,63 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: selectedVideo != null
-                          ? const Center(
-                              child: Icon(Icons.video_file, size: 50))
-                          : const Center(child: Text("Tap to upload video")),
+    ? Stack(
+        children: [
+  previewVideoController != null &&
+          previewVideoController!.value.isInitialized
+      ? Positioned.fill(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: previewVideoController!.value.size.width,
+                height: previewVideoController!.value.size.height,
+                child: VideoPlayer(
+                  previewVideoController!,
+                ),
+              ),
+            ),
+          ),
+        )
+      : const Center(
+          child: CircularProgressIndicator(),
+        ),
+
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () async {
+  await previewVideoController?.dispose();
+
+  setState(() {
+    selectedVideo = null;
+    previewVideoController = null;
+    videoDurationSeconds = 0;
+  });
+
+  await calculateBudget();
+},
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
+    : const Center(
+        child: Text("Tap to upload video"),
+      ),
                     ),
                   ),
                 ],

@@ -424,8 +424,9 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
     isShortsPage.value = false;
     Get.to(const SearchView(isSearchShorts: true));
   }
-
+ 
   void onClickSubscribe() async {
+    if (!AuthService.checkLogin()) return;
     if (isPrivateContent.value && isSubscribe.value == false) {
       onSubscribePrivateChannel(index: widget.index);
     } else {
