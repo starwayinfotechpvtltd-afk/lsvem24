@@ -33,6 +33,11 @@ class GetProfileApi {
           Database.onSetIsNewUser(false);
           Database.onSetLoginUserId(profileModel!.user!.id!);
 
+          // Save referral code locally
+          await Database.onSetReferralCode(
+            profileModel?.user?.referralCode ?? "",
+          );
+
           AppSettings.channelName.value = profileModel?.user?.fullName ?? "";
 
           AppSettings.isShowAds =
@@ -43,7 +48,7 @@ class GetProfileApi {
           if (profileModel!.user!.channelId != null &&
               profileModel!.user!.isChannel != null) {
             Database.onSetChannelId(profileModel!.user!.channelId!);
-            Database.onSetIsChannel(profileModel!.user!.isChannel!); 
+            Database.onSetIsChannel(profileModel!.user!.isChannel!);
           }
           final rawImage = profileModel?.user?.image?.trim() ?? '';
           if (rawImage.isNotEmpty) {

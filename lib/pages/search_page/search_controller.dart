@@ -16,6 +16,7 @@ import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class SearchingController extends GetxController {
   TextEditingController searchController = TextEditingController();
@@ -167,6 +168,7 @@ class SearchingController extends GetxController {
   }
 
   void onUnlockPrivateVideo({required int index, required BuildContext context, required bool isShorts}) async {
+    if (!AuthService.checkLogin()) return;
     if (isShorts) {
       UnlockPremiumVideoBottomSheet.onShow(
         coin: (searchShorts[index].videoUnlockCost ?? 0).toString(),
@@ -190,6 +192,7 @@ class SearchingController extends GetxController {
         },
       );
     } else {
+      if (!AuthService.checkLogin()) return;
       UnlockPremiumVideoBottomSheet.onShow(
         coin: (searchVideo[index].videoUnlockCost ?? 0).toString(),
         callback: () async {

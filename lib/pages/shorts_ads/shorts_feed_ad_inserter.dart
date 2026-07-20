@@ -32,9 +32,17 @@ class ShortsFeedAdInserter {
 
   Future<void> ensurePoolLoaded() async {
     if (_poolLoaded) return;
-    _pool = await GetShortsFeedAdsApi.callApi();
+
+    final ads = await GetShortsFeedAdsApi.callApi();
+
+    // Shorts feed supports only non-skippable video ads.
+    _pool = ads.where((ad) => ad.isNonSkippable).toList();
+
     _poolLoaded = true;
-    AppSettings.showLog("Shorts feed ad pool size => ${_pool.length}");
+
+    AppSettings.showLog(
+      "Shorts feed non-skippable ad pool size => ${_pool.length}",
+    );
   }
 
   ShortsFeedAd? pickRandomAd() {

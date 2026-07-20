@@ -20,6 +20,7 @@ import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/utils.dart';
 import 'package:metube/widget/subscribe_premium_channel_bottom_sheet.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class YourChannelView extends StatefulWidget {
   const YourChannelView({
@@ -168,6 +169,7 @@ class _YourChannelViewState extends State<YourChannelView> {
                                                     visible: controller.isSubscribe.value || (controller.channelHomeModel?.channelType ?? 0) == 1,
                                                     child: GestureDetector(
                                                       onTap: () async {
+                                                        if (!AuthService.checkLogin()) return;
                                                         if (controller.isSubscribe.value) {
                                                           controller.countSubscribes--;
                                                         } else {

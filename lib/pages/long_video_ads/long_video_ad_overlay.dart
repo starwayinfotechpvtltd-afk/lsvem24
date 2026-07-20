@@ -20,12 +20,15 @@ class LongVideoAdOverlay extends StatefulWidget {
     required this.onStarted,
     required this.onCompleted,
     required this.onFailed,
+    this.isRewardAd = false,
   });
 
   final LongVideoAd ad;
   final VoidCallback onStarted;
   final VoidCallback onCompleted;
   final VoidCallback onFailed;
+  final bool isRewardAd;
+
 
   @override
   State<LongVideoAdOverlay> createState() => _LongVideoAdOverlayState();
@@ -109,13 +112,25 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
         final url =
             NormalVideoDetailsController.resolveAssetUrl(widget.ad.video!);
         _videoController = VideoPlayerController.networkUrl(Uri.parse(url));
+
         await _videoController!.initialize();
         _videoController!.addListener(_onVideoProgress);
+
+        // Set volume before playing
         await _videoController!.setVolume(1.0);
+
+        // ✅ FIX: Play the video first, then notify started
         await _videoController!.play();
 
         if (mounted) setState(() {});
-        _notifyStarted();
+
+        // ✅ FIX: Move notification after playback has started
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _notifyStarted();
+          }
+        });
+
         if (widget.ad.isSkippable) {
           _startSkipCountdown();
         }
@@ -124,16 +139,24 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
         _finish(failed: true);
       }
     } else {
-      _notifyStarted();
+      // Image ad flow
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _notifyStarted();
+        }
+      });
+
       if (widget.ad.isSkippable) {
         _startSkipCountdown();
       }
+
       _imageTimer = Timer(
         Duration(seconds: widget.ad.displayDurationSeconds),
         () {
           if (!_completed) _finish();
         },
       );
+
       if (mounted) setState(() {});
     }
   }
@@ -146,8 +169,7 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
 
     final pos = controller.value.position;
     final dur = controller.value.duration;
-    if (dur > Duration.zero &&
-        pos >= dur - const Duration(milliseconds: 500)) {
+    if (dur > Duration.zero && pos >= dur - const Duration(milliseconds: 500)) {
       _finish();
     }
   }
@@ -165,6 +187,7 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
         fit: StackFit.expand,
         children: [
           _buildMedia(),
+          if (!widget.isRewardAd)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 12,
@@ -259,29 +282,28 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
   }
 
   Widget _buildMedia() {
-    if (widget.ad.isVideoAd) {
-      if (_initFailed) return _buildImageFallback();
-      final c = _videoController;
-      if (c == null || !c.value.isInitialized) {
-        return const Center(child: LoaderUi(color: Colors.white));
-      }
-
-      final aspectRatio =
-          c.value.aspectRatio > 0 ? c.value.aspectRatio : 16 / 9;
-
-      return SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: c.value.size.width,
-            height: c.value.size.height,
-            child: VideoPlayer(c),
-          ),
-        ),
-);
+  if (widget.ad.isVideoAd) {
+    if (_initFailed) return _buildImageFallback();
+    final c = _videoController;
+    if (c == null || !c.value.isInitialized) {
+      return const Center(child: LoaderUi(color: Colors.white));
     }
-    return _buildImageFallback();
+
+    final aspectRatio = c.value.aspectRatio > 0 ? c.value.aspectRatio : 16 / 9;
+
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: c.value.size.width,
+          height: c.value.size.height,
+          child: VideoPlayer(c),
+        ),
+      ),
+    );
   }
+  return _buildImageFallback();
+}
 
   Widget _buildImageFallback() {
     if (!widget.ad.hasImage) {
@@ -296,16 +318,15 @@ class _LongVideoAdOverlayState extends State<LongVideoAdOverlay> {
       );
     }
     return CachedNetworkImage(
-      imageUrl:
-          NormalVideoDetailsController.resolveAssetUrl(widget.ad.image!),
+      imageUrl: NormalVideoDetailsController.resolveAssetUrl(widget.ad.image!),
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
       placeholder: (_, __) =>
           const Center(child: LoaderUi(color: Colors.white)),
       errorWidget: (_, __, ___) => const Center(
-        child: Icon(Icons.broken_image_outlined,
-            color: Colors.white54, size: 48),
+        child:
+            Icon(Icons.broken_image_outlined, color: Colors.white54, size: 48),
       ),
     );
   }

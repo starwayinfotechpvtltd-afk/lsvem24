@@ -19,6 +19,7 @@ class GetDailyRewardApi {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
+        print("Daily reword: ${jsonResponse}");
 
         AppSettings.showLog("Get Daily Reward Api Response => ${response.body}");
 

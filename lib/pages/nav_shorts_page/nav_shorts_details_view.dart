@@ -69,6 +69,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   RxBool isLike = false.obs;
   RxBool isDisLike = false.obs;
   RxBool isSubscribe = false.obs;
+  RxBool isSubscribing = false.obs;
 
   RxBool isPlaying = true.obs;
   RxBool isShowIcon = false.obs;
@@ -83,6 +84,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   bool isCreateHistory = false;
 
   bool _commentsOpen = false;
+  bool _subscribeActionInFlight = false;
 
   @override
   void initState() {
@@ -140,6 +142,9 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
               // If Video Buffering then show loading....
               // videoPlayerController!.value.isBuffering ? isBuffering.value = true : isBuffering.value = false;
 
+              controller.setPlaying(
+                listenerController.value.isPlaying,
+              );
               if (Get.currentRoute != "/MainHomePageView") {
                 isShortsPage.value = false;
                 onStopVideo();
@@ -169,23 +174,34 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
     }
   }
 
-  void onStopVideo() {
+  Future<void> onStopVideo() async {
     isPlaying.value = false;
-    videoPlayerController?.pause();
+
+    await videoPlayerController?.pause();
+
+    await controller.setPlaying(false);
   }
 
-  void onPlayVideo() {
+  Future<void> onPlayVideo() async {
     isPlaying.value = true;
-    videoPlayerController?.play();
+
+    await videoPlayerController?.play();
+
+    await controller.setPlaying(true);
   }
 
-  void onDisposeVideoPlayer() {
+  Future<void> onDisposeVideoPlayer() async {
     try {
-      onStopVideo();
+      await controller.setPlaying(false);
+
+      await videoPlayerController?.pause();
+
       videoPlayerController?.dispose();
       chewieController?.dispose();
+
       chewieController = null;
       videoPlayerController = null;
+
       isVideoLoading.value = true;
     } catch (e) {
       AppSettings.showLog(">>>> On Dispose VideoPlayer Error => $e");
@@ -194,8 +210,8 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
 
   @override
   void dispose() {
+    controller.setPlaying(false);
     onDisposeVideoPlayer();
-    AppSettings.showLog("Dispose Method Called Success");
     super.dispose();
   }
 
@@ -246,7 +262,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onClickLike() async {
-     if (!AuthService.checkLogin()) return;
+    if (!AuthService.checkLogin()) return;
     if (!isLike.value) {
       if (isDisLike.value) {
         isDisLike.value = false;
@@ -262,7 +278,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onClickDisLike() async {
-     if (!AuthService.checkLogin()) return;
+    if (!AuthService.checkLogin()) return;
     if (!isDisLike.value) {
       if (isLike.value) {
         isLike.value = false;
@@ -307,6 +323,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onClickShare() async {
+    if (!AuthService.checkLogin()) return;
     final shorts = controller.mainShortsVideos[widget.index];
     onStopVideo();
     await CustomShare.share(
@@ -424,15 +441,34 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
     isShortsPage.value = false;
     Get.to(const SearchView(isSearchShorts: true));
   }
- 
+
   void onClickSubscribe() async {
-    if (!AuthService.checkLogin()) return;
-    if (isPrivateContent.value && isSubscribe.value == false) {
-      onSubscribePrivateChannel(index: widget.index);
-    } else {
-      isSubscribe.value = !isSubscribe.value;
-      await SubscribeChannelApiClass.callApi(
-          controller.mainShortsVideos[widget.index].channelId.toString());
+    if (isSubscribing.value) return;
+
+    isSubscribing.value = true;
+
+    try {
+      if (!AuthService.checkLogin()) return;
+
+      if (isPrivateContent.value && isSubscribe.value == false) {
+        onSubscribePrivateChannel(
+          index: widget.index,
+        );
+      } else {
+        final oldValue = isSubscribe.value;
+
+        isSubscribe.value = !oldValue;
+
+        final success = await SubscribeChannelApiClass.callApi(
+          controller.mainShortsVideos[widget.index].channelId.toString(),
+        );
+
+        if (!success) {
+          isSubscribe.value = oldValue;
+        }
+      }
+    } finally {
+      isSubscribing.value = false;
     }
   }
 
@@ -461,6 +497,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
   }
 
   void onUnlockPrivateVideo({required int index}) async {
+    if (!AuthService.checkLogin()) return;
     UnlockPremiumVideoBottomSheet.onShow(
       coin:
           (controller.mainShortsVideos[index].videoUnlockCost ?? 0).toString(),
@@ -474,28 +511,67 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
           isPrivateContent.value = false;
         }
 
-        Get.close(2);
-        SubscribedSuccessDialog.show(context);
+        while (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+
+        while (Get.isBottomSheetOpen ?? false) {
+          Get.back();
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          SubscribedSuccessDialog.show(context);
+        });
       },
     );
   }
 
   void onSubscribePrivateChannel({required int index}) async {
     SubscribePremiumChannelBottomSheet.onShow(
-      coin:
-          (controller.mainShortsVideos[index].subscriptionCost ?? 0).toString(),
-      callback: () async {
-        Get.dialog(const LoaderUi(), barrierDismissible: false);
-        final bool isSuccess = await SubscribeChannelApiClass.callApi(
-            controller.mainShortsVideos[index].channelId ?? "");
-        Get.close(2);
-        if (isSuccess) {
-          isPrivateContent.value = false;
-          SubscribedSuccessDialog.show(context);
-          isSubscribe.value = true;
-        }
-      },
-    );
+        coin: (controller.mainShortsVideos[index].subscriptionCost ?? 0)
+            .toString(),
+        callback: () async {
+          if (_subscribeActionInFlight) return;
+          _subscribeActionInFlight = true;
+          try {
+            Get.dialog(
+              const LoaderUi(),
+              barrierDismissible: false,
+            );
+
+            final bool isSuccess = await SubscribeChannelApiClass.callApi(
+              controller.mainShortsVideos[index].channelId ?? "",
+            );
+
+            if (Get.isDialogOpen ?? false) {
+              Get.back();
+            }
+            if (Get.isBottomSheetOpen ?? false) {
+              await Future.delayed(const Duration(milliseconds: 60));
+              Get.back();
+            }
+
+            if (isSuccess) {
+              await Future.delayed(const Duration(milliseconds: 120));
+
+              if (!mounted) return;
+
+              isPrivateContent.value = false;
+              isSubscribe.value = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                await Future.delayed(
+                  const Duration(milliseconds: 300),
+                );
+
+                if (!mounted) return;
+
+                SubscribedSuccessDialog.show(context);
+              });
+            }
+          } finally {
+            _subscribeActionInFlight = false;
+          }
+        });
   }
 
   @override
@@ -644,7 +720,8 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
                                       padding: EdgeInsets.only(
                                           left: isPlaying.value ? 0 : 5),
                                       decoration: BoxDecoration(
-                                          color: AppColor.black.withOpacity(0.2),
+                                          color:
+                                              AppColor.black.withOpacity(0.2),
                                           shape: BoxShape.circle),
                                       child: Center(
                                         child: Image.asset(
@@ -789,15 +866,20 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                      (controller.mainShortsVideos[widget.index].channelName ?? "").length > 12
-                          ? '${(controller.mainShortsVideos[widget.index].channelName ?? "").substring(0, 12)}...'
-                          : (controller.mainShortsVideos[widget.index].channelName ?? ""),
-                      style: GoogleFonts.urbanist(
-                        color: AppColor.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    (controller.mainShortsVideos[widget.index].channelName ??
+                                    "")
+                                .length >
+                            12
+                        ? '${(controller.mainShortsVideos[widget.index].channelName ?? "").substring(0, 12)}...'
+                        : (controller
+                                .mainShortsVideos[widget.index].channelName ??
+                            ""),
+                    style: GoogleFonts.urbanist(
+                      color: AppColor.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
                   const SizedBox(width: 10),
                   Visibility(
                     visible: Database.channelId !=

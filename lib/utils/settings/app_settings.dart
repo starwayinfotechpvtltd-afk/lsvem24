@@ -7,6 +7,7 @@ import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_ap
 import 'package:metube/pages/profile_page/referral_program_page/referral_code_apply_api.dart';
 import 'package:metube/utils/branch_io_services.dart';
 import 'package:path/path.dart';
+import 'package:metube/database/database.dart';
 
 class AppSettings {
   //  >>>>>> Debug Variable <<<<<<
@@ -82,7 +83,7 @@ class AppSettings {
 
   static String? selectedPayment;
 
-  static String referralCodeLink = "";
+  static String get referralCodeLink => Database.referralLink;
 
   static Future<void> onCreateLink() async {
     await BranchIoServices.onCreateBranchIoLink(
@@ -96,10 +97,10 @@ class AppSettings {
       referralCode: GetProfileApi.profileModel?.user?.referralCode ?? "",
     );
 
-    final link = await BranchIoServices.onGenerateLink() ?? "";
+    // final link = await BranchIoServices.onGenerateLink() ?? "";
 
-    showLog("Referral Code Link => $link");
-    referralCodeLink = link;
+    // showLog("Referral Code Link => $link");
+    // referralCodeLink = link;
   }
 
   static Future<void> onLoginWithReferral({required String loginUserId}) async {

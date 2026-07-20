@@ -25,6 +25,7 @@ import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class MoreInfoBottomSheet {
   static void show(
@@ -60,9 +61,10 @@ class MoreInfoBottomSheet {
                         : AppIcons.timeCircle),
                     size: 23),
                 name: element.isSave
-                    ? AppStrings.saved.tr
+                    ? AppStrings.saved.tr  
                     : AppStrings.saveToWatchLater.tr,
                 onTap: () {
+                   if (!AuthService.checkLogin()) return;
                   if (element.isSave == false) {
                     CustomToast.show(AppStrings.addToWatchLater.tr);
                     CreateWatchLater.callApi(
@@ -205,6 +207,7 @@ class MoreInfoBottomSheet {
                 widget: const ImageIcon(AssetImage(AppIcons.send), size: 23),
                 name: AppStrings.share.tr,
                 onTap: () async {
+                   if (!AuthService.checkLogin()) return;
                   Get.back();
                   await CustomShare.share(
                     videoId: element.videoId,
@@ -224,6 +227,7 @@ class MoreInfoBottomSheet {
                     const ImageIcon(AssetImage(AppIcons.closeSquare), size: 23),
                 name: "${AppStrings.report.tr}-${AppStrings.block.tr}",
                 onTap: () {
+                   if (!AuthService.checkLogin()) return;
                   Get.back();
                   CustomReportView.show(element.videoId);
                 },

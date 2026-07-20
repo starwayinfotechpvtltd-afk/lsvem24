@@ -48,10 +48,14 @@ class _WithdrawViewState extends State<WithdrawView> {
     super.initState();
   }
 
-  RxList<TextEditingController> paymentDetailsController = <TextEditingController>[].obs;
+  RxList<TextEditingController> paymentDetailsController =
+      <TextEditingController>[].obs;
 
   void onGetPayments() async {
     withDrawListModel = await WithDrawListApi.callApi();
+    print("Withdraw API Response => ${withDrawListModel?.status}");
+    print("Withdraw Methods => ${withDrawListModel?.withdrawMethod?.length}");
+    print("Withdraw Data => ${withDrawListModel?.withdrawMethod}");
     paymentList = null;
     paymentList = <WithdrawMethod>[].obs;
     paymentList?.addAll(withDrawListModel?.withdrawMethod ?? []);
@@ -61,9 +65,11 @@ class _WithdrawViewState extends State<WithdrawView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).viewPadding.top + 60),
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).viewPadding.top + 60),
         child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top, left: 15, right: 15),
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).viewPadding.top, left: 15, right: 15),
           height: MediaQuery.of(context).viewPadding.top + 60,
           width: Get.width,
           color: AppColor.transparent,
@@ -75,7 +81,8 @@ class _WithdrawViewState extends State<WithdrawView> {
                   height: 40,
                   width: 40,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: Colors.transparent, shape: BoxShape.circle),
                   child: Obx(
                     () => Image.asset(
                       AppIcons.arrowBack,
@@ -103,7 +110,8 @@ class _WithdrawViewState extends State<WithdrawView> {
                   height: 40,
                   width: 40,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: Colors.transparent, shape: BoxShape.circle),
                   child: Obx(
                     () => Image.asset(
                       AppIcons.historyIcon,
@@ -133,17 +141,25 @@ class _WithdrawViewState extends State<WithdrawView> {
             Container(
               height: 50,
               width: Get.width,
-              color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_100,
+              color: isDarkMode.value
+                  ? AppColor.secondDarkMode
+                  : AppColor.grey_100,
               child: Row(
                 children: [
                   Text(
                     AppStrings.availableBalance.tr,
-                    style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.urbanist(
+                        fontSize: 16,
+                        color: AppColor.primaryColor,
+                        fontWeight: FontWeight.w600),
                   ),
                   const Spacer(),
                   Text(
                     "${AppStrings.currencySymbol} ${widget.balance.toStringAsFixed(2)}",
-                    style: GoogleFonts.urbanist(fontSize: 18, color: AppColor.primaryColor, fontWeight: FontWeight.w800),
+                    style: GoogleFonts.urbanist(
+                        fontSize: 18,
+                        color: AppColor.primaryColor,
+                        fontWeight: FontWeight.w800),
                   ),
                 ],
               ).paddingSymmetric(horizontal: 15),
@@ -151,7 +167,8 @@ class _WithdrawViewState extends State<WithdrawView> {
             const SizedBox(height: 15),
             Text(
               AppStrings.withdrawal.tr,
-              style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600),
+              style: GoogleFonts.urbanist(
+                  fontSize: 18, fontWeight: FontWeight.w600),
             ).paddingSymmetric(horizontal: 15),
             const SizedBox(height: 10),
             Container(
@@ -160,18 +177,34 @@ class _WithdrawViewState extends State<WithdrawView> {
               padding: const EdgeInsets.only(left: 20),
               margin: const EdgeInsets.symmetric(horizontal: 15),
               decoration: BoxDecoration(
-                color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                color:
+                    isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
                 borderRadius: BorderRadius.circular(10),
-                boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_200, blurRadius: 10)],
+                boxShadow: [
+                  BoxShadow(
+                      color: isDarkMode.value
+                          ? AppColor.transparent
+                          : AppColor.grey_200,
+                      blurRadius: 10)
+                ],
               ),
               child: Center(
                 child: TextFormField(
                   controller: amountController,
                   cursorColor: AppColor.grey,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                  style: GoogleFonts.urbanist(fontSize: 14, fontWeight: FontWeight.w600),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10)
+                  ],
+                  style: GoogleFonts.urbanist(
+                      fontSize: 14, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
-                      hintText: AppStrings.enterWithdrawalAmount.tr, hintStyle: GoogleFonts.urbanist(fontSize: 14, color: AppColor.grey, fontWeight: FontWeight.w600), border: InputBorder.none),
+                      hintText: AppStrings.enterWithdrawalAmount.tr,
+                      hintStyle: GoogleFonts.urbanist(
+                          fontSize: 14,
+                          color: AppColor.grey,
+                          fontWeight: FontWeight.w600),
+                      border: InputBorder.none),
                 ),
               ),
             ),
@@ -180,13 +213,17 @@ class _WithdrawViewState extends State<WithdrawView> {
               alignment: Alignment.centerRight,
               child: Text(
                 "*${AppStrings.minimumWithdraw.tr} ${AppStrings.currencySymbol} ${(AdminSettingsApi.adminSettingsModel?.setting?.minWithdrawalRequestedAmount ?? 1)}",
-                style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+                style: GoogleFonts.urbanist(
+                    fontSize: 12,
+                    color: AppColor.primaryColor,
+                    fontWeight: FontWeight.w600),
               ).paddingSymmetric(horizontal: 15),
             ),
             const SizedBox(height: 10),
             Text(
               AppStrings.selectPaymentGateway.tr,
-              style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600),
+              style: GoogleFonts.urbanist(
+                  fontSize: 18, fontWeight: FontWeight.w600),
             ).paddingSymmetric(horizontal: 15),
             const SizedBox(height: 10),
             GestureDetector(
@@ -197,9 +234,17 @@ class _WithdrawViewState extends State<WithdrawView> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 margin: const EdgeInsets.symmetric(horizontal: 15),
                 decoration: BoxDecoration(
-                  color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                  color: isDarkMode.value
+                      ? AppColor.secondDarkMode
+                      : AppColor.white,
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_200, blurRadius: 10)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: isDarkMode.value
+                            ? AppColor.transparent
+                            : AppColor.grey_200,
+                        blurRadius: 10)
+                  ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -209,19 +254,32 @@ class _WithdrawViewState extends State<WithdrawView> {
                           ? const Offstage()
                           : PreviewProfileImage(
                               size: 40,
-                              id: paymentList?[selectedPaymentIndex.value].id ?? "",
-                              image: paymentList?[selectedPaymentIndex.value].image ?? "",
+                              id: paymentList?[selectedPaymentIndex.value].id ??
+                                  "",
+                              image: paymentList?[selectedPaymentIndex.value]
+                                      .image ??
+                                  "",
                               fit: BoxFit.contain,
                             ).paddingOnly(left: 0, right: 15),
                     ),
                     Obx(
                       () => Text(
-                        selectedPayment.value == "" ? AppStrings.selectPaymentGateway.tr : selectedPayment.value,
-                        style: GoogleFonts.urbanist(fontSize: selectedPayment.value == "" ? 14 : 16, color: selectedPayment.value == "" ? AppColor.grey : null, fontWeight: FontWeight.w600),
+                        selectedPayment.value == ""
+                            ? AppStrings.selectPaymentGateway.tr
+                            : selectedPayment.value,
+                        style: GoogleFonts.urbanist(
+                            fontSize: selectedPayment.value == "" ? 14 : 16,
+                            color: selectedPayment.value == ""
+                                ? AppColor.grey
+                                : null,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                     const Spacer(),
-                    Image.asset(AppIcons.downArrowBold, color: isDarkMode.value ? AppColor.white : AppColor.black, width: 25)
+                    Image.asset(AppIcons.downArrowBold,
+                        color:
+                            isDarkMode.value ? AppColor.white : AppColor.black,
+                        width: 25)
                   ],
                 ),
               ),
@@ -240,7 +298,10 @@ class _WithdrawViewState extends State<WithdrawView> {
                             selectedPayment.value,
                             () {
                               selectedPayment.value = paymentList![i].name!;
-                              paymentDetailsController.value = List<TextEditingController>.generate(paymentList![i].details?.length ?? 0, (counter) => TextEditingController());
+                              paymentDetailsController.value =
+                                  List<TextEditingController>.generate(
+                                      paymentList![i].details?.length ?? 0,
+                                      (counter) => TextEditingController());
                               isShowPayments.value = false;
                               selectedPaymentIndex.value = i;
                             },
@@ -258,31 +319,53 @@ class _WithdrawViewState extends State<WithdrawView> {
                       children: [
                         Text(
                           AppStrings.enterDetails.tr,
-                          style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.urbanist(
+                              fontSize: 18, fontWeight: FontWeight.w600),
                         ).paddingSymmetric(horizontal: 15),
                         const SizedBox(height: 10),
                         Obx(
                           () => Column(
                             children: [
-                              for (int i = 0; i < paymentList![selectedPaymentIndex.value].details!.length; i++)
+                              for (int i = 0;
+                                  i <
+                                      paymentList![selectedPaymentIndex.value]
+                                          .details!
+                                          .length;
+                                  i++)
                                 Container(
                                   height: 55,
                                   width: MediaQuery.of(context).size.width,
                                   padding: const EdgeInsets.only(left: 20),
-                                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 15),
                                   decoration: BoxDecoration(
-                                    color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                                    color: isDarkMode.value
+                                        ? AppColor.secondDarkMode
+                                        : AppColor.white,
                                     borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_200, blurRadius: 10)],
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: isDarkMode.value
+                                              ? AppColor.transparent
+                                              : AppColor.grey_200,
+                                          blurRadius: 10)
+                                    ],
                                   ),
                                   child: TextFormField(
                                     controller: paymentDetailsController[i],
                                     cursorColor: AppColor.grey,
-                                    style: GoogleFonts.urbanist(fontSize: 14, fontWeight: FontWeight.w600),
+                                    style: GoogleFonts.urbanist(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600),
                                     decoration: InputDecoration(
                                       // hintText: paymentList![selectedPaymentIndex.value].details,
-                                      hintText: paymentList![selectedPaymentIndex.value].details?[i],
-                                      hintStyle: GoogleFonts.urbanist(fontSize: 14, color: AppColor.grey, fontWeight: FontWeight.w600),
+                                      hintText: paymentList![
+                                              selectedPaymentIndex.value]
+                                          .details?[i],
+                                      hintStyle: GoogleFonts.urbanist(
+                                          fontSize: 14,
+                                          color: AppColor.grey,
+                                          fontWeight: FontWeight.w600),
                                       border: InputBorder.none,
                                     ),
                                   ),
@@ -316,15 +399,25 @@ class _WithdrawViewState extends State<WithdrawView> {
             }
           }
 
-          if (selectedPayment.value != "" && amountController.text.isNotEmpty && isDetailsNotEmpty) {
-            if ((AdminSettingsApi.adminSettingsModel?.setting?.minWithdrawalRequestedAmount ?? 1) > int.parse(amountController.text) || widget.balance < int.parse(amountController.text)) {
+          if (selectedPayment.value != "" &&
+              amountController.text.isNotEmpty &&
+              isDetailsNotEmpty) {
+            if ((AdminSettingsApi.adminSettingsModel?.setting
+                            ?.minWithdrawalRequestedAmount ??
+                        1) >
+                    int.parse(amountController.text) ||
+                widget.balance < int.parse(amountController.text)) {
               CustomToast.show(AppStrings.pleaseEnterCorrectAmount.tr);
             } else {
               Get.defaultDialog(
                 title: AppStrings.confirmWithdraw.tr,
-                titleStyle: GoogleFonts.urbanist(fontSize: 20, color: AppColor.primaryColor, fontWeight: FontWeight.bold),
+                titleStyle: GoogleFonts.urbanist(
+                    fontSize: 20,
+                    color: AppColor.primaryColor,
+                    fontWeight: FontWeight.bold),
                 titlePadding: const EdgeInsets.only(top: 15),
-                backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                backgroundColor:
+                    isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
                 contentPadding: const EdgeInsets.all(0),
                 radius: 30,
                 content: Container(
@@ -340,8 +433,11 @@ class _WithdrawViewState extends State<WithdrawView> {
                         Center(
                           child: PreviewProfileImage(
                             size: 80,
-                            id: paymentList?[selectedPaymentIndex.value].id ?? "",
-                            image: paymentList?[selectedPaymentIndex.value].image ?? "",
+                            id: paymentList?[selectedPaymentIndex.value].id ??
+                                "",
+                            image: paymentList?[selectedPaymentIndex.value]
+                                    .image ??
+                                "",
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -368,9 +464,14 @@ class _WithdrawViewState extends State<WithdrawView> {
                             Obx(
                               () => Checkbox(
                                 value: isAllowTerms.value,
-                                onChanged: (value) => isAllowTerms.value = value!,
-                                fillColor: WidgetStatePropertyAll(isAllowTerms.value ? AppColor.primaryColor : AppColor.transparent),
-                                side: const BorderSide(color: AppColor.primaryColor, width: 2),
+                                onChanged: (value) =>
+                                    isAllowTerms.value = value!,
+                                fillColor: WidgetStatePropertyAll(
+                                    isAllowTerms.value
+                                        ? AppColor.primaryColor
+                                        : AppColor.transparent),
+                                side: const BorderSide(
+                                    color: AppColor.primaryColor, width: 2),
                               ),
                             ),
                             SizedBox(
@@ -378,7 +479,8 @@ class _WithdrawViewState extends State<WithdrawView> {
                               child: Text(
                                 AppStrings.acceptTermsCondition.tr,
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.urbanist(fontWeight: FontWeight.bold, fontSize: 13),
+                                style: GoogleFonts.urbanist(
+                                    fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                             ),
                           ],
@@ -389,36 +491,53 @@ class _WithdrawViewState extends State<WithdrawView> {
                               Get.back();
                               isAllowTerms.value = false;
 
-                              Get.dialog(const LoaderUi(), barrierDismissible: false);
+                              Get.dialog(const LoaderUi(),
+                                  barrierDismissible: false);
 
                               List<String> details = [];
 
-                              for (int i = 0; i < paymentList![selectedPaymentIndex.value].details!.length; i++) {
-                                details.add("${paymentList![selectedPaymentIndex.value].details![i]}:${paymentDetailsController[i].text}");
+                              for (int i = 0;
+                                  i <
+                                      paymentList![selectedPaymentIndex.value]
+                                          .details!
+                                          .length;
+                                  i++) {
+                                details.add(
+                                    "${paymentList![selectedPaymentIndex.value].details![i]}:${paymentDetailsController[i].text}");
                               }
                               await 1.seconds.delay();
 
-                              withDrawRequestModel = await WithDrawRequestApi.callApi(
+                              withDrawRequestModel =
+                                  await WithDrawRequestApi.callApi(
                                 loginUserId: Database.loginUserId!,
                                 amount: amountController.text,
                                 paymentGateway: selectedPayment.value,
                                 paymentDetails: details,
                               );
                               Get.back();
-                              if (withDrawRequestModel != null && (withDrawRequestModel?.status ?? false)) {
-                                if (withDrawRequestModel?.message == "finally, withdrawal request send to admin.") {
-                                  CustomToast.show(AppStrings.requestSendToAdmin.tr);
-                                } else if (withDrawRequestModel?.message == "withdrawal request already send by you to admin.") {
-                                  CustomToast.show(AppStrings.requestAlreadySendToAdmin.tr);
+                              if (withDrawRequestModel != null &&
+                                  (withDrawRequestModel?.status ?? false)) {
+                                if (withDrawRequestModel?.message ==
+                                    "finally, withdrawal request send to admin.") {
+                                  CustomToast.show(
+                                      AppStrings.requestSendToAdmin.tr);
+                                } else if (withDrawRequestModel?.message ==
+                                    "withdrawal request already send by you to admin.") {
+                                  CustomToast.show(
+                                      AppStrings.requestAlreadySendToAdmin.tr);
                                 } else {
-                                  CustomToast.show(withDrawRequestModel?.message ?? AppStrings.someThingWentWrong.tr);
+                                  CustomToast.show(
+                                      withDrawRequestModel?.message ??
+                                          AppStrings.someThingWentWrong.tr);
                                 }
                                 Get.back();
                               } else {
-                                CustomToast.show(AppStrings.someThingWentWrong.tr);
+                                CustomToast.show(
+                                    AppStrings.someThingWentWrong.tr);
                               }
                             } else {
-                              CustomToast.show(AppStrings.pleaseAcceptTermsAndCondition.tr);
+                              CustomToast.show(
+                                  AppStrings.pleaseAcceptTermsAndCondition.tr);
                             }
                           },
                           child: Container(
@@ -473,7 +592,8 @@ class _WithdrawViewState extends State<WithdrawView> {
   }
 }
 
-Widget paymentOption(String icon, String id, String name, String selectedPayment, Callback callback) {
+Widget paymentOption(String icon, String id, String name,
+    String selectedPayment, Callback callback) {
   return GestureDetector(
     onTap: callback,
     child: Container(
@@ -482,7 +602,12 @@ Widget paymentOption(String icon, String id, String name, String selectedPayment
       decoration: BoxDecoration(
         color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_200, blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(
+              color:
+                  isDarkMode.value ? AppColor.transparent : AppColor.grey_200,
+              blurRadius: 10)
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.symmetric(horizontal: 15),
@@ -497,7 +622,8 @@ Widget paymentOption(String icon, String id, String name, String selectedPayment
           ).paddingOnly(left: 10, right: 15),
           Text(
             name,
-            style: GoogleFonts.urbanist(fontSize: 16, fontWeight: FontWeight.bold),
+            style:
+                GoogleFonts.urbanist(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           Radio(

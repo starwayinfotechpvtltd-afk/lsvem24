@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as video_thumb;
+import 'package:metube/utils/auth/auth_service.dart';
 
 class GreenScreenRecorderView extends StatefulWidget {
   const GreenScreenRecorderView({super.key, required this.backgroundVideoUrl});
@@ -651,7 +652,8 @@ class _GreenScreenRecorderViewState extends State<GreenScreenRecorderView>
         ),
         actions: [
           TextButton.icon(
-            onPressed: () async {
+            onPressed: () async { 
+              if (!AuthService.checkLogin()) return;
               Navigator.pop(ctx);
               await _saveToGallery(outputPath);
             },

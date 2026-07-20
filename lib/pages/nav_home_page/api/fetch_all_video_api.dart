@@ -26,6 +26,7 @@ class FetchAllVideoApi {
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
 
+print("Videos response: ${jsonResponse}");
         AppSettings.showLog("Fetch All Video Api Response => ${response.body}");
         return FetchAllVideoModel.fromJson(jsonResponse);
       } else {

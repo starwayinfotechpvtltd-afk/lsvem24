@@ -10,6 +10,7 @@ import 'package:metube/utils/services/convert_to_network.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class NavShortsController extends GetxController {
   RxList mainShortsVideos = [].obs;
@@ -31,6 +32,27 @@ class NavShortsController extends GetxController {
     init();
     super.onInit();
   }
+
+  Future<void> updateWakeLock() async {
+  if (isPlaying.value) {
+    await WakelockPlus.enable();
+  } else {
+    await WakelockPlus.disable();
+  }
+}
+
+Future<void> setPlaying(bool playing) async {
+  if (isPlaying.value == playing) return;
+
+  isPlaying.value = playing;
+  await updateWakeLock();
+}
+
+@override
+void onClose() {
+  WakelockPlus.disable();
+  super.onClose();
+}
 
   Future<void> init() async {
   try {
@@ -113,13 +135,6 @@ if (batch.isEmpty) {
   AppSettings.showLog("No valid shorts videos");
   return;
 }
-
-await _adInserter.appendShorts(
-  batch,
-  mainShortsVideos,
-);
-
-      if (batch.isEmpty) return;
 
       await _adInserter.appendShorts(
         batch,

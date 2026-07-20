@@ -24,6 +24,7 @@ import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_ap
 import 'package:video_player/video_player.dart';
 import 'package:metube/database/database.dart';
 import 'package:video_player/video_player.dart';
+import 'package:metube/utils/navigation/navigation_observer.dart';
 
 class AdsManagementScreen extends StatefulWidget {
   const AdsManagementScreen({super.key});
@@ -47,8 +48,7 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
   final List<String> adsTypes = [
     "skippable",
     "non-skippable",
-    "banner",
-    "overlay",
+    "banner"
   ];
 
   final List<String> adsCategories = [
@@ -96,7 +96,8 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
   }
 
   void _loadUserCoins() {
-    availableCoin = (GetProfileApi.profileModel?.user?.currentCoin ?? 0).toDouble();
+    availableCoin =
+        (GetProfileApi.profileModel?.user?.currentCoin ?? 0).toDouble();
     purchasedCoin =
         (GetProfileApi.profileModel?.user?.totalPurchasedCoin ?? 0).toDouble();
   }
@@ -113,8 +114,21 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
   Future<void> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      await previewVideoController?.dispose();
+
       setState(() {
         selectedImage = File(image.path);
+
+        // Remove video
+        selectedVideo = null;
+        previewVideoController = null;
+        videoDurationSeconds = 0;
+
+        // Image ads are always banner
+        selectedAdsType = "banner";
+
+        // Placement not required for banner image
+        selectedPlacement = "pre-roll";
       });
       await calculateBudget();
     }
@@ -133,18 +147,32 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
         AppSettings.showLog('Ad video duration read failed => $e');
       }
 
+      // Restrict ad video length to 30 seconds
+      if (durationSec > 30) {
+        CustomToast.show(
+          'Ad video duration cannot exceed 30 seconds',
+        );
+        return;
+      }
       selectedVideo = File(video.path);
 
-await previewVideoController?.dispose();
+      await previewVideoController?.dispose();
 
-previewVideoController =
-    VideoPlayerController.file(selectedVideo!);
+      previewVideoController = VideoPlayerController.file(selectedVideo!);
 
-await previewVideoController!.initialize();
+      await previewVideoController!.initialize();
 
-setState(() {
-  videoDurationSeconds = durationSec;
-});
+      setState(() {
+        videoDurationSeconds = durationSec;
+
+        // Remove image
+        selectedImage = null;
+
+        // Restore defaults if image banner was selected
+        if (selectedAdsType == "banner") {
+          selectedAdsType = "skippable";
+        }
+      });
       await calculateBudget();
     }
   }
@@ -178,15 +206,7 @@ setState(() {
       if (selectedVideo != null) {
         sizeMB += await selectedVideo!.length() / (1024 * 1024);
       }
-      String mediaType;
-
-        if (selectedImage != null && selectedVideo != null) {
-          mediaType = 'both';
-        } else if (selectedVideo != null) {
-          mediaType = 'video';
-        } else {
-          mediaType = 'image';
-        }
+      String mediaType = selectedVideo != null ? "video" : "image";
 
       var durationSec = videoDurationSeconds;
       if (selectedVideo != null && durationSec <= 0) {
@@ -246,7 +266,10 @@ setState(() {
               color: isDarkMode.value ? AppColor.white : AppColor.black,
             ),
             onPressed: () {
-              Get.back();
+              if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
             },
           ),
         ),
@@ -302,56 +325,71 @@ setState(() {
           //     selectedVideo == null) {
           //   CustomToast.show(AppStrings.pleaseFillUpDetails.tr);
           // } else {
-            Get.dialog(
-              PopScope(
-                canPop: false,
-                child: Obx(
-                  () => LoaderUi(
-                    color: AppColor.white,
-                    message: CreateAdsApi.uploadStatusRx.value.isNotEmpty
-                        ? CreateAdsApi.uploadStatusRx.value
-                        : 'Creating ad...',
-                  ),
+          Get.dialog(
+            PopScope(
+              canPop: false,
+              child: Obx(
+                () => LoaderUi(
+                  color: AppColor.white,
+                  message: CreateAdsApi.uploadStatusRx.value.isNotEmpty
+                      ? CreateAdsApi.uploadStatusRx.value
+                      : 'Creating ad...',
                 ),
               ),
-              barrierDismissible: false,
+            ),
+            barrierDismissible: false,
+          );
+
+          final mediaFile = selectedVideo ?? selectedImage!;
+          final sizeMB = (await mediaFile.length()) / (1024 * 1024);
+
+          if (selectedVideo != null && videoDurationSeconds > 30) {
+            CustomToast.show(
+              'Ad video duration cannot exceed 30 seconds',
             );
+            return;
+          }
+          final isSuccess = await CreateAdsApi.callApi(
+            title: adsTitleController.text.trim(),
+            description: adsDescriptionController.text.trim(),
+            country: selectedCountry?.name,
+            state: selectedState?.name,
+            type: selectedAdsType,
+            category: selectedAdsCategory,
+            adRuns: selectedAdsRuns,
+            city: cityController.text.trim(),
+            budget: adsBudgetController.text.trim(),
+            placement: selectedPlacement ?? 'pre-roll',
+            durationSeconds: videoDurationSeconds,
+            fileSizeMB: sizeMB,
+            image: selectedImage,
+            video: selectedVideo,
+          );
 
-            final mediaFile = selectedVideo ?? selectedImage!;
-            final sizeMB = (await mediaFile.length()) / (1024 * 1024);
+          if (Get.isDialogOpen ?? false) {
+ if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
+}
 
-            final isSuccess = await CreateAdsApi.callApi(
-              title: adsTitleController.text.trim(),
-              description: adsDescriptionController.text.trim(),
-              country: selectedCountry?.name,
-              state: selectedState?.name,
-              type: selectedAdsType,
-              category: selectedAdsCategory,
-              adRuns: selectedAdsRuns,
-              city: cityController.text.trim(),
-              budget: adsBudgetController.text.trim(),
-              placement: selectedPlacement ?? 'pre-roll',
-              durationSeconds: videoDurationSeconds,
-              fileSizeMB: sizeMB,
-              image: selectedImage,
-              video: selectedVideo,
-            );
+if (isSuccess) {
+  await GetProfileApi.callApi(Database.loginUserId ?? '');
+  _loadUserCoins();
 
-            Get.back();
+  CustomToast.show(
+    CreateAdsApi.message?.isNotEmpty == true
+        ? CreateAdsApi.message!
+        : "Ads uploaded successfully",
+  );
 
-            if (isSuccess) {
-              await GetProfileApi.callApi(Database.loginUserId ?? '');
-              _loadUserCoins();
-              CustomToast.show(CreateAdsApi.message?.isNotEmpty == true
-                  ? CreateAdsApi.message.toString()
-                  : "Ads uploaded successfully");
-              Get.back();
-            } else {
-              CustomToast.show(CreateAdsApi.message?.isNotEmpty == true
-                  ? CreateAdsApi.message.toString()
-                  : AppStrings.someThingWentWrong.tr);
-            }
-          // }
+  await Future.delayed(const Duration(milliseconds: 250));
+
+  if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
+}
         },
         child: Container(
           alignment: Alignment.center,
@@ -381,9 +419,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.only(left: 20),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextFormField(
@@ -412,9 +452,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.only(left: 20),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextFormField(
@@ -465,9 +507,11 @@ setState(() {
                       height: Get.height / 16,
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       decoration: BoxDecoration(
-                        color: isDarkMode.value
-                            ? AppColor.secondDarkMode
-                            : AppColor.grey_100,
+                        color: selectedImage != null
+                            ? Colors.grey.shade300
+                            : (isDarkMode.value
+                                ? AppColor.secondDarkMode
+                                : AppColor.grey_100),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: selectedCountry != null
@@ -489,9 +533,11 @@ setState(() {
                     height: Get.height / 16,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonFormField2<csc.State>(
@@ -524,9 +570,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.only(left: 20),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextFormField(
@@ -552,13 +600,15 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonFormField2<String>(
-                      value: selectedAdsType,
+                      value: selectedImage != null ? "banner" : selectedAdsType,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
@@ -572,12 +622,15 @@ setState(() {
                           child: Text(type),
                         );
                       }).toList(),
-                      onChanged: (value){
-                        setState(() {
-                          selectedAdsType = value;
-                        });
-                         calculateBudget();
-                      },
+                      onChanged: selectedImage != null
+                          ? null
+                          : (value) async {
+                              setState(() {
+                                selectedAdsType = value;
+                              });
+
+                              await calculateBudget();
+                            },
                     ),
                   ),
                   SizedBox(height: SizeConfig.screenHeight / 30),
@@ -594,9 +647,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonFormField2<String>(
@@ -635,9 +690,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonFormField2<String>(
@@ -676,9 +733,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: DropdownButtonFormField2<String>(
@@ -696,12 +755,14 @@ setState(() {
                           child: Text(p),
                         );
                       }).toList(),
-                      onChanged: (value) async {
-                        setState(() {
-                          selectedPlacement = value;
-                        });
-                        await calculateBudget();
-                      },
+                      onChanged: selectedImage != null
+                          ? null
+                          : (value) async {
+                              setState(() {
+                                selectedPlacement = value;
+                              });
+                              await calculateBudget();
+                            },
                     ),
                   ),
                   SizedBox(height: SizeConfig.screenHeight / 30),
@@ -711,9 +772,11 @@ setState(() {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.only(left: 20),
                     decoration: BoxDecoration(
-                      color: isDarkMode.value
-                          ? AppColor.secondDarkMode
-                          : AppColor.grey_100,
+                      color: selectedImage != null
+                          ? Colors.grey.shade300
+                          : (isDarkMode.value
+                              ? AppColor.secondDarkMode
+                              : AppColor.grey_100),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextFormField(
@@ -724,13 +787,12 @@ setState(() {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
                       ],
-                     decoration: InputDecoration(
+                      decoration: InputDecoration(
                         hintText: generatedBudget > 0
                             ? '${generatedBudget.toInt()} coins'
                             : 'ADS Budget (auto)',
                         hintStyle: fillYourProfileStyle,
                         isDense: true,
-
                         suffixIcon: isCalculatingBudget
                             ? const Padding(
                                 padding: EdgeInsets.all(12),
@@ -749,7 +811,6 @@ setState(() {
                                     size: 20,
                                   )
                                 : null,
-
                         border: InputBorder.none,
                       ),
                     ),
@@ -765,63 +826,70 @@ setState(() {
                   ),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: pickImage,
-                    child: Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: isDarkMode.value
-                            ? AppColor.secondDarkMode
-                            : AppColor.grey_100,
-                        borderRadius: BorderRadius.circular(10),
+                    onTap: selectedVideo != null ? null : pickImage,
+                    child: Opacity(
+                      opacity: selectedVideo != null ? 0.5 : 1,
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: selectedImage != null
+                              ? Colors.grey.shade300
+                              : (isDarkMode.value
+                                  ? AppColor.secondDarkMode
+                                  : AppColor.grey_100),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: selectedImage != null
+                            ? Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.file(
+                                        selectedImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        setState(() {
+                                          selectedImage = null;
+
+                                          selectedAdsType = "skippable";
+                                          selectedPlacement = "pre-roll";
+                                        });
+
+                                        if (selectedVideo == null) {
+                                          adsBudgetController.clear();
+                                          generatedBudget = 0;
+                                        } else {
+                                          await calculateBudget();
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Center(
+                                child: Text("Tap to upload image"),
+                              ),
                       ),
-                      child: selectedImage != null
-    ? Stack(
-        children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.file(
-                selectedImage!,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-
-          Positioned(
-            top: 8,
-            right: 8,
-            child: GestureDetector(
-              onTap: () async {
-                setState(() {
-                  selectedImage = null;
-                });
-
-                if (selectedVideo == null) {
-                  adsBudgetController.clear();
-                  generatedBudget = 0;
-                } else {
-                  await calculateBudget();
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-          ),
-        ],
-      )
-    : const Center(
-        child: Text("Tap to upload image"),
-      ),
                     ),
                   ),
                   SizedBox(height: SizeConfig.screenHeight / 30),
@@ -834,73 +902,81 @@ setState(() {
                   ),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: pickVideo,
-                    child: Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: isDarkMode.value
-                            ? AppColor.secondDarkMode
-                            : AppColor.grey_100,
-                        borderRadius: BorderRadius.circular(10),
+                    onTap: selectedImage != null ? null : pickVideo,
+                    child: Opacity(
+                      opacity: selectedImage != null ? 0.5 : 1,
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: selectedImage != null
+                              ? Colors.grey.shade300
+                              : (isDarkMode.value
+                                  ? AppColor.secondDarkMode
+                                  : AppColor.grey_100),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: selectedVideo != null
+                            ? Stack(
+                                children: [
+                                  previewVideoController != null &&
+                                          previewVideoController!
+                                              .value.isInitialized
+                                      ? Positioned.fill(
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: FittedBox(
+                                              fit: BoxFit.cover,
+                                              child: SizedBox(
+                                                width: previewVideoController!
+                                                    .value.size.width,
+                                                height: previewVideoController!
+                                                    .value.size.height,
+                                                child: VideoPlayer(
+                                                  previewVideoController!,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        await previewVideoController?.dispose();
+
+                                        setState(() {
+                                          selectedVideo = null;
+                                          previewVideoController = null;
+                                          videoDurationSeconds = 0;
+                                        });
+
+                                        await calculateBudget();
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Center(
+                                child: Text("Tap to upload video"),
+                              ),
                       ),
-                      child: selectedVideo != null
-    ? Stack(
-        children: [
-  previewVideoController != null &&
-          previewVideoController!.value.isInitialized
-      ? Positioned.fill(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: previewVideoController!.value.size.width,
-                height: previewVideoController!.value.size.height,
-                child: VideoPlayer(
-                  previewVideoController!,
-                ),
-              ),
-            ),
-          ),
-        )
-      : const Center(
-          child: CircularProgressIndicator(),
-        ),
-
-          Positioned(
-            top: 8,
-            right: 8,
-            child: GestureDetector(
-              onTap: () async {
-  await previewVideoController?.dispose();
-
-  setState(() {
-    selectedVideo = null;
-    previewVideoController = null;
-    videoDurationSeconds = 0;
-  });
-
-  await calculateBudget();
-},
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.delete,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-          ),
-        ],
-      )
-    : const Center(
-        child: Text("Tap to upload video"),
-      ),
                     ),
                   ),
                 ],

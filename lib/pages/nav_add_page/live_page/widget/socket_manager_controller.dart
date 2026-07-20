@@ -23,7 +23,7 @@ class SocketManagerController extends GetxController {
   Future<void> socketConnect() async {
     try {
       socket = io.io(
-        Constant.baseURL,
+        Constant.mediaBaseURL,
         io.OptionBuilder().setTransports(['websocket']).setQuery({"liveRoom": "liveRoom:${Database.loginUserId}"}).build(),
       );
 

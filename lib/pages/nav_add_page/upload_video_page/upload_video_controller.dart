@@ -21,16 +21,17 @@ import 'package:metube/pages/profile_page/your_channel_page/channel_video_page/g
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
-import 'package:path_provider/path_provider.dart'; 
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:metube/utils/compressor/video_compressor.dart';
 import 'package:metube/utils/compressor/image_compressor.dart';
 import 'package:metube/utils/helpers/media_path_helper.dart';
+import 'package:metube/utils/navigation/navigation_observer.dart';
 
 class UploadVideoController extends GetxController {
   final libraryController = Get.put(NavLibraryPageController());
-  
+
   TextEditingController videoTitleController = TextEditingController();
   TextEditingController videoDescriptionController = TextEditingController();
   TextEditingController videoHashtagController = TextEditingController();
@@ -93,12 +94,21 @@ class UploadVideoController extends GetxController {
       if (image != null) {
         AppSettings.showLog("Pick Image Path => ${image.path}");
         thumbnail.value = image.path;
-        Get.back();
+        if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
       } else {
-        Get.back();
+        if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
       }
     } catch (e) {
-      Get.back();
+      if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
       AppSettings.showLog("Image Picker Error => $e");
     }
   }
@@ -156,7 +166,10 @@ class UploadVideoController extends GetxController {
       chewieController = null;
       videoPlayerController?.dispose();
       update(["initializeVideoPlayer"]);
-      Get.back();
+      if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
       CustomToast.show(AppStrings.someThingWentWrong.tr);
       AppSettings.showLog("Video Loading Failed => $e");
     }
@@ -181,7 +194,8 @@ class UploadVideoController extends GetxController {
       if (videoTime.value > 0) return;
     }
     try {
-      final controller = VideoPlayerController.file(File(localFilePath(videoPath)));
+      final controller =
+          VideoPlayerController.file(File(localFilePath(videoPath)));
       await controller.initialize();
       videoTime.value = controller.value.duration.inMilliseconds;
       await controller.dispose();
@@ -208,7 +222,10 @@ class UploadVideoController extends GetxController {
 
   void _hideUploadLoader() {
     if (Get.isDialogOpen ?? false) {
-      Get.back();
+      if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
     }
   }
 
@@ -230,28 +247,23 @@ class UploadVideoController extends GetxController {
 
       onStopVideoPlay();
 
-      AppSettings.isUploading.value = true;
-      _showUploadLoader();
+      // AppSettings.isUploading.value = true;
+      // _showUploadLoader();
       // _setUploadStatus('Preparing video...');
 
       final effectiveChannelId =
           loginUserChannelId.isNotEmpty ? loginUserChannelId : '';
-          print("channelId=$effectiveChannelId");
+      print("channelId=$effectiveChannelId");
 
       if (channelName.text.trim().isEmpty &&
           (Database.channelId == null || Database.channelId!.isEmpty)) {
-        channelName.text =
-            'channel_${DateTime.now().millisecondsSinceEpoch}';
+        channelName.text = 'channel_${DateTime.now().millisecondsSinceEpoch}';
       }
 
       String safeVideoPath = localFilePath(videoPath);
-      print(
-  "Using original file:"
-);
+      print("Using original file:");
 
-print(
-  safeVideoPath
-);
+      print(safeVideoPath);
 
       // try {
       //   final appDir = await getApplicationDocumentsDirectory();
@@ -273,60 +285,49 @@ print(
       String finalVideo = safeVideoPath;
 
       // Optional light compression (skipped for large files; server optimizes too).
-      final sizeMb =
-(await File(safeVideoPath).length()) /
-1024 /
-1024;
+      final sizeMb = (await File(safeVideoPath).length()) / 1024 / 1024;
 
-if (sizeMb > 300) {
-  // _setUploadStatus(
-  //   "Large video detected. Optimizing..."
-  // );
-}
+      if (sizeMb > 300) {
+        // _setUploadStatus(
+        //   "Large video detected. Optimizing..."
+        // );
+      }
 
       // _setUploadStatus("Optimizing video...");
 
-try {
+      // ============================ //
+      // Video Compress
+      // ============================ //
 
-  final compressed =
-      await VideoCompressor.compress(
-        input: safeVideoPath,
-        isShort: videoType == 2,
-      );
+      // try {
+      //   final compressed = await VideoCompressor.compress(
+      //     input: safeVideoPath,
+      //     isShort: videoType == 2,
+      //   );
 
-  if (
-      compressed != null &&
-      localFileExists(compressed)) {
+      //   if (compressed != null && localFileExists(compressed)) {
+      //     finalVideo = localFilePath(compressed);
 
-    finalVideo =
-        localFilePath(compressed);
+      //     final mb = await File(finalVideo).length() / 1024 / 1024;
 
-    final mb =
-        await File(finalVideo)
-            .length() /
-        1024 /
-        1024;
-
-    print(
-      "Final compressed size: "
-      "${mb.toStringAsFixed(2)} MB",
-    );
-  }
-
-} catch (e) {
-  debugPrint(
-    "Compression skipped: $e",
-  );
-}
+      //     print(
+      //       "Final compressed size: "
+      //       "${mb.toStringAsFixed(2)} MB",
+      //     );
+      //   }
+      // } catch (e) {
+      //   debugPrint(
+      //     "Compression skipped: $e",
+      //   );
+      // }
 
       // _setUploadStatus('Preparing thumbnail...');
       if (!localFileExists(thumbnail.value)) {
         await onGetThumbnail(finalVideo);
       }
 
-      String finalThumb = thumbnail.value.isNotEmpty
-          ? localFilePath(thumbnail.value)
-          : '';
+      String finalThumb =
+          thumbnail.value.isNotEmpty ? localFilePath(thumbnail.value) : '';
 
       // Use thumbnail as-is (VideoThumbnail already outputs JPEG).
       // ImageCompressor can fail on some Android devices (ImageDecoder errors).
@@ -338,14 +339,18 @@ try {
       // _setUploadStatus('Uploading thumbnail...');
       AppSettings.showLog('Thumb size => ${await File(finalThumb).length()}');
 
-      final compressedThumb =
-        await ImageCompressor.compress(
-        finalThumb,
-        );
+      // ============================ //
+      // Image Compress
+      // ============================ //
 
-        if (compressedThumb != null) {
-        finalThumb = compressedThumb;
-        }
+      // final compressedThumb =
+      //   await ImageCompressor.compress(
+      //   finalThumb,
+      //   );
+
+      // if (compressedThumb != null) {
+      // finalThumb = compressedThumb;
+      // }
 
       final uploadedThumbnail = await ConvertVideoImageApi.callApi(
         finalThumb,
@@ -398,97 +403,46 @@ try {
       AppSettings.showLog('Uploaded video => $uploadedVideo');
       AppSettings.showLog('Uploaded thumbnail => $uploadedThumbnail');
 
-print("uploadedVideo = $uploadedVideo");
-print("uploadedThumbnail = $uploadedThumbnail");
-print("loginUserId=[$loginUserId]");
-print("channelId=[$effectiveChannelId]");
+      print("uploadedVideo = $uploadedVideo");
+      print("uploadedThumbnail = $uploadedThumbnail");
+      print("loginUserId=[$loginUserId]");
+      print("channelId=[$effectiveChannelId]");
       final uploadResult = await UploadVideoApi.callApi(
-
-title:
-videoTitleController
-.text
-.trim()
-.isEmpty
-
-?
-
-"${DateTime.now().day.toString().padLeft(2,'0')}-"
-"${DateTime.now().month.toString().padLeft(2,'0')}-"
-"${DateTime.now().year}"
-
-:
-
-videoTitleController.text,
-
-description:
-videoDescriptionController.text,
-
-hashTag:
-hashTagCollection,
-
-videoType:
-videoType,
-
-videoTime:
-videoTime.value,
-
-visibilityType:
-selectVisibility.value,
-
-audienceType:
-selectAudience.value,
-
-commentType:
-selectComments.value,
-
-scheduleType:
-scheduleType.value,
-
-scheduleTime:
-selectDate.value,
-
-location:
-selectCounty.value,
-
-latitude:
-latitude.toString(),
-
-longitude:
-longitude.toString(),
-
-loginUserId:
-loginUserId.isNotEmpty
-    ? loginUserId
-    : (Database.loginUserId ?? ''),
-
-loginChannelId:
-effectiveChannelId,
-
-videoUrl:
-uploadedVideo,
-
-videoImage:
-uploadedThumbnail,
-
-channelDescription:
-channelDescription.text,
-
-channelName:
-channelName.text,
-
-videoPrivacyType:
-videoChargeType.value,
-
+        title: videoTitleController.text.trim().isEmpty
+            ? "${DateTime.now().day.toString().padLeft(2, '0')}-"
+                "${DateTime.now().month.toString().padLeft(2, '0')}-"
+                "${DateTime.now().year}"
+            : videoTitleController.text,
+        description: videoDescriptionController.text,
+        hashTag: hashTagCollection,
+        videoType: videoType,
+        videoTime: videoTime.value,
+        visibilityType: selectVisibility.value,
+        audienceType: selectAudience.value,
+        commentType: selectComments.value,
+        scheduleType: scheduleType.value,
+        scheduleTime: selectDate.value,
+        location: selectCounty.value,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        loginUserId:
+            loginUserId.isNotEmpty ? loginUserId : (Database.loginUserId ?? ''),
+        loginChannelId: effectiveChannelId,
+        videoUrl: uploadedVideo,
+        videoImage: uploadedThumbnail,
+        channelDescription: channelDescription.text,
+        channelName: channelName.text,
+        videoPrivacyType: videoChargeType.value,
       );
 
-      AppSettings.isUploading.value = false;
-      _hideUploadLoader();
+      // AppSettings.isUploading.value = false;
+      // _hideUploadLoader();
 
       if (uploadResult.success) {
         sendNotification('Upload Success', videoTitleController.text);
         await GetProfileApi.callApi(Database.loginUserId ?? '');
         CustomToast.show('Upload completed');
-        Get.offAll(() => const MainHomePageView());
+        // Get.offAll(() => const MainHomePageView());
       } else {
         sendNotification('Upload Failed', videoTitleController.text);
         throw Exception(uploadResult.message ?? 'Upload failed');
@@ -496,8 +450,8 @@ videoChargeType.value,
 
       await onDeleteDirectory();
     } catch (e) {
-      AppSettings.isUploading.value = false;
-      _hideUploadLoader();
+      // AppSettings.isUploading.value = false;
+      // _hideUploadLoader();
 
       sendNotification('Upload Failed', videoTitleController.text);
 
@@ -511,6 +465,26 @@ videoChargeType.value,
     }
   }
 
+  void _openYourVideos() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (Get.context == null) return;
+
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      if (Get.currentRoute != "/YourVideoPageView") {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          await Future.delayed(const Duration(milliseconds: 250));
+
+          if (Get.context == null) return;
+
+          if (!NavigationObserver.isNavigating) {
+            Get.to(() => const YourVideoPageView());
+          }
+        });
+      }
+    });
+  }
+
   void sendNotification(String title, String body) {
     LocalNotificationServices.onSendNotification(
       title,
@@ -521,7 +495,7 @@ videoChargeType.value,
         libraryController.mainChannelVideos[0] = null;
         libraryController.mainChannelVideos[1] = null;
         libraryController.typeWiseGetChannelVideo(0);
-        Get.to(() => const YourVideoPageView());
+        _openYourVideos();
       },
     );
   }
@@ -552,8 +526,7 @@ videoChargeType.value,
           if (name.startsWith('RM_') ||
               name.startsWith('FV_') ||
               name.startsWith('upload_') ||
-              name.startsWith('c_')
-              ) {
+              name.startsWith('c_')) {
             try {
               await file.delete(recursive: true);
             } catch (_) {}

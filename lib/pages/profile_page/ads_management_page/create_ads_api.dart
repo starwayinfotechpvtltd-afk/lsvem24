@@ -5,8 +5,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:metube/database/database.dart';
 import 'package:metube/pages/custom_pages/file_upload_page/file_upload_model.dart';
-import 'package:metube/utils/compressor/image_compressor.dart';
-import 'package:metube/utils/compressor/video_compressor.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 
@@ -136,14 +134,18 @@ class CreateAdsApi {
     if (!image.existsSync()) return null;
 
     File uploadFile = image;
-    try {
-      final compressed = await ImageCompressor.compress(image.path);
-      if (compressed != null && File(compressed).existsSync()) {
-        uploadFile = File(compressed);
-      }
-    } catch (e) {
-      AppSettings.showLog('Ads image compression skipped => $e');
-    }
+
+    // ==================== //
+    // Ads image compress
+    // ==================== //
+    // try {
+    //   final compressed = await ImageCompressor.compress(image.path);
+    //   if (compressed != null && File(compressed).existsSync()) {
+    //     uploadFile = File(compressed);  
+    //   }
+    // } catch (e) {
+    //   AppSettings.showLog('Ads image compression skipped => $e');
+    // }
 
     // _setStatus('Uploading ad image...');
     return _uploadFile(
@@ -160,23 +162,28 @@ class CreateAdsApi {
     if (!video.existsSync()) return null;
 
     File uploadFile = video;
-    try {
-      final compressed = await VideoCompressor.compress(
-        input: video.path,
-        isShort: isShort,
-      );
-      if (compressed != null && File(compressed).existsSync()) {
-        final size = await File(compressed).length();
-        if (size > 10000) {
-          uploadFile = File(compressed);
-          AppSettings.showLog(
-            'Ad video size => ${(size / 1024 / 1024).toStringAsFixed(2)} MB',
-          );
-        }
-      }
-    } catch (e) {
-      AppSettings.showLog('Ads video compression skipped => $e');
-    }
+
+
+    // ======================== //
+    // Ads video compress 
+    // ======================== //
+    // try {
+    //   final compressed = await VideoCompressor.compress(
+    //     input: video.path,
+    //     isShort: isShort,
+    //   );
+    //   if (compressed != null && File(compressed).existsSync()) {
+    //     final size = await File(compressed).length();
+    //     if (size > 10000) {
+    //       uploadFile = File(compressed);
+    //       AppSettings.showLog(
+    //         'Ad video size => ${(size / 1024 / 1024).toStringAsFixed(2)} MB',
+    //       );
+    //     }
+    //   }
+    // } catch (e) {
+    //   AppSettings.showLog('Ads video compression skipped => $e');
+    // }
 
     // _setStatus('Uploading ad video...');
     return _uploadFile(

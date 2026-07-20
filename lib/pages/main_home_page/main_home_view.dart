@@ -192,7 +192,7 @@ class _MainHomePageViewState extends State<MainHomePageView> {
               ),
               SizedBox(
                 // ✅ Safe height — iOS gets 350, others get 330
-                height: _isIOS ? 350 : 330,
+                height: _isIOS ? 350 : 280,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,9 +210,7 @@ class _MainHomePageViewState extends State<MainHomePageView> {
                     Text(AppStrings.create.tr, style: titalstyle1),
                     const SizedBox(height: 8),
                     Divider(
-                        indent: 25,
-                        endIndent: 25,
-                        color: AppColor.grey_200),
+                        indent: 25, endIndent: 25, color: AppColor.grey_200),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
@@ -275,29 +273,27 @@ class _MainHomePageViewState extends State<MainHomePageView> {
                                 }
                               },
                             ),
-                            CreateShortsOption(
-                              logo: AppIcons.boldPlay,
-                              option: AppStrings.goLive.tr,
-                              onTap: () async {
-                                if (!AuthService.checkLogin()) return;
-                                Get.back();
-                                if (socket?.connected ?? false) {
-                                  Get.to(const GoLiveView());
-                                } else {
-                                  CustomToast.show(
-                                      AppStrings.connectionIssue.tr);
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 10),
+                            // CreateShortsOption(
+                            //   logo: AppIcons.boldPlay,
+                            //   option: AppStrings.goLive.tr,
+                            //   onTap: () async {
+                            //     if (!AuthService.checkLogin()) return;
+                            //     Get.back();
+                            //     if (socket?.connected ?? false) {
+                            //       Get.to(const GoLiveView());
+                            //     } else {
+                            //       CustomToast.show(
+                            //           AppStrings.connectionIssue.tr);
+                            //     }
+                            //   },
+                            // ),
+                            // const SizedBox(height: 10),
                           ],
                         ),
                       ),
                     ),
                     // ✅ Extra bottom padding only on non-Android native
-                    _isAndroid
-                        ? const Offstage()
-                        : const SizedBox(height: 20),
+                    _isAndroid ? const Offstage() : const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -316,8 +312,7 @@ class _MainHomePageViewState extends State<MainHomePageView> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      backgroundColor:
-          isDarkMode.value ? AppColor.mainDark : AppColor.white,
+      backgroundColor: isDarkMode.value ? AppColor.mainDark : AppColor.white,
       bottomNavigationBar: Obx(
         () => Container(
           // ✅ Safe height — iOS taller, Android shorter, web uses fixed height
@@ -372,8 +367,8 @@ class _MainHomePageViewState extends State<MainHomePageView> {
       body: PageView.builder(
         itemCount: navigationPages.length,
         physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) => Obx(
-            () => navigationPages[AppSettings.navigationIndex.value]),
+        itemBuilder: (context, index) =>
+            Obx(() => navigationPages[AppSettings.navigationIndex.value]),
       ),
     );
   }
@@ -381,7 +376,8 @@ class _MainHomePageViewState extends State<MainHomePageView> {
 
 // ✅ isSupport also uses dart:io File — guard for web
 Future<bool> isSupport(String path) async {
-  if (kIsWeb) return true; // Can't validate via VideoPlayerController.file on web
+  if (kIsWeb)
+    return true; // Can't validate via VideoPlayerController.file on web
   try {
     final VideoPlayerController controller =
         VideoPlayerController.file(File(path));

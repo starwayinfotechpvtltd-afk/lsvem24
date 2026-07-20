@@ -616,8 +616,8 @@ class TypeWiseSubscribedVideo extends StatelessWidget {
                                 visible: indexData.videoType == 1,
                                 child: GestureDetector(
                                   onTap: () => Get.to(NormalVideoDetailsView(
-                                      videoId: indexData.videoId!,
-                                      videoUrl: indexData.videoUrl!)),
+                                      videoId: indexData.videoId?? "",
+                                      videoUrl: indexData.videoUrl?? "")),
                                   child: Column(
                                     children: [
                                       NormalVideoUi(

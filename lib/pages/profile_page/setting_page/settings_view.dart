@@ -48,28 +48,28 @@ class SettingsView extends GetView<ProfileController> {
                 title: AppStrings.history.tr,
               ),
 
-              SettingItemUi(
-                callback: () {},
-                leading: AppIcons.play,
-                title: AppStrings.autoPlay.tr,
-                trailing: SizedBox(
-                  height: 20,
-                  width: 25,
-                  child: Transform.scale(
-                    scale: 0.7,
-                    child: Obx(
-                      () => CupertinoSwitch(
-                        activeColor: AppColor.primaryColor,
-                        value: AppSettings.isAutoPlayVideo.value,
-                        onChanged: (value) {
-                          AppSettings.isAutoPlayVideo.value = value;
-                          Database.onSetAutoPlayVideo(value);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // SettingItemUi(
+              //   callback: () {},
+              //   leading: AppIcons.play,
+              //   title: AppStrings.autoPlay.tr,
+              //   trailing: SizedBox(
+              //     height: 20,
+              //     width: 25,
+              //     child: Transform.scale(
+              //       scale: 0.7,
+              //       child: Obx(
+              //         () => CupertinoSwitch(
+              //           activeColor: AppColor.primaryColor,
+              //           value: AppSettings.isAutoPlayVideo.value,
+              //           onChanged: (value) {
+              //             AppSettings.isAutoPlayVideo.value = value;
+              //             Database.onSetAutoPlayVideo(value);
+              //           },
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
 
               SettingItemUi(
                 leading: AppIcons.darkMode,

@@ -68,6 +68,7 @@ class Data {
     int? shareCount,
     int? like,
     int? dislike,
+    int? views,
     String? title,
     int? videoType,
     String? description,
@@ -96,6 +97,7 @@ class Data {
     _shareCount = shareCount;
     _like = like;
     _dislike = dislike;
+    _views = views;
     _title = title;
     _videoType = videoType;
     _description = description;
@@ -128,6 +130,7 @@ class Data {
     _shareCount = json['shareCount'];
     _like = json['like'];
     _dislike = json['dislike'];
+    _views = json['views'] ?? 0;
     _title = json['title'];
     _videoType = json['videoType'];
     _description = json['description'];
@@ -156,6 +159,7 @@ class Data {
   int? _shareCount;
   int? _like;
   int? _dislike;
+  int? _views;
   String? _title;
   int? _videoType;
   String? _description;
@@ -184,6 +188,7 @@ class Data {
     int? shareCount,
     int? like,
     int? dislike,
+    int? views,
     String? title,
     int? videoType,
     String? description,
@@ -213,6 +218,7 @@ class Data {
         shareCount: shareCount ?? _shareCount,
         like: like ?? _like,
         dislike: dislike ?? _dislike,
+        views: views ?? _views,
         title: title ?? _title,
         videoType: videoType ?? _videoType,
         description: description ?? _description,
@@ -241,6 +247,7 @@ class Data {
   int? get shareCount => _shareCount;
   int? get like => _like;
   int? get dislike => _dislike;
+  int? get views => _views;
   String? get title => _title;
   int? get videoType => _videoType;
   String? get description => _description;
@@ -273,6 +280,7 @@ class Data {
     map['shareCount'] = _shareCount;
     map['like'] = _like;
     map['dislike'] = _dislike;
+    map['views'] = _views;
     map['title'] = _title;
     map['videoType'] = _videoType;
     map['description'] = _description;

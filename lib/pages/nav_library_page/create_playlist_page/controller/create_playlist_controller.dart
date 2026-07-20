@@ -8,6 +8,7 @@ import 'package:metube/pages/splash_screen_page/api/unlock_private_video_api.dar
 import 'package:metube/utils/utils.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class CreatePlaylistController extends GetxController {
   ScrollController scrollController = ScrollController();
@@ -66,6 +67,7 @@ class CreatePlaylistController extends GetxController {
   }
 
   void onUnlockPrivateVideo({required int index, required BuildContext context}) async {
+    if (!AuthService.checkLogin()) return;
     UnlockPremiumVideoBottomSheet.onShow(
       coin: (normalVideos[index].videoUnlockCost ?? 0).toString(),
       callback: () async {

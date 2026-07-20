@@ -23,7 +23,9 @@ class LocalNotificationServices {
           InitializationSettings(android: _androidInitializationSettings,iOS:initializationSettingsDarwin);
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onDidReceiveNotificationResponse: (details) {
-      callback.call();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+  callback.call();
+});
       _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(

@@ -7,6 +7,7 @@ import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/utils/style/app_style.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class CustomChannelReportView {
   static RxInt selectedReport = 0.obs;
@@ -22,17 +23,26 @@ class CustomChannelReportView {
     AppStrings.others.tr,
   ];
   static void show() {
+    selectedReport.value = 0;
     Get.bottomSheet(
-      backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+      backgroundColor:
+          isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
       SizedBox(
         height: 460,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(height: 10),
-            Container(height: 3, width: SizeConfig.blockSizeHorizontal * 12, decoration: BoxDecoration(borderRadius: BorderRadius.circular(60), color: AppColor.grey_300)),
+            Container(
+                height: 3,
+                width: SizeConfig.blockSizeHorizontal * 12,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(60),
+                    color: AppColor.grey_300)),
             const SizedBox(height: 10),
-            Text(AppStrings.report.tr, style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.w900)),
+            Text(AppStrings.report.tr,
+                style: GoogleFonts.urbanist(
+                    fontSize: 18, fontWeight: FontWeight.w900)),
             Divider(indent: 25, endIndent: 25, color: AppColor.grey_200),
             Obx(
               () => Expanded(
@@ -48,10 +58,12 @@ class CustomChannelReportView {
                             children: [
                               Radio(
                                   value: i,
-                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                   activeColor: AppColor.primaryColor,
                                   groupValue: selectedReport.value,
-                                  onChanged: (value) => selectedReport.value = value!),
+                                  onChanged: (value) =>
+                                      selectedReport.value = value!),
                               Text(reportTypes[i], style: settingsStyle),
                             ],
                           ),
@@ -63,7 +75,8 @@ class CustomChannelReportView {
                           GestureDetector(
                             onTap: () => Get.back(),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 28, vertical: 10),
                               decoration: BoxDecoration(
                                 color: AppColor.lightPink.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(25),
@@ -81,17 +94,27 @@ class CustomChannelReportView {
                           const SizedBox(width: 10),
                           GestureDetector(
                             onTap: () async {
-                              if (selectedReport.value != 0) {
-                                Get.back();
-                                if (selectedReport.value == 1) {
-                                  CustomToast.show(AppStrings.channelBlockToast.tr);
-                                } else {
-                                  CustomToast.show(AppStrings.reportSendSuccess.tr);
-                                }
+                              if (!AuthService.checkLogin()) return;
+
+                              if (selectedReport.value == 0) {
+                                CustomToast.show(
+                                    "Please select a report reason");
+                                return;
+                              }
+
+                              Get.back();
+
+                              if (selectedReport.value == 1) {
+                                CustomToast.show(
+                                    AppStrings.channelBlockToast.tr);
+                              } else {
+                                CustomToast.show(
+                                    AppStrings.reportSendSuccess.tr);
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 28, vertical: 10),
                               decoration: BoxDecoration(
                                 color: AppColor.primaryColor,
                                 borderRadius: BorderRadius.circular(25),

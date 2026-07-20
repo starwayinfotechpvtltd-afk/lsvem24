@@ -48,6 +48,7 @@ class NormalVideoUi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("VIDEO: $title | VIEWS RECEIVED: $views");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -58,7 +59,9 @@ class NormalVideoUi extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             margin: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_400,
+              color: isDarkMode.value
+                  ? AppColor.secondDarkMode
+                  : AppColor.grey_400,
               borderRadius: BorderRadius.circular(30),
             ),
             child: Stack(
@@ -71,11 +74,15 @@ class NormalVideoUi extends StatelessWidget {
                   right: 20,
                   bottom: 15,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: AppColor.black),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColor.black),
                     child: Text(
                       CustomFormatTime.convert(videoTime),
-                      style: GoogleFonts.urbanist(color: AppColor.white, fontSize: 11),
+                      style: GoogleFonts.urbanist(
+                          color: AppColor.white, fontSize: 11),
                     ),
                   ),
                 ),
@@ -85,7 +92,8 @@ class NormalVideoUi extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         GestureDetector(
-          onTap: () => Get.to(() => YourChannelView(loginUserId: Database.loginUserId ?? "", channelId: channelId)),
+          onTap: () => Get.to(() => YourChannelView(
+              loginUserId: Database.loginUserId ?? "", channelId: channelId)),
           child: Container(
             color: AppColor.transparent,
             width: Get.width,
@@ -93,7 +101,11 @@ class NormalVideoUi extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(width: 10),
-                PreviewProfileImage(id: channelId, image: channelImage, size: 40, fit: BoxFit.cover),
+                PreviewProfileImage(
+                    id: channelId,
+                    image: channelImage,
+                    size: 40,
+                    fit: BoxFit.cover),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -101,13 +113,15 @@ class NormalVideoUi extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.urbanist(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         "$channelName - ${CustomFormatNumber.convert(views)} views ${uploadTime != null ? " - $uploadTime" : ""} ",
-                        style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.grey),
+                        style: GoogleFonts.urbanist(
+                            fontSize: 12, color: AppColor.grey),
                       ),
                     ],
                   ),
@@ -189,7 +203,8 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           margin: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_400,
+            color:
+                isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_400,
             borderRadius: BorderRadius.circular(30),
           ),
           child: Stack(
@@ -213,15 +228,22 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
                     10.height,
                     Text(
                       AppStrings.thisVideoIsPrivateContent.tr,
-                      style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.white, fontWeight: FontWeight.w900),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 16,
+                          color: AppColor.white,
+                          fontWeight: FontWeight.w900),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     5.height,
                     Text(
-                      AppStrings.ifYouWantToSeeThisVideoBuyPrivateContentPremium.tr,
+                      AppStrings
+                          .ifYouWantToSeeThisVideoBuyPrivateContentPremium.tr,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.white, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 12,
+                          color: AppColor.white,
+                          fontWeight: FontWeight.w600),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -241,14 +263,20 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
                                 children: [
                                   Text(
                                     AppStrings.unlockVideo.tr,
-                                    style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14.5),
+                                    style: GoogleFonts.urbanist(
+                                        color: AppColor.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14.5),
                                   ),
                                   5.width,
                                   Image.asset(AppIcons.coin, width: 18),
                                   2.width,
                                   Text(
                                     CustomFormatNumber.convert(videoCost),
-                                    style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.w800, fontSize: 14.5),
+                                    style: GoogleFonts.urbanist(
+                                        color: AppColor.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14.5),
                                   ),
                                 ],
                               ),
@@ -266,18 +294,25 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(30),
                                     color: AppColor.white.withOpacity(0.4),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           AppStrings.subscribe.tr,
-                                          style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14.5),
+                                          style: GoogleFonts.urbanist(
+                                              color: AppColor.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.5),
                                         ),
                                         5.width,
                                         Image.asset(AppIcons.coin, width: 18),
                                         2.width,
                                         Text(
                                           "$subscribeCost/m",
-                                          style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.w800, fontSize: 14.5),
+                                          style: GoogleFonts.urbanist(
+                                              color: AppColor.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14.5),
                                         ),
                                       ],
                                     ),
@@ -295,18 +330,25 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
                                       color: AppColor.primaryColor,
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           AppStrings.unlockVideo.tr,
-                                          style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14.5),
+                                          style: GoogleFonts.urbanist(
+                                              color: AppColor.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.5),
                                         ),
                                         5.width,
                                         Image.asset(AppIcons.coin, width: 18),
                                         2.width,
                                         Text(
                                           "$videoCost",
-                                          style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.w800, fontSize: 14.5),
+                                          style: GoogleFonts.urbanist(
+                                              color: AppColor.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14.5),
                                         ),
                                       ],
                                     ),
@@ -324,7 +366,8 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         GestureDetector(
-          onTap: () => Get.to(() => YourChannelView(loginUserId: Database.loginUserId ?? "", channelId: channelId)),
+          onTap: () => Get.to(() => YourChannelView(
+              loginUserId: Database.loginUserId ?? "", channelId: channelId)),
           child: Container(
             color: AppColor.transparent,
             width: Get.width,
@@ -332,7 +375,11 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(width: 10),
-                PreviewProfileImage(id: channelId, image: channelImage, size: 40, fit: BoxFit.cover),
+                PreviewProfileImage(
+                    id: channelId,
+                    image: channelImage,
+                    size: 40,
+                    fit: BoxFit.cover),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -340,18 +387,22 @@ class PrivateContentNormalVideoUi extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.urbanist(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         "$channelName - ${CustomFormatNumber.convert(views)} views ${uploadTime != null ? " - $uploadTime" : ""} ",
-                        style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.grey),
+                        style: GoogleFonts.urbanist(
+                            fontSize: 12, color: AppColor.grey),
                       ),
                     ],
                   ),
                 ),
-                IconButton(onPressed: videoCallback, icon: const Icon(Icons.more_vert)),
+                IconButton(
+                    onPressed: videoCallback,
+                    icon: const Icon(Icons.more_vert)),
                 const SizedBox(width: 5),
               ],
             ),

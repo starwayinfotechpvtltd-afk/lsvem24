@@ -17,7 +17,7 @@ import 'package:metube/pages/splash_screen_page/api/unlock_private_video_api.dar
 import 'package:metube/utils/utils.dart';
 import 'package:metube/widget/subscribe_premium_channel_bottom_sheet.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
-import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';   
 
 class NavHomeController extends GetxController {
   bool isLoadingPagination = false;
@@ -137,6 +137,7 @@ class NavHomeController extends GetxController {
 
   Future<void> onGetAllTabVideo() async {
     fetchAllVideoModel = await FetchAllVideoApi.callApi(Database.loginUserId ?? "");
+    print("All video data: ${fetchAllVideoModel}");
 
     final paginationShorts = fetchAllVideoModel?.data?.shorts;
     final paginationVideos = fetchAllVideoModel?.data?.videos;
@@ -150,6 +151,7 @@ class NavHomeController extends GetxController {
       FetchAllVideoApi.startPagination--;
       Utils.showLog("All Tab Pagination Data Empty");
     }
+    
     isLoadingAllTab = false;
     update(["onGetAllTabVideo"]);
   }

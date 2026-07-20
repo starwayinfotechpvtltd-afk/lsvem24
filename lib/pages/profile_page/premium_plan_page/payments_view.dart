@@ -26,7 +26,7 @@ import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/settings/app_settings.dart';
-import 'package:metube/utils/string/app_string.dart';
+import 'package:metube/utils/string/app_string.dart'; 
 import 'package:metube/utils/style/app_style.dart';
 import 'package:metube/utils/utils.dart';
 

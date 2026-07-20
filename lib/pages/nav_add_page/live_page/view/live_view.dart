@@ -60,17 +60,34 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
 
   List<StreamSubscription> subscriptions = [];
 
-  SocketManagerController socketManagerController = Get.put(SocketManagerController());
+  SocketManagerController socketManagerController =
+      Get.put(SocketManagerController());
 
   @override
   void initState() {
+    print("LIVE PAGE INIT STATE");
     WakelockPlus.enable();
     onChangeTime();
 
     startListenEvent();
-    loginRoom();
+    print("BEFORE LOGIN ROOM");
+    Future.microtask(() async {
+      try {
+        print("CALLING LOGIN ROOM");
+
+        await loginRoom();
+
+        print("LOGIN ROOM COMPLETED");
+      } catch (e, s) {
+        print("LOGIN ROOM ERROR => $e");
+        print("STACK => $s");
+      }
+    });
+    print("AFTER LOGIN ROOM");
     subscriptions.addAll([
-      NativeDeviceOrientationCommunicator().onOrientationChanged().listen((NativeDeviceOrientation orientation) {
+      NativeDeviceOrientationCommunicator()
+          .onOrientationChanged()
+          .listen((NativeDeviceOrientation orientation) {
         updateAppOrientation(orientation);
       }),
     ]);
@@ -135,16 +152,19 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
     }
   }
 
-  Widget get screenView => isSharingScreen ? (hostScreenView ?? const SizedBox()) : const SizedBox();
+  Widget get screenView =>
+      isSharingScreen ? (hostScreenView ?? const SizedBox()) : const SizedBox();
 
-  Widget get cameraView => isCameraEnabled ? (hostCameraView ?? const SizedBox()) : const SizedBox();
+  Widget get cameraView =>
+      isCameraEnabled ? (hostCameraView ?? const SizedBox()) : const SizedBox();
 
   void updateAppOrientation(NativeDeviceOrientation orientation) async {
     if (isLandscape != orientation.isLandscape) {
       isLandscape = orientation.isLandscape;
       debugPrint('updateAppOrientation: ${orientation.name}');
       final videoConfig = await ZegoExpressEngine.instance.getVideoConfig();
-      if (isLandscape && (videoConfig.captureWidth > videoConfig.captureHeight)) return;
+      if (isLandscape && (videoConfig.captureWidth > videoConfig.captureHeight))
+        return;
 
       final oldValues = {
         'captureWidth': videoConfig.captureWidth,
@@ -162,7 +182,8 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
     }
   }
 
-  void resetAppOrientation() => updateAppOrientation(NativeDeviceOrientation.portraitUp);
+  void resetAppOrientation() =>
+      updateAppOrientation(NativeDeviceOrientation.portraitUp);
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +199,8 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
         widget.isHost == false
             ? Get.back()
             : Get.bottomSheet(
-                backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                backgroundColor:
+                    isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                     topRight: Radius.circular(40),
@@ -192,8 +214,12 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                   ),
                   height: 180,
                   decoration: BoxDecoration(
-                    color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
-                    borderRadius: const BorderRadius.only(topRight: Radius.circular(40), topLeft: Radius.circular(40)),
+                    color: isDarkMode.value
+                        ? AppColor.secondDarkMode
+                        : AppColor.white,
+                    borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(40),
+                        topLeft: Radius.circular(40)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -204,7 +230,9 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                         height: 3,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(60),
-                          color: isDarkMode.value ? AppColor.white.withOpacity(0.2) : AppColor.grey_100,
+                          color: isDarkMode.value
+                              ? AppColor.white.withOpacity(0.2)
+                              : AppColor.grey_100,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -212,7 +240,9 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                         AppStrings.stopLive.tr,
                         style: GoogleFonts.urbanist(
                           fontSize: 22,
-                          color: isDarkMode.value ? AppColor.white : AppColor.logOutColor,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.logOutColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -257,10 +287,15 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                               height: 45,
                               width: 130,
                               alignment: Alignment.center,
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: AppColor.primaryColor),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(100),
+                                  color: AppColor.primaryColor),
                               child: Text(
                                 AppStrings.yesExit.tr,
-                                style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                style: GoogleFonts.urbanist(
+                                    color: AppColor.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
                               ),
                             ),
                             onTap: () => Get.close(2),
@@ -309,7 +344,10 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                     ? Obx(
                         () => Text(
                           CustomFormatTime.convert(countTime.value * 1000),
-                          style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          style: GoogleFonts.urbanist(
+                              color: AppColor.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14),
                         ).paddingOnly(top: 35),
                       )
                     : const Offstage(),
@@ -338,20 +376,32 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                 clipBehavior: Clip.antiAlias,
                                 height: 35,
                                 width: 35,
-                                decoration: const BoxDecoration(shape: BoxShape.circle),
-                                child: controller.mainLiveChats[index]["image"] != null
-                                    ? Image.network(controller.mainLiveChats[index]["image"], fit: BoxFit.cover)
-                                    : Image.asset(AppIcons.profileImage, fit: BoxFit.cover),
+                                decoration:
+                                    const BoxDecoration(shape: BoxShape.circle),
+                                child: controller.mainLiveChats[index]
+                                            ["image"] !=
+                                        null
+                                    ? Image.network(
+                                        controller.mainLiveChats[index]
+                                            ["image"],
+                                        fit: BoxFit.cover)
+                                    : Image.asset(AppIcons.profileImage,
+                                        fit: BoxFit.cover),
                               ),
                               title: Text(
                                 controller.mainLiveChats[index]["name of user"],
-                                style: GoogleFonts.urbanist(fontSize: 15, color: AppColor.white, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.urbanist(
+                                    fontSize: 15,
+                                    color: AppColor.white,
+                                    fontWeight: FontWeight.bold),
                               ),
                               subtitle: SizedBox(
                                 width: Get.width / 4,
                                 child: Text(
-                                  controller.mainLiveChats[index]["liveChat text"],
-                                  style: GoogleFonts.urbanist(color: AppColor.grey, fontSize: 13),
+                                  controller.mainLiveChats[index]
+                                      ["liveChat text"],
+                                  style: GoogleFonts.urbanist(
+                                      color: AppColor.grey, fontSize: 13),
                                 ),
                               ),
                             );
@@ -373,13 +423,18 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                         children: [
                           GestureDetector(
                             child: widget.isHost
-                                ? const Icon(Icons.close, color: AppColor.white, size: 25)
-                                : Image.asset(AppIcons.arrowBack, color: AppColor.white, width: 20).paddingOnly(left: 15),
+                                ? const Icon(Icons.close,
+                                    color: AppColor.white, size: 25)
+                                : Image.asset(AppIcons.arrowBack,
+                                        color: AppColor.white, width: 20)
+                                    .paddingOnly(left: 15),
                             onTap: () {
                               widget.isHost == false
                                   ? Get.back()
                                   : Get.bottomSheet(
-                                      backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                                      backgroundColor: isDarkMode.value
+                                          ? AppColor.secondDarkMode
+                                          : AppColor.white,
                                       shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.only(
                                           topRight: Radius.circular(40),
@@ -388,24 +443,38 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                       ),
                                       Container(
                                         padding: EdgeInsets.only(
-                                          left: SizeConfig.blockSizeHorizontal * 3,
-                                          right: SizeConfig.blockSizeHorizontal * 3,
+                                          left: SizeConfig.blockSizeHorizontal *
+                                              3,
+                                          right:
+                                              SizeConfig.blockSizeHorizontal *
+                                                  3,
                                         ),
                                         height: 180,
                                         decoration: BoxDecoration(
-                                          color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
-                                          borderRadius: const BorderRadius.only(topRight: Radius.circular(40), topLeft: Radius.circular(40)),
+                                          color: isDarkMode.value
+                                              ? AppColor.secondDarkMode
+                                              : AppColor.white,
+                                          borderRadius: const BorderRadius.only(
+                                              topRight: Radius.circular(40),
+                                              topLeft: Radius.circular(40)),
                                         ),
                                         child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
                                           children: [
                                             const SizedBox(height: 10),
                                             Container(
-                                              width: SizeConfig.blockSizeHorizontal * 12,
+                                              width: SizeConfig
+                                                      .blockSizeHorizontal *
+                                                  12,
                                               height: 3,
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(60),
-                                                color: isDarkMode.value ? AppColor.white.withOpacity(0.2) : AppColor.grey_100,
+                                                borderRadius:
+                                                    BorderRadius.circular(60),
+                                                color: isDarkMode.value
+                                                    ? AppColor.white
+                                                        .withOpacity(0.2)
+                                                    : AppColor.grey_100,
                                               ),
                                             ),
                                             const SizedBox(height: 10),
@@ -413,12 +482,15 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                               AppStrings.stopLive.tr,
                                               style: GoogleFonts.urbanist(
                                                 fontSize: 22,
-                                                color: isDarkMode.value ? AppColor.white : AppColor.logOutColor,
+                                                color: isDarkMode.value
+                                                    ? AppColor.white
+                                                    : AppColor.logOutColor,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             const SizedBox(height: 5),
-                                            const Divider(indent: 30, endIndent: 30),
+                                            const Divider(
+                                                indent: 30, endIndent: 30),
                                             const SizedBox(height: 5),
                                             Text(
                                               AppStrings.stopLiveDialogText.tr,
@@ -429,8 +501,10 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                             ),
                                             const SizedBox(height: 15),
                                             Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 GestureDetector(
                                                   onTap: () => Get.back(),
@@ -439,15 +513,21 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                                     width: 130,
                                                     alignment: Alignment.center,
                                                     decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(30),
-                                                      color: AppColor.grey.withOpacity(0.2),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              30),
+                                                      color: AppColor.grey
+                                                          .withOpacity(0.2),
                                                     ),
                                                     child: Text(
                                                       AppStrings.cancel.tr,
-                                                      style: GoogleFonts.urbanist(
-                                                        fontWeight: FontWeight.bold,
+                                                      style:
+                                                          GoogleFonts.urbanist(
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         fontSize: 14,
-                                                        color: AppColor.primaryColor,
+                                                        color: AppColor
+                                                            .primaryColor,
                                                       ),
                                                     ),
                                                   ),
@@ -458,10 +538,22 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                                     height: 45,
                                                     width: 130,
                                                     alignment: Alignment.center,
-                                                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: AppColor.primaryColor),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(100),
+                                                        color: AppColor
+                                                            .primaryColor),
                                                     child: Text(
                                                       AppStrings.yesExit.tr,
-                                                      style: GoogleFonts.urbanist(color: AppColor.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                                      style:
+                                                          GoogleFonts.urbanist(
+                                                              color: AppColor
+                                                                  .white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 14),
                                                     ),
                                                   ),
                                                   onTap: () => Get.close(2),
@@ -477,16 +569,25 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                           Container(
                             height: 28,
                             width: 60,
-                            decoration: BoxDecoration(color: AppColor.primaryColor, borderRadius: BorderRadius.circular(20)),
+                            decoration: BoxDecoration(
+                                color: AppColor.primaryColor,
+                                borderRadius: BorderRadius.circular(20)),
                             child: Center(
                                 child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                const Icon(Icons.visibility, color: AppColor.white),
+                                const Icon(Icons.visibility,
+                                    color: AppColor.white),
                                 GetBuilder<SocketManagerController>(
                                   builder: (socketManagerController) => Text(
-                                    CustomFormatNumber.convert(socketManagerController.userWatchCount).toString(),
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColor.white),
+                                    CustomFormatNumber.convert(
+                                            socketManagerController
+                                                .userWatchCount)
+                                        .toString(),
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColor.white),
                                   ).paddingOnly(right: 5),
                                 ),
                               ],
@@ -515,11 +616,14 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: AppColor.white,
-                                  border: Border.all(color: AppColor.primaryColor),
+                                  border:
+                                      Border.all(color: AppColor.primaryColor),
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                padding: const EdgeInsets.symmetric(vertical: 5),
-                                margin: const EdgeInsets.symmetric(horizontal: 20),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -536,19 +640,26 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                     Expanded(
                                       child: TextFormField(
                                         controller: commentController,
-                                        style: GoogleFonts.urbanist(color: Colors.black),
+                                        style: GoogleFonts.urbanist(
+                                            color: Colors.black),
                                         keyboardType: TextInputType.multiline,
                                         onFieldSubmitted: (value) {
-                                          FocusManager.instance.primaryFocus?.unfocus();
-                                          if (commentController.text.isNotEmpty) {
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
+                                          if (commentController
+                                              .text.isNotEmpty) {
                                             final data = jsonEncode({
-                                              "name of user": AppSettings.channelName.value,
-                                              "image": AppSettings.profileImage.value,
-                                              "liveChat text": commentController.text,
+                                              "name of user":
+                                                  AppSettings.channelName.value,
+                                              "image": AppSettings
+                                                  .profileImage.value,
+                                              "liveChat text":
+                                                  commentController.text,
                                               "liveHistoryId": widget.roomID,
                                             });
 
-                                            if (socket != null && socket!.connected) {
+                                            if (socket != null &&
+                                                socket!.connected) {
                                               socket!.emit("liveChat", data);
                                               log("User Chat Emit Success");
                                             } else {
@@ -559,10 +670,12 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                         },
                                         decoration: InputDecoration(
                                           isDense: true,
-                                          contentPadding: const EdgeInsets.only(left: 10),
+                                          contentPadding:
+                                              const EdgeInsets.only(left: 10),
                                           border: InputBorder.none,
                                           hintText: AppStrings.addComments.tr,
-                                          hintStyle: GoogleFonts.urbanist(color: Colors.grey, fontSize: 14),
+                                          hintStyle: GoogleFonts.urbanist(
+                                              color: Colors.grey, fontSize: 14),
                                         ),
                                       ).paddingSymmetric(horizontal: 20),
                                     ),
@@ -576,7 +689,8 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                 if (commentController.text.isNotEmpty) {
                                   FocusManager.instance.primaryFocus?.unfocus();
                                   final data = jsonEncode({
-                                    "name of user": AppSettings.channelName.value,
+                                    "name of user":
+                                        AppSettings.channelName.value,
                                     "image": AppSettings.profileImage.value,
                                     "liveChat text": commentController.text,
                                     "liveHistoryId": widget.roomID,
@@ -598,10 +712,12 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
                                 margin: const EdgeInsets.only(right: 15),
                                 decoration: BoxDecoration(
                                   color: AppColor.white,
-                                  border: Border.all(color: AppColor.primaryColor),
+                                  border:
+                                      Border.all(color: AppColor.primaryColor),
                                   borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: Image.asset(AppIcons.textSend, width: 22, height: 22),
+                                child: Image.asset(AppIcons.textSend,
+                                    width: 22, height: 22),
                               ),
                             ),
                           ],
@@ -619,70 +735,63 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
   }
 
   Future<ZegoRoomLoginResult> loginRoom() async {
-    final user = ZegoUser(widget.localUserID, widget.localUserName);
+    print("LOGIN ROOM FUNCTION CALLED");
+
+    print("USER ID => ${widget.localUserID}");
+    print("USER NAME => ${widget.localUserName}");
+    print("ROOM ID => ${widget.roomID}");
+
+    final user = ZegoUser(
+      widget.localUserID,
+      widget.localUserName,
+    );
 
     final roomID = widget.roomID;
 
-    ZegoRoomConfig roomConfig = ZegoRoomConfig.defaultConfig()..isUserStatusNotify = true;
+    ZegoRoomConfig roomConfig = ZegoRoomConfig.defaultConfig()
+      ..isUserStatusNotify = true;
 
-    if (kIsWeb) {
-      roomConfig.token = ZegoTokenUtils.generateToken(Constant.appId, Constant.serverSecret, widget.localUserID);
+    print("BEFORE ZEGO LOGIN");
+
+    try {
+      final result = await ZegoExpressEngine.instance.loginRoom(
+        roomID,
+        user,
+        config: roomConfig,
+      );
+
+      print("AFTER ZEGO LOGIN");
+      print("ERROR CODE => ${result.errorCode}");
+
+      return result;
+    } catch (e, s) {
+      print("ZEGO LOGIN EXCEPTION => $e");
+      print("STACK => $s");
+      rethrow;
     }
-    return ZegoExpressEngine.instance.loginRoom(roomID, user, config: roomConfig).then((loginRoomResult) async {
-      debugPrint('loginRoom: errorCode:${loginRoomResult.errorCode}, extendedData:${loginRoomResult.extendedData}');
-      if (loginRoomResult.errorCode == 0) {
-        if (widget.isHost) {
-          startPreview();
-          startPublish();
-          log("liveSellingHistoryId :: ${widget.roomID}");
-          log("socket null or not :: $socket");
-          log("socket connected :: ${socket!.connected}");
-
-          var sellerData = jsonEncode({
-            "userId": widget.localUserID,
-            "liveHistoryId": widget.roomID,
-          });
-          if (socket != null && socket!.connected) {
-            socket!.emit("liveRoomConnect", sellerData);
-          } else {
-            log("Socket is not connected.");
-          }
-        } else {
-          socketManagerController.isUserView = true;
-          var userData = jsonEncode({
-            "userId": widget.localUserID,
-            "liveHistoryId": widget.roomID,
-          });
-
-          if (socket != null && socket!.connected) {
-            log("user add view emit");
-            socket!.emit("addView", userData);
-          } else {
-            log("Socket is not connected.");
-          }
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('loginRoom failed: ${loginRoomResult.errorCode}')));
-      }
-      return loginRoomResult;
-    });
   }
 
   Future<ZegoRoomLogoutResult> logoutRoom() async {
     stopPreview();
     stopPublish();
     stopScreenSharing();
-    if (screenSharingSource != null) ZegoExpressEngine.instance.destroyScreenCaptureSource(screenSharingSource!);
+    if (screenSharingSource != null)
+      ZegoExpressEngine.instance
+          .destroyScreenCaptureSource(screenSharingSource!);
     return await ZegoExpressEngine.instance.logoutRoom(widget.roomID);
   }
 
   void startListenEvent() {
-    ZegoExpressEngine.onRoomUserUpdate = (roomID, updateType, List<ZegoUser> userList) {
-      debugPrint('onRoomUserUpdate: roomID: $roomID, updateType: ${updateType.name}, userList: ${userList.map((e) => e.userID)}');
+    ZegoExpressEngine.onRoomUserUpdate =
+        (roomID, updateType, List<ZegoUser> userList) {
+      debugPrint(
+          'onRoomUserUpdate: roomID: $roomID, updateType: ${updateType.name}, userList: ${userList.map((e) => e.userID)}');
     };
     // Callback for updates on the status of the streams in the room.
-    ZegoExpressEngine.onRoomStreamUpdate = (roomID, updateType, List<ZegoStream> streamList, extendedData) {
-      debugPrint('onRoomStreamUpdate: roomID: $roomID, updateType: $updateType, streamList: ${streamList.map((e) => e.streamID)}, extendedData: $extendedData');
+    ZegoExpressEngine.onRoomStreamUpdate =
+        (roomID, updateType, List<ZegoStream> streamList, extendedData) {
+      debugPrint(
+          'onRoomStreamUpdate: roomID: $roomID, updateType: $updateType, streamList: ${streamList.map((e) => e.streamID)}, extendedData: $extendedData');
       if (updateType == ZegoUpdateType.Add) {
         for (final stream in streamList) {
           startPlayStream(stream.streamID);
@@ -694,19 +803,26 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
       }
     };
     // Callback for updates on the current user's room connection status.
-    ZegoExpressEngine.onRoomStateUpdate = (roomID, state, errorCode, extendedData) {
-      debugPrint('onRoomStateUpdate: roomID: $roomID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
+    ZegoExpressEngine.onRoomStateUpdate =
+        (roomID, state, errorCode, extendedData) {
+      debugPrint(
+          'onRoomStateUpdate: roomID: $roomID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
     };
 
     // Callback for updates on the current user's stream publishing changes.
-    ZegoExpressEngine.onPublisherStateUpdate = (streamID, state, errorCode, extendedData) {
-      debugPrint('onPublisherStateUpdate: streamID: $streamID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
+    ZegoExpressEngine.onPublisherStateUpdate =
+        (streamID, state, errorCode, extendedData) {
+      debugPrint(
+          'onPublisherStateUpdate: streamID: $streamID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
     };
-    ZegoExpressEngine.onPublisherStateUpdate = (streamID, state, errorCode, extendedData) {
-      debugPrint('onPublisherStateUpdate: streamID: $streamID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
+    ZegoExpressEngine.onPublisherStateUpdate =
+        (streamID, state, errorCode, extendedData) {
+      debugPrint(
+          'onPublisherStateUpdate: streamID: $streamID, state: ${state.name}, errorCode: $errorCode, extendedData: $extendedData');
     };
 
-    ZegoExpressEngine.onRoomStreamExtraInfoUpdate = (String roomID, List<ZegoStream> streamList) {
+    ZegoExpressEngine.onRoomStreamExtraInfoUpdate =
+        (String roomID, List<ZegoStream> streamList) {
       for (ZegoStream stream in streamList) {
         try {
           Map<String, dynamic> extraInfoMap = jsonDecode(stream.extraInfo);
@@ -720,10 +836,13 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
         }
       }
     };
-    ZegoExpressEngine.onApiCalledResult = (int errorCode, String funcName, String info) {
+    ZegoExpressEngine.onApiCalledResult =
+        (int errorCode, String funcName, String info) {
       if (errorCode != 0) {
-        String errorMessage = 'onApiCalledResult, $funcName failed: $errorCode, $info';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+        String errorMessage =
+            'onApiCalledResult, $funcName failed: $errorCode, $info';
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
         debugPrint(errorMessage);
 
         if (funcName == 'startScreenCapture') {
@@ -732,8 +851,10 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
       }
     };
 
-    ZegoExpressEngine.onPlayerVideoSizeChanged = (String streamID, int width, int height) {
-      String message = 'onPlayerVideoSizeChanged: $streamID, ${width}x$height,isLandScape: ${width > height}';
+    ZegoExpressEngine.onPlayerVideoSizeChanged =
+        (String streamID, int width, int height) {
+      String message =
+          'onPlayerVideoSizeChanged: $streamID, ${width}x$height,isLandScape: ${width > height}';
       debugPrint(message);
     };
   }
@@ -755,17 +876,23 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
   }
 
   Future<void> startScreenSharing() async {
-    screenSharingSource ??= (await ZegoExpressEngine.instance.createScreenCaptureSource())!;
+    screenSharingSource ??=
+        (await ZegoExpressEngine.instance.createScreenCaptureSource())!;
     await ZegoExpressEngine.instance.setVideoConfig(
       ZegoVideoConfig.preset(ZegoVideoConfigPreset.Preset720P)..fps = 10,
       channel: ZegoPublishChannel.Aux,
     );
-    await ZegoExpressEngine.instance.setVideoSource(ZegoVideoSourceType.ScreenCapture, channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance.setVideoSource(
+        ZegoVideoSourceType.ScreenCapture,
+        channel: ZegoPublishChannel.Aux);
     await screenSharingSource!.startCapture();
     String streamID = '${widget.roomID}_${widget.localUserID}_screen';
-    await ZegoExpressEngine.instance.startPublishingStream(streamID, channel: ZegoPublishChannel.Aux);
-    await ZegoExpressEngine.instance.stopPublishingStream(channel: ZegoPublishChannel.Aux);
-    await ZegoExpressEngine.instance.startPublishingStream(streamID, channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance
+        .startPublishingStream(streamID, channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance
+        .stopPublishingStream(channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance
+        .startPublishingStream(streamID, channel: ZegoPublishChannel.Aux);
     setState(() => isSharingScreen = true);
 
     bool needPreview = false;
@@ -773,8 +900,10 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
     if (needPreview && (hostScreenViewID == null)) {
       await ZegoExpressEngine.instance.createCanvasView((viewID) async {
         hostScreenViewID = viewID;
-        ZegoCanvas previewCanvas = ZegoCanvas(viewID, viewMode: ZegoViewMode.AspectFit);
-        ZegoExpressEngine.instance.startPreview(canvas: previewCanvas, channel: ZegoPublishChannel.Aux);
+        ZegoCanvas previewCanvas =
+            ZegoCanvas(viewID, viewMode: ZegoViewMode.AspectFit);
+        ZegoExpressEngine.instance.startPreview(
+            canvas: previewCanvas, channel: ZegoPublishChannel.Aux);
       }).then((canvasViewWidget) {
         setState(() => hostScreenView = canvasViewWidget);
       });
@@ -783,9 +912,12 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
 
   Future<void> stopScreenSharing() async {
     await screenSharingSource?.stopCapture();
-    await ZegoExpressEngine.instance.stopPreview(channel: ZegoPublishChannel.Aux);
-    await ZegoExpressEngine.instance.stopPublishingStream(channel: ZegoPublishChannel.Aux);
-    await ZegoExpressEngine.instance.setVideoSource(ZegoVideoSourceType.None, channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance
+        .stopPreview(channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance
+        .stopPublishingStream(channel: ZegoPublishChannel.Aux);
+    await ZegoExpressEngine.instance.setVideoSource(ZegoVideoSourceType.None,
+        channel: ZegoPublishChannel.Aux);
     if (mounted) setState(() => isSharingScreen = false);
     if (hostScreenViewID != null) {
       await ZegoExpressEngine.instance.destroyCanvasView(hostScreenViewID!);
@@ -799,15 +931,20 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
   }
 
   Future<void> startPreview() async {
+    print("START PREVIEW CALLED");
     // cameraView
     ZegoExpressEngine.instance.enableCamera(true);
 
     await ZegoExpressEngine.instance.createCanvasView((viewID) {
+      print("CANVAS VIEW ID => $viewID");
       hostCameraViewID = viewID;
 
-      ZegoCanvas previewCanvas = ZegoCanvas(viewID, viewMode: ZegoViewMode.AspectFill);
-      ZegoExpressEngine.instance.startPreview(canvas: previewCanvas, channel: ZegoPublishChannel.Main);
+      ZegoCanvas previewCanvas =
+          ZegoCanvas(viewID, viewMode: ZegoViewMode.AspectFill);
+      ZegoExpressEngine.instance.startPreview(
+          canvas: previewCanvas, channel: ZegoPublishChannel.Main);
     }).then((canvasViewWidget) {
+      print("CANVAS CREATED");
       setState(() => hostCameraView = canvasViewWidget);
     });
   }
@@ -827,7 +964,8 @@ class _LivePageState extends State<LivePage> with WidgetsBindingObserver {
 
   Future<void> startPublish() async {
     String streamID = '${widget.roomID}_${widget.localUserID}_live';
-    return ZegoExpressEngine.instance.startPublishingStream(streamID, channel: ZegoPublishChannel.Main);
+    return ZegoExpressEngine.instance
+        .startPublishingStream(streamID, channel: ZegoPublishChannel.Main);
   }
 
   Future<void> stopPublish() async {

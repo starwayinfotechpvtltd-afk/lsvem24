@@ -13,8 +13,9 @@ import 'package:metube/pages/video_details_page/video_details_model.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/services/preview_image.dart';
-import 'package:metube/utils/settings/app_settings.dart'; 
+import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 VideoDetailsModel? videoDetailsModel;
 
@@ -77,7 +78,11 @@ class _NavHomePageViewState extends State<NavHomePageView> {
           ),
           const SizedBox(width: 18),
           GestureDetector(
-            onTap: () => Get.to(() => const EarnRewardView()),
+            onTap: () {
+              if (!AuthService.checkLogin()) return;
+
+              Get.to(() => const EarnRewardView());
+            },
             child: Image.asset(
               AppIcons.earnRewardIcon,
               width: 20,

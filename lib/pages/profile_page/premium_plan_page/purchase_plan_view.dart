@@ -14,6 +14,17 @@ import 'package:metube/utils/string/app_string.dart';
 class PurchasePlanView extends StatelessWidget {
   const PurchasePlanView({super.key});
 
+  int get remainingPlanDays {
+    final planEndDate = DateTime.tryParse(
+          GetProfileApi.profileModel?.user?.plan?.planEndDate ?? "",
+        ) ??
+        DateTime.now();
+
+    final days = planEndDate.difference(DateTime.now()).inDays;
+
+    return days > 0 ? days : 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,10 +36,15 @@ class PurchasePlanView extends StatelessWidget {
         leading: IconButtonUi(
           callback: () => Get.back(),
           icon: Obx(
-            () => Image.asset(AppIcons.arrowBack, height: 20, width: 20, color: isDarkMode.value ? AppColor.white : AppColor.black),
+            () => Image.asset(AppIcons.arrowBack,
+                height: 20,
+                width: 20,
+                color: isDarkMode.value ? AppColor.white : AppColor.black),
           ),
         ),
-        title: Text(AppStrings.premium.tr, style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.premium.tr,
+            style: GoogleFonts.urbanist(
+                fontSize: 18, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -71,15 +87,24 @@ class PurchasePlanView extends StatelessWidget {
             children: [
               RichText(
                 text: TextSpan(
-                  text: "${AdminSettingsApi.adminSettingsModel?.setting?.currency?.symbol}${GetProfileApi.profileModel?.user?.plan?.amount}",
-                  style: GoogleFonts.urbanist(color: isDarkMode.value ? AppColor.white : AppColor.primaryColor, fontSize: 34, fontWeight: FontWeight.w800),
+                  text:
+                      "${AdminSettingsApi.adminSettingsModel?.setting?.currency?.symbol}${GetProfileApi.profileModel?.user?.plan?.amount}",
+                  style: GoogleFonts.urbanist(
+                      color: isDarkMode.value
+                          ? AppColor.white
+                          : AppColor.primaryColor,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800),
                   children: [
                     TextSpan(
-                      text: " / ${GetProfileApi.profileModel?.user?.plan?.validity} ${GetProfileApi.profileModel?.user?.plan?.validityType}",
+                      text:
+                          " / ${GetProfileApi.profileModel?.user?.plan?.validity} ${GetProfileApi.profileModel?.user?.plan?.validityType}",
                       style: GoogleFonts.urbanist(
                         fontWeight: FontWeight.w600,
                         fontSize: 18,
-                        color: isDarkMode.value ? AppColor.grey : AppColor.lightPink,
+                        color: isDarkMode.value
+                            ? AppColor.grey
+                            : AppColor.lightPink,
                       ),
                     ),
                   ],
@@ -98,14 +123,20 @@ class PurchasePlanView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const ImageIcon(AssetImage(AppIcons.done), color: AppColor.lightPink, size: 18),
+                  const ImageIcon(AssetImage(AppIcons.done),
+                      color: AppColor.lightPink, size: 18),
                   const SizedBox(width: 20),
                   Expanded(
                     child: Text(
                       AppStrings.watchAllYouWantAdFree.tr,
                       overflow: TextOverflow.fade,
                       maxLines: 1,
-                      style: GoogleFonts.urbanist(fontSize: 15, fontWeight: FontWeight.w600, color: isDarkMode.value ? AppColor.white : AppColor.black),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black),
                     ),
                   ),
                 ],
@@ -113,7 +144,8 @@ class PurchasePlanView extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  const ImageIcon(AssetImage(AppIcons.done), color: AppColor.lightPink, size: 18),
+                  const ImageIcon(AssetImage(AppIcons.done),
+                      color: AppColor.lightPink, size: 18),
                   const SizedBox(width: 20),
                   Expanded(
                     child: Text(
@@ -121,7 +153,12 @@ class PurchasePlanView extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.fade,
                       // controller.mainPremiumPlans![index].planBenefit![i].toString(),
-                      style: GoogleFonts.urbanist(fontSize: 15, fontWeight: FontWeight.w600, color: isDarkMode.value ? AppColor.white : AppColor.black),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black),
                     ),
                   ),
                 ],
@@ -135,9 +172,16 @@ class PurchasePlanView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             margin: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
-                color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                color:
+                    isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_300, blurRadius: 1.5)]),
+                boxShadow: [
+                  BoxShadow(
+                      color: isDarkMode.value
+                          ? AppColor.transparent
+                          : AppColor.grey_300,
+                      blurRadius: 1.5)
+                ]),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -147,11 +191,22 @@ class PurchasePlanView extends StatelessWidget {
                   children: [
                     Text(
                       AppStrings.dateOfPurchase.tr,
-                      style: GoogleFonts.urbanist(fontSize: 15, color: isDarkMode.value ? AppColor.white : AppColor.black, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black,
+                          fontWeight: FontWeight.w600),
                     ).paddingOnly(left: 10),
                     Text(
-                      DateFormat('dd/MM/yy').format(DateTime.parse(GetProfileApi.profileModel?.user?.plan?.planStartDate.toString() ?? DateTime.now().toString())),
-                      style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+                      DateFormat('dd/MM/yy').format(DateTime.parse(GetProfileApi
+                              .profileModel?.user?.plan?.planStartDate
+                              .toString() ??
+                          DateTime.now().toString())),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 16,
+                          color: AppColor.primaryColor,
+                          fontWeight: FontWeight.w600),
                     ).paddingOnly(right: 10),
                   ],
                 ),
@@ -161,11 +216,20 @@ class PurchasePlanView extends StatelessWidget {
                   children: [
                     Text(
                       AppStrings.planDuration.tr,
-                      style: GoogleFonts.urbanist(fontSize: 15, color: isDarkMode.value ? AppColor.white : AppColor.black, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black,
+                          fontWeight: FontWeight.w600),
                     ).paddingOnly(left: 10),
                     Text(
-                      "${DateTime.parse(GetProfileApi.profileModel?.user?.plan?.planEndDate.toString() ?? DateTime.now().toString()).difference(DateTime.now()).inDays.toString()} ${AppStrings.daysLeft.tr}",
-                      style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+                      "$remainingPlanDays ${AppStrings.daysLeft.tr}",
+                      style: GoogleFonts.urbanist(
+                        fontSize: 16,
+                        color: AppColor.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ).paddingOnly(right: 10),
                   ],
                 ),
@@ -175,11 +239,21 @@ class PurchasePlanView extends StatelessWidget {
                   children: [
                     Text(
                       AppStrings.planStatus.tr,
-                      style: GoogleFonts.urbanist(fontSize: 15, color: isDarkMode.value ? AppColor.white : AppColor.black, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black,
+                          fontWeight: FontWeight.w600),
                     ).paddingOnly(left: 10),
                     Text(
-                      (GetProfileApi.profileModel?.user?.isPremiumPlan ?? false) ? AppStrings.active.tr : AppStrings.expire.tr,
-                      style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+                      (GetProfileApi.profileModel?.user?.isPremiumPlan ?? false)
+                          ? AppStrings.active.tr
+                          : AppStrings.expire.tr,
+                      style: GoogleFonts.urbanist(
+                          fontSize: 16,
+                          color: AppColor.primaryColor,
+                          fontWeight: FontWeight.w600),
                     ).paddingOnly(right: 10),
                   ],
                 ),

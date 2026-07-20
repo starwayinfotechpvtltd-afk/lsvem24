@@ -12,6 +12,7 @@ import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:metube/utils/constant/app_constant.dart';
 
 class Database {
   static final localStorage = GetStorage();
@@ -53,6 +54,8 @@ class Database {
   static int get loginType => localStorage.read("loginType");
 
   static String? get loginUserId => localStorage.read("loginUserId");
+
+  static String get referralCode => localStorage.read("referralCode") ?? "";
 
   static bool get isChannel => localStorage.read("isChannel") ?? false;
 
@@ -97,6 +100,19 @@ class Database {
 
   static onSetLoginUserId(String loginUserId) async =>
       localStorage.write("loginUserId", loginUserId);
+
+  static Future<void> onSetReferralCode(String referralCode) async =>
+      await localStorage.write("referralCode", referralCode);
+
+  static String get referralLink {
+    if (referralCode.isEmpty) return "";
+
+    return "${Constant.mediaBaseURL}/lsvem24/invite/$referralCode";
+  }
+
+  static String getVideoShareLink(String videoId) {
+  return "${Constant.mediaBaseURL}/lsvem24/video/$videoId";
+}
 
   static onSetIsChannel(bool isChannel) async =>
       localStorage.write("isChannel", isChannel);

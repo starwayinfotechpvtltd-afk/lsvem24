@@ -84,7 +84,7 @@ class ContentEngagementView extends StatelessWidget {
                           style: GoogleFonts.urbanist(
                             fontSize: 20,
                             color: isDarkMode.value ? AppColor.white : AppColor.black,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w600,  
                           ),
                         ),
                         const Spacer(),

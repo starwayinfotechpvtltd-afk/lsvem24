@@ -43,6 +43,7 @@ import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
 import 'package:metube/pages/nav_add_page/green_screen_page/green_screen_recorder_view.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class PreviewShortsVideo extends StatefulWidget {
   const PreviewShortsVideo(
@@ -80,6 +81,7 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
   bool isCreateHistory = false;
 
   bool _commentsOpen = false;
+  bool _subscribeActionInFlight = false;
 
   @override
   void initState() {
@@ -130,15 +132,14 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
             videoPlayerController?.play();
           }
         }
-        videoPlayerController?.addListener(
-          () {
-            if ((videoPlayerController?.value.isInitialized ?? false)) {
-              videoPlayerController!.value.isBuffering
-                  ? isBuffering.value = true
-                  : isBuffering.value = false;
-            }
-          },
-        );
+        videoPlayerController?.addListener(() {
+          if (!(videoPlayerController?.value.isInitialized ?? false)) return;
+
+          isBuffering.value = videoPlayerController!.value.isBuffering;
+
+          // Sync controller with actual player state
+          controller.setPlaying(videoPlayerController!.value.isPlaying);
+        });
       }
     } catch (e) {
       AppSettings.showLog(
@@ -330,13 +331,22 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
   }
 
   void onClickSubscribe() async {
+    if (_subscribeActionInFlight) return;
     if (isPrivateContent.value && isSubscribe.value == false) {
       onSubscribePrivateChannel(index: widget.index);
     } else {
-      isSubscribe.value = !isSubscribe.value;
-
-      await SubscribeChannelApiClass.callApi(
-          controller.mainShortsVideos[widget.index].channelId.toString());
+      _subscribeActionInFlight = true;
+      final oldValue = isSubscribe.value;
+      try {
+        isSubscribe.value = !oldValue;
+        final success = await SubscribeChannelApiClass.callApi(
+            controller.mainShortsVideos[widget.index].channelId.toString());
+        if (!success) {
+          isSubscribe.value = oldValue;
+        }
+      } finally {
+        _subscribeActionInFlight = false;
+      }
     }
   }
 
@@ -345,23 +355,60 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
     Get.to(() => CreateShortView());
   }
 
-  void onClickVideo() async {
-    videoPlayerController!.value.isPlaying ? onStopVideo() : onPlayVideo();
+  Future<void> onClickVideo() async {
+    if (videoPlayerController == null ||
+        !videoPlayerController!.value.isInitialized) {
+      return;
+    }
+
+    if (videoPlayerController!.value.isPlaying) {
+      await onStopVideo();
+    } else {
+      await onPlayVideo();
+    }
+
     isShowIcon.value = true;
     await 2.seconds.delay();
-    isShowIcon.value = false;
+
+    if (mounted) {
+      isShowIcon.value = false;
+    }
   }
 
-  void onClickPlayPause() async {
-    videoPlayerController!.value.isPlaying ? onStopVideo() : onPlayVideo();
+  Future<void> onClickPlayPause() async {
+    if (videoPlayerController == null ||
+        !videoPlayerController!.value.isInitialized) {
+      return;
+    }
+
+    if (videoPlayerController!.value.isPlaying) {
+      await onStopVideo();
+    } else {
+      await onPlayVideo();
+    }
   }
 
   @override
   void dispose() {
-    onStopVideo();
+    Future.microtask(() async {
+      if (isCreateHistory) {
+        isCreateHistory = false;
+        await onCreateHistory();
+      }
+    });
+
+    controller.setPlaying(false);
+
     onClose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+
+    SystemChrome.setEnabledSystemUIMode( 
+      SystemUiMode.manual,
+      overlays: [
+        SystemUiOverlay.top,
+        SystemUiOverlay.bottom,
+      ],
+    );
+
     super.dispose();
   }
 
@@ -396,32 +443,74 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
   }
 
   Future<void> onCreateHistory() async {
-    if (Database.channelId != null &&
-        videoPlayerController != null &&
-        (videoPlayerController?.value.isInitialized ?? false)) {
-      final watchTime = videoPlayerController!.value.position.inSeconds / 60;
-      AppSettings.showLog("Video Watch Time ${widget.index} => $watchTime");
-      await CreateWatchHistoryApi.callApi(
-        loginUserId: Database.loginUserId!,
-        videoId: controller.mainShortsVideos[widget.index].id!,
-        videoChannelId: controller.mainShortsVideos[widget.index].channelId!,
-        videoUserId: controller.mainShortsVideos[widget.index].userId!,
-        watchTimeInMinute: watchTime,
+    if (!mounted) return;
+
+    if (videoPlayerController == null ||
+        !(videoPlayerController!.value.isInitialized)) {
+      return;
+    }
+
+    final loginUserId = Database.loginUserId;
+    final item = controller.mainShortsVideos[widget.index];
+
+    if (loginUserId == null ||
+        item.id == null ||
+        item.channelId == null ||
+        item.userId == null) {
+      AppSettings.showLog(
+        "Skip history creation. "
+        "loginUserId=$loginUserId "
+        "videoId=${item.id} "
+        "channelId=${item.channelId} "
+        "userId=${item.userId}",
       );
+
+      return;
+    }
+
+    final watchTime = videoPlayerController!.value.position.inSeconds / 60;
+
+    await CreateWatchHistoryApi.callApi(
+      loginUserId: loginUserId,
+      videoId: item.id!,
+      videoChannelId: item.channelId!,
+      videoUserId: item.userId!,
+      watchTimeInMinute: watchTime,
+    );
+  }
+
+  Future<void> onStopVideo() async {
+    if (videoPlayerController == null) return;
+
+    if (videoPlayerController!.value.isPlaying) {
+      isPlaying.value = false;
+
+      await chewieController?.pause();
+      await videoPlayerController!.pause();
+
+      controller.setPlaying(false);
     }
   }
 
-  void onStopVideo() {
-    isPlaying.value = false;
-    chewieController?.pause();
-  }
+  Future<void> onPlayVideo() async {
+    if (!mounted) return;
 
-  void onPlayVideo() {
-    isPlaying.value = true;
-    videoPlayerController?.play();
+    if (videoPlayerController == null ||
+        !videoPlayerController!.value.isInitialized) {
+      return;
+    }
+
+    if (!videoPlayerController!.value.isPlaying) {
+      isPlaying.value = true;
+
+      await videoPlayerController!.play();
+
+      controller.setPlaying(true);
+    }
   }
 
   void onUnlockPrivateVideo({required int index}) async {
+    if (!AuthService.checkLogin()) return;
     UnlockPremiumVideoBottomSheet.onShow(
       coin:
           (controller.mainShortsVideos[index].videoUnlockCost ?? 0).toString(),
@@ -435,8 +524,17 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
           isPrivateContent.value = false;
         }
 
-        Get.close(2);
-        SubscribedSuccessDialog.show(context);
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        if (Get.isBottomSheetOpen ?? false) {
+          await Future.delayed(const Duration(milliseconds: 60));
+          Get.back();
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          SubscribedSuccessDialog.show(context);
+        });
       },
     );
   }
@@ -446,14 +544,29 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
       coin:
           (controller.mainShortsVideos[index].subscriptionCost ?? 0).toString(),
       callback: () async {
-        Get.dialog(const LoaderUi(), barrierDismissible: false);
-        final bool isSuccess = await SubscribeChannelApiClass.callApi(
-            controller.mainShortsVideos[index].channelId ?? "");
-        Get.close(2);
-        if (isSuccess) {
-          isPrivateContent.value = false;
-          isSubscribe.value = true;
-          SubscribedSuccessDialog.show(context);
+        if (_subscribeActionInFlight) return;
+        _subscribeActionInFlight = true;
+        try {
+          Get.dialog(const LoaderUi(), barrierDismissible: false);
+          final bool isSuccess = await SubscribeChannelApiClass.callApi(
+              controller.mainShortsVideos[index].channelId ?? "");
+          if (Get.isDialogOpen ?? false) {
+            Get.back();
+          }
+          if (Get.isBottomSheetOpen ?? false) {
+            await Future.delayed(const Duration(milliseconds: 60));
+            Get.back();
+          }
+          if (isSuccess) {
+            isPrivateContent.value = false;
+            isSubscribe.value = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              SubscribedSuccessDialog.show(context);
+            });
+          }
+        } finally {
+          _subscribeActionInFlight = false;
         }
       },
     );
@@ -474,408 +587,402 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
         systemNavigationBarColor: AppColor.black,
       ),
     );
-    if (widget.index == widget.currentPageIndex &&
-        isPrivateContent.value == false) {
-      isCreateHistory = true;
-      if (isVideoLoading.value == false) {
-        onPlayVideo();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      if (widget.index == widget.currentPageIndex && !isPrivateContent.value) {
+        isCreateHistory = true;
+
+        if (!isVideoLoading.value &&
+            videoPlayerController != null &&
+            videoPlayerController!.value.isInitialized &&
+            !videoPlayerController!.value.isPlaying) {
+          await onPlayVideo();
+        }
+      } else {
+        if (videoPlayerController != null &&
+            videoPlayerController!.value.isPlaying) {
+          await onStopVideo();
+        }
+
+        if (isCreateHistory) {
+          isCreateHistory = false;
+          await onCreateHistory();
+        }
       }
-    } else {
-      onStopVideo();
-      if (isCreateHistory) {
-        isCreateHistory = false;
-        onCreateHistory();
-      }
-    }
+    });
 
     return Obx(
       () => Stack(
-              children: [
-                if ((shorts.videoImage ?? '').isNotEmpty && isVideoLoading.value)
-                  Positioned.fill(
-                    child: PreviewVideoImage(
-                      videoId: shorts.id ?? '',
-                      videoImage: shorts.videoImage ?? '',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                if (isVideoLoading.value)
-                  const Center(child: LoaderUi(color: Colors.white))
-                else
-                isPrivateContent.value
-                    ? ShortsPrivateContentWidget(
-                        id: shorts.id ?? "",
-                        image: shorts.videoImage ?? "",
-                        subscribeCoin: shorts.subscriptionCost ?? 0,
-                        unlockCoin: shorts.videoUnlockCost ?? 0,
-                        subscribe: () {
-                          onSubscribePrivateChannel(index: widget.index);
-                        },
-                        unlock: () {
-                          onUnlockPrivateVideo(index: widget.index);
-                        },
+        children: [
+          if ((shorts.videoImage ?? '').isNotEmpty && isVideoLoading.value)
+            Positioned.fill(
+              child: PreviewVideoImage(
+                videoId: shorts.id ?? '',
+                videoImage: shorts.videoImage ?? '',
+                fit: BoxFit.cover,
+              ),
+            ),
+          if (isVideoLoading.value)
+            const Center(child: LoaderUi(color: Colors.white))
+          else
+            isPrivateContent.value
+                ? ShortsPrivateContentWidget(
+                    id: shorts.id ?? "",
+                    image: shorts.videoImage ?? "",
+                    subscribeCoin: shorts.subscriptionCost ?? 0,
+                    unlockCoin: shorts.videoUnlockCost ?? 0,
+                    subscribe: () {
+                      onSubscribePrivateChannel(index: widget.index);
+                    },
+                    unlock: () {
+                      onUnlockPrivateVideo(index: widget.index);
+                    },
+                  )
+                : (_commentsOpen &&
+                        chewieController != null &&
+                        videoPlayerController != null)
+                    ? Container(
+                        height: Get.height,
+                        width: Get.width,
+                        color: AppColor.black,
                       )
-                    : (_commentsOpen &&
-                            chewieController != null &&
-                            videoPlayerController != null)
-                        ? Container(
-                            height: Get.height,
-                            width: Get.width,
-                            color: AppColor.black,
-                          )
-                        : Stack(
-                            children: [
-                              if ((shorts.videoImage ?? '').isNotEmpty)
-                                Positioned.fill(
-                                  child: PreviewVideoImage(
-                                    videoId: shorts.id ?? '',
-                                    videoImage: shorts.videoImage ?? '',
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              Container(
-                                height: Get.height,
-                                width: Get.width,
-                                color: Colors.black54,
-                                child: Obx(
-                                  () => isVideoLoading.value
-                                      ? const LoaderUi(color: Colors.white)
-                                      : SizedBox.expand(
-                                          child: FittedBox(
-                                            fit: BoxFit.cover,
-                                            child: SizedBox(
-                                              width: videoPlayerController
-                                                      ?.value.size.width ??
-                                                  0,
-                                              height: videoPlayerController
-                                                      ?.value.size.height ??
-                                                  0,
-                                              child: Chewie(
-                                                  controller: chewieController!),
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              Positioned(
-                                // Logo Water Mark Code
-                                top: MediaQuery.of(context).viewPadding.top + 55,
-                                left: 20,
-                                child: Visibility(
-                                    visible: AppStrings.isShowWaterMark,
-                                    child: CachedNetworkImage(
-                                      imageUrl: AppStrings.waterMarkIcon,
-                                      fit: BoxFit.contain,
-                                      imageBuilder: (context, imageProvider) =>
-                                          Image(
-                                        image: ResizeImage(imageProvider,
-                                            width: AppStrings.waterMarkSize,
-                                            height: AppStrings.waterMarkSize),
-                                        fit: BoxFit.contain,
-                                      ),
-                                      placeholder: (context, url) =>
-                                          const Offstage(),
-                                      errorWidget: (context, url, error) =>
-                                          const Offstage(),
-                                    )),
-                              ),
-                              // ✅ FIXED — use Positioned so outer Stack FAB stays on top
-                              Positioned.fill(
-                                child: GestureDetector(
-                                  onTap: onClickVideo,
-                                  child: Container(
-                                    color: Colors.black.withAlpha(51),
-                                  ),
-                                ),
-                              ),
-
-                              Obx(
-                                () => isShowIcon.value
-                                    ? Align(
-                                        alignment: Alignment.center,
-                                        child: GestureDetector(
-                                          onTap: onClickPlayPause,
-                                          child: Container(
-                                            height: 60,
-                                            width: 60,
-                                            padding: EdgeInsets.only(
-                                                left: isPlaying.value ? 0 : 5),
-                                            decoration: BoxDecoration(
-                                                color: AppColor.black
-                                                    .withOpacity(0.2),
-                                                shape: BoxShape.circle),
-                                            child: Center(
-                                              child: Image.asset(
-                                                  isPlaying.value
-                                                      ? AppIcons.pause
-                                                      : AppIcons.videoPlay,
-                                                  width: 25,
-                                                  height: 25,
-                                                  color: AppColor.white),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    : const Offstage(),
-                              ),
-                            ],
-                          ),
-                Padding(
-                  padding: EdgeInsets.only(
-                      left: 15, right: 15, top: SizeConfig.screenHeight / 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButtonUi(
-                        icon: Image.asset(
-                          AppIcons.arrowBack,
-                          color: AppColor.white,
-                          width: 20,
-                        ),
-                        callback: () => Get.back(),
-                      ),
-                      const Spacer(),
-                      IconButtonUi(
-                        callback: onClickSearch,
-                        icon: const ImageIcon(AssetImage(AppIcons.search),
-                            color: AppColor.white, size: 22),
-                      ),
-                      const SizedBox(width: 15),
-                      IconButtonUi(
-                        callback: onClickCamera,
-                        icon: const ImageIcon(AssetImage(AppIcons.camera),
-                            color: AppColor.white, size: 30),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 5,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // ── LEFT: title, hashtag, channel info ──────────────────
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: SizeConfig.screenWidth / 1.8,
-                                child: Text(
-                                  shorts.title ?? "",
-                                  style: GoogleFonts.urbanist(
-                                      fontSize: 15, color: AppColor.white),
-                                  maxLines: 3,
-                                ),
-                              ),
-                              SizedBox(
-                                width: SizeConfig.screenWidth / 1.8,
-                                child: Text(
-                                  shorts.hashTag?.join(',') ?? "",
-                                  style: GoogleFonts.urbanist(
-                                      fontSize: 14, color: AppColor.white),
-                                  maxLines: 3,
-                                ),
-                              ),
-                              SizedBox(
-                                  height: SizeConfig.blockSizeVertical * 2),
-                              Row(
-                                children: [
-                                  IconButtonUi(
-                                    callback: onClickProfile,
-                                    icon: PreviewProfileImage(
-                                      size: 30,
-                                      id: controller
-                                              .mainShortsVideos[widget.index]
-                                              ?.channelId ??
-                                          "",
-                                      image: controller
-                                              .mainShortsVideos[widget.index]
-                                              ?.channelImage ??
-                                          "",
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Flexible(
-                                    child: Text(
-                                      shorts.channelName ?? "",
-                                      style: GoogleFonts.urbanist(
-                                          color: AppColor.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold),
-                                      // .channelName!,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Visibility(
-                                    visible: Database.channelId !=
-                                        controller
-                                            .mainShortsVideos[widget.index]
-                                            .channelId,
-                                    child: GestureDetector(
-                                      onTap: onClickSubscribe,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: isSubscribe.value
-                                              ? Colors.transparent
-                                              : AppColor.primaryColor,
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          border: Border.all(
-                                              color: AppColor.primaryColor),
-                                        ),
-                                        child: Text(
-                                          isSubscribe.value
-                                              ? AppStrings.subscribed.tr
-                                              : AppStrings.subscribe.tr,
-                                          style: GoogleFonts.urbanist(
-                                            color: isSubscribe.value
-                                                ? AppColor.primaryColor
-                                                : AppColor.white,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 25),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // ── RIGHT: action buttons column ─────────────────────────
-                      Padding(
-                        padding: const EdgeInsets.only(right: 15, bottom: 10),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Like
-                            Obx(() => IconButtonUi(
-                                callback: onClickLike,
-                                icon: ImageIcon(
-                                    const AssetImage(AppIcons.likeBold),
-                                    color: isLike.value
-                                        ? AppColor.primaryColor
-                                        : AppColor.white,
-                                    size: 25))),
-                            Obx(() => Text(
-                                CustomFormatNumber.convert(
-                                    customChanges["like"]),
-                                style: GoogleFonts.urbanist(
-                                    color: AppColor.white))),
-                            const SizedBox(height: 8), // reduced from 15
-
-                            // Dislike
-                            Obx(() => IconButtonUi(
-                                callback: onClickDisLike,
-                                icon: ImageIcon(
-                                    const AssetImage(AppIcons.disLikeBold),
-                                    color: isDisLike.value
-                                        ? AppColor.primaryColor
-                                        : AppColor.white,
-                                    size: 25))),
-                            Obx(() => Text(
-                                CustomFormatNumber.convert(
-                                    customChanges["disLike"]),
-                                style: GoogleFonts.urbanist(
-                                    color: AppColor.white))),
-                            const SizedBox(height: 8), // reduced from 15
-
-                            // Comment
-                            IconButtonUi(
-                                callback: onClickComment,
-                                icon: const ImageIcon(
-                                    AssetImage(AppIcons.comments),
-                                    color: AppColor.white,
-                                    size: 28)), // size reduced from 30
-                            Obx(() => Text(
-                                CustomFormatNumber.convert(
-                                    customChanges["comment"]),
-                                style: GoogleFonts.urbanist(
-                                    color: AppColor.white))),
-                            const SizedBox(height: 8), // reduced from 15
-
-                            // Share
-                            IconButtonUi(
-                                callback: onClickShare,
-                                icon: const ImageIcon(
-                                    AssetImage(AppIcons.boldShare),
-                                    color: AppColor.white,
-                                    size: 28)), // size reduced from 30
-                            Obx(() => Text(
-                                CustomFormatNumber.convert(
-                                    customChanges["share"]),
-                                style: GoogleFonts.urbanist(
-                                    color: AppColor.white))),
-                            const SizedBox(height: 8), // reduced from 15
-
-                            // ✅ Green Screen
-                            GestureDetector(
-                              onTap: onClickGreenScreen,
-                              child: Container(
-                                width: 40, // slightly smaller
-                                height: 40,
-                                child: const Icon(Icons.video_call,
-                                    color: Colors.white, size: 22),
+                    : Stack(
+                        children: [
+                          if ((shorts.videoImage ?? '').isNotEmpty)
+                            Positioned.fill(
+                              child: PreviewVideoImage(
+                                videoId: shorts.id ?? '',
+                                videoImage: shorts.videoImage ?? '',
+                                fit: BoxFit.cover,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const SizedBox(height: 8), // reduced from 15
+                          Container(
+                            height: Get.height,
+                            width: Get.width,
+                            color: Colors.black54,
+                            child: Obx(
+                              () => isVideoLoading.value
+                                  ? const LoaderUi(color: Colors.white)
+                                  : SizedBox.expand(
+                                      child: FittedBox(
+                                        fit: BoxFit.cover,
+                                        child: SizedBox(
+                                          width: videoPlayerController
+                                                  ?.value.size.width ??
+                                              0,
+                                          height: videoPlayerController
+                                                  ?.value.size.height ??
+                                              0,
+                                          child: Chewie(
+                                              controller: chewieController!),
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            // Logo Water Mark Code
+                            top: MediaQuery.of(context).viewPadding.top + 55,
+                            left: 20,
+                            child: Visibility(
+                                visible: AppStrings.isShowWaterMark,
+                                child: CachedNetworkImage(
+                                  imageUrl: AppStrings.waterMarkIcon,
+                                  fit: BoxFit.contain,
+                                  imageBuilder: (context, imageProvider) =>
+                                      Image(
+                                    image: ResizeImage(imageProvider,
+                                        width: AppStrings.waterMarkSize,
+                                        height: AppStrings.waterMarkSize),
+                                    fit: BoxFit.contain,
+                                  ),
+                                  placeholder: (context, url) =>
+                                      const Offstage(),
+                                  errorWidget: (context, url, error) =>
+                                      const Offstage(),
+                                )),
+                          ),
+                          // ✅ FIXED — use Positioned so outer Stack FAB stays on top
+                          Positioned.fill(
+                            child: GestureDetector(
+                              onTap: onClickVideo,
+                              child: Container(
+                                color: Colors.black.withAlpha(51),
+                              ),
+                            ),
+                          ),
 
-                            // More options
+                          Obx(
+                            () => isShowIcon.value
+                                ? Align(
+                                    alignment: Alignment.center,
+                                    child: GestureDetector(
+                                      onTap: onClickPlayPause,
+                                      child: Container(
+                                        height: 60,
+                                        width: 60,
+                                        padding: EdgeInsets.only(
+                                            left: isPlaying.value ? 0 : 5),
+                                        decoration: BoxDecoration(
+                                            color:
+                                                AppColor.black.withOpacity(0.2),
+                                            shape: BoxShape.circle),
+                                        child: Center(
+                                          child: Image.asset(
+                                              isPlaying.value
+                                                  ? AppIcons.pause
+                                                  : AppIcons.videoPlay,
+                                              width: 25,
+                                              height: 25,
+                                              color: AppColor.white),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const Offstage(),
+                          ),
+                        ],
+                      ),
+          Padding(
+            padding: EdgeInsets.only(
+                left: 15, right: 15, top: SizeConfig.screenHeight / 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButtonUi(
+                  icon: Image.asset(
+                    AppIcons.arrowBack,
+                    color: AppColor.white,
+                    width: 20,
+                  ),
+                  callback: () => Get.back(),
+                ),
+                const Spacer(),
+                IconButtonUi(
+                  callback: onClickSearch,
+                  icon: const ImageIcon(AssetImage(AppIcons.search),
+                      color: AppColor.white, size: 22),
+                ),
+                const SizedBox(width: 15),
+                IconButtonUi(
+                  callback: onClickCamera,
+                  icon: const ImageIcon(AssetImage(AppIcons.camera),
+                      color: AppColor.white, size: 30),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 5,
+            left: 0,
+            right: 0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                // ── LEFT: title, hashtag, channel info ──────────────────
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: SizeConfig.screenWidth / 1.8,
+                          child: Text(
+                            shorts.title ?? "",
+                            style: GoogleFonts.urbanist(
+                                fontSize: 15, color: AppColor.white),
+                            maxLines: 3,
+                          ),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.screenWidth / 1.8,
+                          child: Text(
+                            shorts.hashTag?.join(',') ?? "",
+                            style: GoogleFonts.urbanist(
+                                fontSize: 14, color: AppColor.white),
+                            maxLines: 3,
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.blockSizeVertical * 2),
+                        Row(
+                          children: [
                             IconButtonUi(
-                                callback: onClickMoreOption,
-                                icon: const ImageIcon(
-                                    AssetImage(AppIcons.moreCircle),
+                              callback: onClickProfile,
+                              icon: PreviewProfileImage(
+                                size: 30,
+                                id: controller.mainShortsVideos[widget.index]
+                                        ?.channelId ??
+                                    "",
+                                image: controller.mainShortsVideos[widget.index]
+                                        ?.channelImage ??
+                                    "",
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                shorts.channelName ?? "",
+                                style: GoogleFonts.urbanist(
                                     color: AppColor.white,
-                                    size: 28)), // size reduced from 30
-                            const SizedBox(height: 25),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold),
+                                // .channelName!,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Visibility(
+                              visible: Database.channelId !=
+                                  controller
+                                      .mainShortsVideos[widget.index].channelId,
+                              child: GestureDetector(
+                                onTap: onClickSubscribe,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: isSubscribe.value
+                                        ? Colors.transparent
+                                        : AppColor.primaryColor,
+                                    borderRadius: BorderRadius.circular(25),
+                                    border: Border.all(
+                                        color: AppColor.primaryColor),
+                                  ),
+                                  child: Text(
+                                    isSubscribe.value
+                                        ? AppStrings.subscribed.tr
+                                        : AppStrings.subscribe.tr,
+                                    style: GoogleFonts.urbanist(
+                                      color: isSubscribe.value
+                                          ? AppColor.primaryColor
+                                          : AppColor.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 25),
+                      ],
+                    ),
                   ),
                 ),
-                if (_commentsOpen &&
-                    chewieController != null &&
-                    videoPlayerController != null)
-                  Positioned.fill(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: ShortsCommentsWithMiniPlayer(
-                        videoPlayerController: videoPlayerController!,
-                        chewieController: chewieController!,
-                        videoId: shorts.id!,
-                        channelId: shorts.channelId!,
-                        onClose: _closeCommentsOverlay,
+
+                // ── RIGHT: action buttons column ─────────────────────────
+                Padding(
+                  padding: const EdgeInsets.only(right: 15, bottom: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Like
+                      Obx(() => IconButtonUi(
+                          callback: onClickLike,
+                          icon: ImageIcon(const AssetImage(AppIcons.likeBold),
+                              color: isLike.value
+                                  ? AppColor.primaryColor
+                                  : AppColor.white,
+                              size: 25))),
+                      Obx(() => Text(
+                          CustomFormatNumber.convert(customChanges["like"]),
+                          style: GoogleFonts.urbanist(color: AppColor.white))),
+                      const SizedBox(height: 8), // reduced from 15
+
+                      // Dislike
+                      Obx(() => IconButtonUi(
+                          callback: onClickDisLike,
+                          icon: ImageIcon(
+                              const AssetImage(AppIcons.disLikeBold),
+                              color: isDisLike.value
+                                  ? AppColor.primaryColor
+                                  : AppColor.white,
+                              size: 25))),
+                      Obx(() => Text(
+                          CustomFormatNumber.convert(customChanges["disLike"]),
+                          style: GoogleFonts.urbanist(color: AppColor.white))),
+                      const SizedBox(height: 8), // reduced from 15
+
+                      // Comment
+                      IconButtonUi(
+                          callback: onClickComment,
+                          icon: const ImageIcon(AssetImage(AppIcons.comments),
+                              color: AppColor.white,
+                              size: 28)), // size reduced from 30
+                      Obx(() => Text(
+                          CustomFormatNumber.convert(customChanges["comment"]),
+                          style: GoogleFonts.urbanist(color: AppColor.white))),
+                      const SizedBox(height: 8), // reduced from 15
+
+                      // Share
+                      IconButtonUi(
+                          callback: onClickShare,
+                          icon: const ImageIcon(AssetImage(AppIcons.boldShare),
+                              color: AppColor.white,
+                              size: 28)), // size reduced from 30
+                      Obx(() => Text(
+                          CustomFormatNumber.convert(customChanges["share"]),
+                          style: GoogleFonts.urbanist(color: AppColor.white))),
+                      const SizedBox(height: 8), // reduced from 15
+
+                      // ✅ Green Screen
+                      GestureDetector(
+                        onTap: onClickGreenScreen,
+                        child: Container(
+                          width: 40, // slightly smaller
+                          height: 40,
+                          child: const Icon(Icons.video_call,
+                              color: Colors.white, size: 22),
+                        ),
                       ),
-                    ),
-                  ),
-                Obx(
-                  () => Visibility(
-                    visible: controller.isPaginationLoading.value,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: LinearProgressIndicator(
-                        color: AppColor.primaryColor,
-                        backgroundColor: AppColor.grey_300,
-                      ),
-                    ),
+                      const SizedBox(height: 4),
+                      const SizedBox(height: 8), // reduced from 15
+
+                      // More options
+                      IconButtonUi(
+                          callback: onClickMoreOption,
+                          icon: const ImageIcon(AssetImage(AppIcons.moreCircle),
+                              color: AppColor.white,
+                              size: 28)), // size reduced from 30
+                      const SizedBox(height: 25),
+                    ],
                   ),
                 ),
               ],
             ),
+          ),
+          if (_commentsOpen &&
+              chewieController != null &&
+              videoPlayerController != null)
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: ShortsCommentsWithMiniPlayer(
+                  videoPlayerController: videoPlayerController!,
+                  chewieController: chewieController!,
+                  videoId: shorts.id!,
+                  channelId: shorts.channelId!,
+                  onClose: _closeCommentsOverlay,
+                ),
+              ),
+            ),
+          Obx(
+            () => Visibility(
+              visible: controller.isPaginationLoading.value,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: LinearProgressIndicator(
+                  color: AppColor.primaryColor,
+                  backgroundColor: AppColor.grey_300,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
 
       // : ShortsDetailsUi(
       //     isBack: true,

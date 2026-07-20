@@ -8,6 +8,8 @@ class ShortsFeedAd {
     this.ctaText,
     this.ctaLink,
     this.type,
+    this.skipAfter,
+    this.duration,
   });
 
   final String? id;
@@ -18,12 +20,35 @@ class ShortsFeedAd {
   final String? ctaText;
   final String? ctaLink;
   final String? type;
+  final int? skipAfter;
+  final int? duration;
 
   bool get hasVideo => video != null && video!.trim().isNotEmpty;
   bool get hasImage => image != null && image!.trim().isNotEmpty;
 
-  /// Prefer video when both exist (matches upload flow).
   bool get isVideoAd => hasVideo;
+
+  String get normalizedType =>
+      (type ?? 'skippable').toLowerCase().trim().replaceAll('_', '-');
+
+  bool get isSkippable => normalizedType == 'skippable';
+
+  bool get isNonSkippable =>
+      normalizedType == 'non-skippable' || normalizedType == 'non skippable';
+
+  bool get isBanner => normalizedType == 'banner';
+
+  bool get isOverlay => normalizedType == 'overlay';
+
+  int get skipAfterSeconds {
+    final v = skipAfter ?? 5;
+    return v < 0 ? 0 : v;
+  }
+
+  int get displayDurationSeconds {
+    final v = duration ?? 30;
+    return v > 0 ? v : 30;
+  }
 
   factory ShortsFeedAd.fromJson(Map<String, dynamic> json) {
     return ShortsFeedAd(
@@ -35,7 +60,16 @@ class ShortsFeedAd {
       ctaText: json['ctaText']?.toString(),
       ctaLink: json['ctaLink']?.toString(),
       type: json['type']?.toString(),
+      skipAfter: _parseInt(json['skipAfter']),
+      duration: _parseInt(json['duration']),
     );
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 }
 

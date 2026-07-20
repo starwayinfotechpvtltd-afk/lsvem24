@@ -16,6 +16,7 @@ import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/string/app_string.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class NavLibraryPageController extends GetxController {
   @override
@@ -126,6 +127,7 @@ class NavLibraryPageController extends GetxController {
   }
 
   void onUnlockPrivateVideo({required int index, required BuildContext context}) async {
+    if (!AuthService.checkLogin()) return;
     UnlockPremiumVideoBottomSheet.onShow(
       coin: (mainWatchLaterVideos?[index].videoUnlockCost ?? 0).toString(),
       callback: () async {

@@ -505,12 +505,12 @@ class ProfileView extends GetView<ProfileController> {
                                       AppStrings.pleaseCreateChannel.tr),
                         )
                       : const SizedBox.shrink(),
-                  ProfileItemUi(
-                    leading: AppIcons.subscriptionPlan,
-                    title: AppStrings.subscriptionPlan.tr,
-                    iconSize: 26,
-                    callback: () => Get.to(() => const SubscriptionPlanView()),
-                  ),
+                  // ProfileItemUi(
+                  //   leading: AppIcons.subscriptionPlan,
+                  //   title: AppStrings.subscriptionPlan.tr,
+                  //   iconSize: 26,
+                  //   callback: () => Get.to(() => const SubscriptionPlanView()),
+                  // ),
                   ProfileItemUi(
                     leading: AppIcons.earnReward,
                     title: AppStrings.earnRewards.tr,

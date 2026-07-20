@@ -5,6 +5,7 @@ import 'package:metube/pages/preview_shorts/preview_shorts_api.dart';
 import 'package:metube/pages/shorts_ads/shorts_feed_ad_inserter.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/utils.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PreviewShortsController extends GetxController {
   GetShortsVideoModel? getShortsVideoModel;
@@ -25,6 +26,12 @@ class PreviewShortsController extends GetxController {
     super.onInit();
   }
 
+  @override
+  void onClose() {
+    WakelockPlus.disable();
+    super.onClose();
+  }
+
   void init(Shorts firstVideo) async {
     mainShortsVideos.clear();
     _adInserter.resetFeed();
@@ -40,8 +47,10 @@ class PreviewShortsController extends GetxController {
     getShortsVideoModel =
         await GetPreviewShortsVideoApi.callApi(Database.loginUserId ?? "");
 
-    if (getShortsVideoModel != null && (getShortsVideoModel?.shorts?.isNotEmpty ?? false)) {
-      AppSettings.showLog("Pagination Page : ${GetPreviewShortsVideoApi.startPagination} Length => ${getShortsVideoModel?.shorts?.length}");
+    if (getShortsVideoModel != null &&
+        (getShortsVideoModel?.shorts?.isNotEmpty ?? false)) {
+      AppSettings.showLog(
+          "Pagination Page : ${GetPreviewShortsVideoApi.startPagination} Length => ${getShortsVideoModel?.shorts?.length}");
 
       final List<Shorts> data = getShortsVideoModel!.shorts!;
 
@@ -55,6 +64,21 @@ class PreviewShortsController extends GetxController {
 
       AppSettings.showLog("Pagination Data Empty !!!");
     }
+  }
+
+  Future<void> updateWakeLock() async {
+    if (isPlaying.value) {
+      await WakelockPlus.enable();
+    } else {
+      await WakelockPlus.disable();
+    }
+  }
+
+  Future<void> setPlaying(bool playing) async {
+    if (isPlaying.value == playing) return;
+
+    isPlaying.value = playing;
+    await updateWakeLock();
   }
 
   void onPagination({required int value, required Shorts firstVideo}) async {

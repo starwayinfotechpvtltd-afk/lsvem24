@@ -21,6 +21,7 @@ import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/widget/subscribe_premium_channel_bottom_sheet.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class YourChannelController extends GetxController {
   ScrollController channelShortVideoController = ScrollController();
@@ -263,6 +264,7 @@ class YourChannelController extends GetxController {
   }
 
   void onUnlockPrivateVideo({required int tabType, required int index, required BuildContext context}) async {
+    if (!AuthService.checkLogin()) return;
     if (tabType == 0) {
       UnlockPremiumVideoBottomSheet.onShow(
         coin: (channelHomeVideos?[index].videoUnlockCost ?? 0).toString(),
@@ -286,6 +288,7 @@ class YourChannelController extends GetxController {
         },
       );
     } else if (tabType == 2) {
+      if (!AuthService.checkLogin()) return;
       UnlockPremiumVideoBottomSheet.onShow(
         coin: (channelVideos[0]?[index].videoUnlockCost ?? 0).toString(),
         callback: () async {

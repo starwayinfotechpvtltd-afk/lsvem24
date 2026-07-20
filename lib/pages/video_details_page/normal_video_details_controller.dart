@@ -23,8 +23,10 @@ import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/utils.dart';
 import 'package:video_player/video_player.dart';
 import 'package:metube/utils/constant/app_constant.dart';
-import 'package:metube/utils/services/convert_to_network.dart';
 import 'package:metube/utils/storage/guest_like_storage.dart';
+import 'package:metube/utils/videoViews/add_view_api.dart';
+import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class NormalVideoDetailsController extends GetxController {
   final yourChannelController = Get.find<YourChannelController>();
@@ -57,13 +59,16 @@ class NormalVideoDetailsController extends GetxController {
 
   bool isVideoLoading = false;
   bool isShowVideoControls = false;
+  bool isViewAdded = false;
   bool isFullscreen = false;
   bool isFullscreenTransitioning = false;
   RxBool isVideoDetailsLoading = true.obs;
+  bool _lastPlayingState = false;
 
   RxBool isDownloading = false.obs;
 
   RxBool isLoop = false.obs;
+  RxBool isAutoPlay = true.obs;
   RxBool isSpeaker = true.obs;
   RxInt currentSpeedIndex = 2.obs;
   final List<double> speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -77,6 +82,7 @@ class NormalVideoDetailsController extends GetxController {
   bool _videoInitRetried = false;
   bool hasShownMidrollAd = false;
   bool isPreRollAdPhase = false;
+  bool isAutoPlayingNext = false;
   bool mainVideoPlaybackStarted = false;
   Duration pausedPosition = Duration.zero;
   bool wasPlayingBeforeAd = false;
@@ -97,19 +103,9 @@ class NormalVideoDetailsController extends GetxController {
       showAd && (currentLongVideoAd?.isInterruptType ?? false);
 
   LongVideoAd? _pickPreRollAd() {
-  if (_preRollAds.isEmpty) return null;
-
-  final interruptAds =
-      _preRollAds.where((e) => e.isInterruptType).toList();
-
-  if (interruptAds.isNotEmpty) {
-    return interruptAds[
-        _adRandom.nextInt(interruptAds.length)];
+    if (_preRollAds.isEmpty) return null;
+    return _preRollAds[_adRandom.nextInt(_preRollAds.length)];
   }
-
-  return _preRollAds[
-      _adRandom.nextInt(_preRollAds.length)];
-}
 
   LongVideoAd? _pickMidRollAd() {
     if (_midRollAds.isEmpty) return null;
@@ -117,11 +113,48 @@ class NormalVideoDetailsController extends GetxController {
   }
 
   Future<void> _loadLongVideoAds() async {
+    final user = GetProfileApi.profileModel?.user;
+
+    // Premium users don't see ads
+    if (user?.isPremiumPlan == true) {
+      // Optional expiry validation
+      if (user?.plan?.planEndDate != null) {
+        try {
+          final endDate = DateTime.parse(user!.plan!.planEndDate!);
+
+          if (DateTime.now().isBefore(endDate)) {
+            AppSettings.showLog(
+              "Premium user detected. Ads disabled.",
+            );
+
+            _preRollAds.clear();
+            _midRollAds.clear();
+            activeBannerAd = null;
+            activeOverlayAd = null;
+            currentLongVideoAd = null;
+
+            return;
+          }
+        } catch (e) {
+          AppSettings.showLog(
+            "Premium plan date parse error: $e",
+          );
+        }
+      } else {
+        _preRollAds.clear();
+        _midRollAds.clear();
+        return;
+      }
+    }
+
     final ads = await GetLongVideoAdsApi.callApi();
+
     _preRollAds = ads.where((a) => a.supportsPreRoll).toList();
     _midRollAds = ads.where((a) => a.supportsMidRoll).toList();
+
     AppSettings.showLog(
-        'Long video ads loaded — pre-roll: ${_preRollAds.length}, mid-roll: ${_midRollAds.length}');
+      'Long video ads loaded — pre-roll: ${_preRollAds.length}, mid-roll: ${_midRollAds.length}',
+    );
   }
 
   @override
@@ -192,6 +225,17 @@ class NormalVideoDetailsController extends GetxController {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+  }
+
+  Future<void> _updateWakeLock() async {
+    final keepScreenOn = (videoPlayerController?.value.isPlaying ?? false) ||
+        isShowingInterruptAd;
+
+    if (keepScreenOn) {
+      await WakelockPlus.enable();
+    } else {
+      await WakelockPlus.disable();
+    }
   }
 
   Future<void> init(String videoId, String videoUrl) async {
@@ -303,7 +347,8 @@ class NormalVideoDetailsController extends GetxController {
       );
       mainRelatedVideos?.shuffle();
 
-      if ((mainRelatedVideos?.isEmpty ?? true) && mainWatchedVideos.length == 1) {
+      if ((mainRelatedVideos?.isEmpty ?? true) &&
+          mainWatchedVideos.length == 1) {
         isDisableNext(true);
       }
     } catch (e) {
@@ -389,6 +434,19 @@ class NormalVideoDetailsController extends GetxController {
     }
   }
 
+//   Future<void> updateWakeLock() async {
+//   final playing =
+//       videoPlayerController?.value.isPlaying ?? false;
+
+//   final keepAwake = playing || isShowingInterruptAd;
+
+//   if (keepAwake) {
+//     await WakelockPlus.enable();
+//   } else {
+//     await WakelockPlus.disable();
+//   }
+// }
+
   Future<void> initializeVideoPlayer(String videoId, String videoUrl) async {
     try {
       isVideoSkip = false;
@@ -397,6 +455,7 @@ class NormalVideoDetailsController extends GetxController {
       showAd = false;
       isAdLoading = false;
       isPreRollAdPhase = false;
+      isViewAdded = false;
       mainVideoPlaybackStarted = false;
       currentLongVideoAd = null;
       activeBannerAd = null;
@@ -443,8 +502,7 @@ class NormalVideoDetailsController extends GetxController {
         Database.onSetVideoUrl(videoId, videoPath);
         _calculateAdTimings();
 
-        final hasBlockingPreRoll =
-            _preRollAds.any((ad) => ad.isInterruptType);
+        final hasBlockingPreRoll = _preRollAds.any((ad) => ad.isInterruptType);
         chewieController = ChewieController(
           videoPlayerController: videoPlayerController!,
           autoPlay: !hasBlockingPreRoll,
@@ -531,90 +589,83 @@ class NormalVideoDetailsController extends GetxController {
     return '';
   }
 
-// ✅ Static helper for images too
-  static String resolveAssetUrl(String path) {
-    if (path.isEmpty) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    String p = path.startsWith('/') ? path : '/$path';
-    return '${Constant.mediaBaseURL}$p';
-  }
+  /// Resolves ad image/video URLs (handles /api/uploads/ and relative paths).
+  static String resolveAssetUrl(String path) => ConvertToNetwork.resolve(path);
 
   // ✅ FIX: Extracted listener into named method so it can be properly removed
-  void _videoListener() async {
-    if (videoPlayerController == null) return;
+  // Add this to the _videoListener method
+void _videoListener() async {
+  print("POS=${videoPlayerController!.value.position.inMilliseconds} "
+      "DUR=${videoPlayerController!.value.duration.inMilliseconds} "
+      "PLAYING=${videoPlayerController!.value.isPlaying}");
+  
+  if (videoPlayerController == null) return;
+  final playing = videoPlayerController!.value.isPlaying;
 
-    if (Get.currentRoute != "/NormalVideoDetailsView") {
-      videoPlayerController?.pause();
-      AppSettings.showLog("Video Playing Routes Changes...");
+  if (playing != _lastPlayingState) {
+    _lastPlayingState = playing;
+    _updateWakeLock();
+  }
+
+  if (Get.currentRoute != "/NormalVideoDetailsView") {
+    videoPlayerController?.pause();
+    AppSettings.showLog("Video Playing Routes Changes...");
+  }
+
+  if (videoPlayerController!.value.isInitialized) {
+    // View count tracking
+    if (!isViewAdded && videoPlayerController!.value.position.inSeconds >= 5) {
+      isViewAdded = true;
+      await AddViewApi.callApi(
+        videoId,
+        Database.loginUserId ?? "",
+      );
+      AppSettings.showLog("View Count Added For Video => $videoId");
+    }
+    
+    // Buffering state
+    if (videoPlayerController!.value.isBuffering) {
+      if (isVideoLoading == false) {
+        isVideoLoading = true;
+        update(["onLoading"]);
+      }
+    } else {
+      if (isVideoLoading == true) {
+        isVideoLoading = false;
+        update(["onLoading"]);
+      }
     }
 
-    if (videoPlayerController!.value.isInitialized) {
-      if (videoPlayerController!.value.isBuffering) {
-        if (isVideoLoading == false) {
-          isVideoLoading = true;
-          update(["onLoading"]);
-        }
-      } else {
-        if (isVideoLoading == true) {
-          isVideoLoading = false;
-          update(["onLoading"]);
-        }
-      }
+    update(["onProgressLine", "onVideoTime", "onVideoPlayPause", "adComplete"]);
 
-      update(
-          ["onProgressLine", "onVideoTime", "onVideoPlayPause", "adComplete"]);
+    _checkMidrollAdTiming();
 
-      _checkMidrollAdTiming();
+    AppSettings.showLog(
+      "POS=${videoPlayerController!.value.position.inMilliseconds}"
+      " DUR=${videoPlayerController!.value.duration.inMilliseconds}"
+      " PLAYING=${videoPlayerController!.value.isPlaying}",
+    );
 
-      if (videoPlayerController!.value.position >=
-              videoPlayerController!.value.duration &&
-          videoPlayerController!.value.duration > Duration.zero) {
-        AppSettings.showLog("Playing Video Complete...");
+    final position = videoPlayerController!.value.position;
+    final duration = videoPlayerController!.value.duration;
 
-        if (isGetVideoRewardCoin == false && isVideoSkip == false) {
-          isGetVideoRewardCoin = true;
-          VideoEngagementRewardApi.callApi(
-            loginUserId: Database.loginUserId ?? "",
-            videoId: videoId,
-            totalWatchTime:
-                videoPlayerController!.value.duration.inSeconds.toString(),
-          );
-        }
-
-        onCreateHistory();
-
-        if (AppSettings.isAutoPlayVideo.value) {
-          if ((mainRelatedVideos?.isNotEmpty ?? false) &&
-              mainWatchedVideos.length != 1) {
-            isDisablePrevious(false);
-          }
-
-          selectedWatchedVideo++;
-
-          if (selectedWatchedVideo < mainWatchedVideos.length) {
-            onDisposeVideoPlayer();
-            init(mainWatchedVideos[selectedWatchedVideo].videoId,
-                mainWatchedVideos[selectedWatchedVideo].videoUrl);
-          } else if (mainRelatedVideos?.isNotEmpty ?? false) {
-            onCreateHistory();
-            onDisposeVideoPlayer();
-            isDisablePrevious(false);
-            mainWatchedVideos.insert(
-                selectedWatchedVideo,
-                WatchedVideoModel(
-                    videoId: mainRelatedVideos![0].id ?? "",
-                    videoUrl: mainRelatedVideos![0].videoUrl ?? ""));
-            init(mainRelatedVideos![0].id ?? "",
-                mainRelatedVideos![0].videoUrl ?? "");
-            mainRelatedVideos = null;
-            update(["onGetRelatedVideos"]);
-          } else {
-            isDisableNext(true);
-          }
-        }
+    // ✅ FIX: Add check for video completion
+    if (duration.inMilliseconds > 0 && 
+        position.inMilliseconds >= duration.inMilliseconds - 1000) {
+      // Video is about to end
+      if (isAutoPlay.value && !isAutoPlayingNext) {
+        isAutoPlayingNext = true;
+        await WakelockPlus.enable();
+        Future.delayed(
+          const Duration(milliseconds: 500),
+          () {
+            onNextVideo();
+          },
+        );
       }
     }
   }
+}
 
   void _checkMidrollAdTiming() {
     if (!mainVideoPlaybackStarted ||
@@ -654,7 +705,7 @@ class NormalVideoDetailsController extends GetxController {
     }
     if (ad.isOverlay) {
       activeOverlayAd = ad;
-      // Start long video under the corner overlay; user can close overlay anytime.
+      update(['adComplete', 'onVideoPlayPause', 'onProgressLine']);
       Future.microtask(_startMainVideoAfterAd);
       return;
     }
@@ -691,36 +742,37 @@ class NormalVideoDetailsController extends GetxController {
   void _showBannerAd(LongVideoAd ad, {required bool isPreRoll}) {
     activeBannerAd = ad;
     if (isPreRoll) {
+      update(['adComplete', 'onVideoPlayPause', 'onProgressLine']);
       _startMainVideoAfterAd();
     } else {
       update(['adComplete', 'onProgressLine']);
     }
   }
 
-  void _showInterruptAd(LongVideoAd ad, {required bool isPreRoll}) async{
-    await videoPlayerController?.pause();
-    isAdLoading = true;
-    showAd = true;
-    currentLongVideoAd = ad;
-    isPreRollAdPhase = isPreRoll;
-    wasPlayingBeforeAd =
-        !isPreRoll && (videoPlayerController?.value.isPlaying ?? false);
-    pausedPosition = isPreRoll
-        ? Duration.zero
-        : (videoPlayerController?.value.position ?? Duration.zero);
+  void _showInterruptAd(LongVideoAd ad, {required bool isPreRoll}) async {
+  // ✅ FIX: Pause the video player before showing ad
+  await videoPlayerController?.pause();
+  
+  isAdLoading = true;
+  showAd = true;
+  _updateWakeLock();
+  currentLongVideoAd = ad;
+  isPreRollAdPhase = isPreRoll;
+  wasPlayingBeforeAd = !isPreRoll && (videoPlayerController?.value.isPlaying ?? false);
+  pausedPosition = isPreRoll 
+      ? Duration.zero 
+      : (videoPlayerController?.value.position ?? Duration.zero);
 
-    
+  update(['adComplete', 'onVideoPlayPause', 'onShowControls', 'onProgressLine']);
 
-    update(
-        ['adComplete', 'onVideoPlayPause', 'onShowControls', 'onProgressLine']);
-
-    Future.delayed(const Duration(seconds: 30), () {
-      if (isAdLoading && showAd && currentLongVideoAd?.id == ad.id) {
-        AppSettings.showLog('Ad load timeout — resuming video');
-        onAdFailed();
-      }
-    });
-  }
+  // ✅ FIX: Add timeout to prevent infinite loading
+  Future.delayed(const Duration(seconds: 45), () {
+    if (isAdLoading && showAd && currentLongVideoAd?.id == ad.id) {
+      AppSettings.showLog('Ad load timeout — resuming video');
+      onAdFailed();
+    }
+  });
+}
 
   void dismissOverlayAd() {
     activeOverlayAd = null;
@@ -739,6 +791,7 @@ class NormalVideoDetailsController extends GetxController {
 
     if (!player.value.isPlaying) {
       player.play();
+      _updateWakeLock();
     }
   }
 
@@ -758,6 +811,7 @@ class NormalVideoDetailsController extends GetxController {
     if (player != null && player.value.isInitialized) {
       player.seekTo(Duration.zero);
       player.play();
+      _updateWakeLock();
     }
 
     update(['adComplete', 'onVideoPlayPause', 'onProgressLine']);
@@ -772,15 +826,26 @@ class NormalVideoDetailsController extends GetxController {
     if (player != null && player.value.isInitialized) {
       player.seekTo(pausedPosition);
       player.play();
+      _updateWakeLock();
     }
 
     update(['adComplete', 'onVideoPlayPause', 'onProgressLine']);
   }
 
   void _resumeMainVideoAfterInterruptAd({required bool wasPreRoll}) {
-    showAd = false;
     isAdLoading = false;
-    currentLongVideoAd = null;
+
+// Hide the ad only after loading has completely finished.
+Future.delayed(const Duration(milliseconds: 100), () {
+  showAd = false;
+  currentLongVideoAd = null;
+
+  update([
+    'adComplete',
+    'onVideoPlayPause',
+    'onProgressLine',
+  ]);
+});
 
     if (wasPreRoll) {
       _startMainVideoAfterAd();
@@ -790,26 +855,68 @@ class NormalVideoDetailsController extends GetxController {
   }
 
   void onAdStarted() {
-    isAdLoading = false;
-    AppSettings.showLog("Ad started playing");
-    update(['adComplete', 'onVideoPlayPause']);
-  }
+  isAdLoading = false;
+  _updateWakeLock();
+  AppSettings.showLog("Ad started playing");
 
-  void onAdFailed() {
-    AppSettings.showLog('Sponsored ad failed, resuming content');
-    final wasPreRoll = isPreRollAdPhase;
-
-    if (!wasPreRoll) {
-      adShowCount--;
+  // ✅ FIX: Ensure UI updates properly
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!isClosed) {
+      update(['adComplete', 'onVideoPlayPause']);
     }
+  });
+}
+  void onAdFailed() {
+  AppSettings.showLog("Sponsored ad failed");
 
-    _resumeMainVideoAfterInterruptAd(wasPreRoll: wasPreRoll);
+  if (isAdLoading) {
+    isAdLoading = false;
   }
+
+  final wasPreRoll = isPreRollAdPhase;
+
+  if (!wasPreRoll && adShowCount > 0) {
+    adShowCount--;
+  }
+
+  _resumeMainVideoAfterInterruptAd(
+    wasPreRoll: wasPreRoll,
+  );
+
+  _updateWakeLock();
+}
+
 
   void onAdCompleted1() {
-    AppSettings.showLog('Interrupt ad completed — resuming long video');
-    _resumeMainVideoAfterInterruptAd(wasPreRoll: isPreRollAdPhase);
+  AppSettings.showLog('Interrupt ad completed — resuming long video');
+  
+  // ✅ FIX: Properly resume the video
+  final wasPreRoll = isPreRollAdPhase;
+  
+  // Reset ad states
+  showAd = false;
+  currentLongVideoAd = null;
+  isAdLoading = false;
+  
+  // Resume video
+  final player = videoPlayerController;
+  if (player != null && player.value.isInitialized) {
+    if (wasPreRoll) {
+      // For pre-roll, start from beginning
+      player.seekTo(Duration.zero);
+    } else {
+      // For mid-roll, seek to paused position
+      player.seekTo(pausedPosition);
+    }
+    player.play();
+    _updateWakeLock();
   }
+  
+  mainVideoPlaybackStarted = true;
+  isPreRollAdPhase = false;
+  
+  update(['adComplete', 'onVideoPlayPause', 'onProgressLine']);
+}
 
   void onChangeVideoLoading() {
     isVideoLoading = !isVideoLoading;
@@ -834,16 +941,25 @@ class NormalVideoDetailsController extends GetxController {
     adShowCount = 0;
     adTimings.clear();
     isVideoReady = false;
+    WakelockPlus.disable();
     update(["onVideoInitialize", "adComplete"]);
   }
 
   void onNextVideo() {
+    print("NEXT VIDEO CLICKED");
+    print("Related count = ${mainRelatedVideos?.length}");
+    print("Watched count = ${mainWatchedVideos.length}");
+    print("Current index = $selectedWatchedVideo");
     isDisablePrevious(false);
+    print("AUTOPLAY => selectedWatchedVideo=$selectedWatchedVideo");
     selectedWatchedVideo++;
 
     if (selectedWatchedVideo != mainWatchedVideos.length) {
       onDisposeVideoPlayer();
       onCreateHistory();
+      Future.delayed(const Duration(milliseconds: 300), () {
+        isAutoPlayingNext = false;
+      });
       init(mainWatchedVideos[selectedWatchedVideo].videoId,
           mainWatchedVideos[selectedWatchedVideo].videoUrl);
     } else if (mainRelatedVideos?.isNotEmpty ?? false) {
@@ -855,12 +971,17 @@ class NormalVideoDetailsController extends GetxController {
           WatchedVideoModel(
               videoId: mainRelatedVideos![0].id ?? "",
               videoUrl: mainRelatedVideos![0].videoUrl ?? ""));
+      Future.delayed(const Duration(milliseconds: 300), () {
+        isAutoPlayingNext = false;
+      });
+      print("AUTOPLAY NEXT => ${mainRelatedVideos![0].title}");
       init(
           mainRelatedVideos![0].id ?? "", mainRelatedVideos![0].videoUrl ?? "");
       mainRelatedVideos = null;
       update(["onGetRelatedVideos"]);
     } else {
       isDisableNext(true);
+      WakelockPlus.disable();
     }
   }
 
@@ -870,6 +991,9 @@ class NormalVideoDetailsController extends GetxController {
 
     if (selectedWatchedVideo >= 0) {
       onDisposeVideoPlayer();
+      Future.delayed(const Duration(milliseconds: 300), () {
+        isAutoPlayingNext = false;
+      });
       init(mainWatchedVideos[selectedWatchedVideo].videoId,
           mainWatchedVideos[selectedWatchedVideo].videoUrl);
     }
@@ -960,6 +1084,7 @@ class NormalVideoDetailsController extends GetxController {
     videoPlayerController?.removeListener(_videoListener);
     videoPlayerController?.dispose();
     chewieController?.dispose();
+    WakelockPlus.disable();
     super.onClose();
   }
 }

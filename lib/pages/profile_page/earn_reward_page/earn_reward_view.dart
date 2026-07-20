@@ -51,9 +51,13 @@ class _EarnRewardViewState extends State<EarnRewardView> {
       builder: (controller) => controller.isLoadingDailyRewards
           ? Scaffold(
               appBar: PreferredSize(
-                preferredSize: Size.fromHeight(MediaQuery.of(context).viewPadding.top + 60),
+                preferredSize: Size.fromHeight(
+                    MediaQuery.of(context).viewPadding.top + 60),
                 child: Container(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top, left: 15, right: 15),
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).viewPadding.top,
+                      left: 15,
+                      right: 15),
                   height: MediaQuery.of(context).viewPadding.top + 60,
                   width: Get.width,
                   color: AppColor.transparent,
@@ -65,11 +69,15 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                           height: 40,
                           width: 40,
                           alignment: Alignment.center,
-                          decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(
+                              color: Colors.transparent,
+                              shape: BoxShape.circle),
                           child: Obx(
                             () => Image.asset(
                               AppIcons.arrowBack,
-                              color: isDarkMode.value ? AppColor.white : AppColor.black,
+                              color: isDarkMode.value
+                                  ? AppColor.white
+                                  : AppColor.black,
                               width: 23,
                             ),
                           ),
@@ -81,7 +89,9 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                           AppStrings.earnRewards.tr,
                           style: GoogleFonts.urbanist(
                             fontSize: 19,
-                            color: isDarkMode.value ? AppColor.white : AppColor.black,
+                            color: isDarkMode.value
+                                ? AppColor.white
+                                : AppColor.black,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -93,7 +103,11 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                           height: 35,
                           width: 35,
                           alignment: Alignment.center,
-                          decoration: BoxDecoration(color: AppColor.white, shape: BoxShape.circle, border: Border.all(color: AppColor.yellow, width: 1)),
+                          decoration: BoxDecoration(
+                              color: AppColor.white,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: AppColor.yellow, width: 1)),
                           child: Image.asset(
                             AppIcons.convertIcon,
                             width: 30,
@@ -139,7 +153,9 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                   height: 40,
                                   width: 40,
                                   alignment: Alignment.center,
-                                  decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.transparent,
+                                      shape: BoxShape.circle),
                                   child: Image.asset(
                                     AppIcons.arrowBack,
                                     color: Colors.white,
@@ -163,7 +179,11 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                   height: 35,
                                   width: 35,
                                   alignment: Alignment.center,
-                                  decoration: BoxDecoration(color: AppColor.white, shape: BoxShape.circle, border: Border.all(color: AppColor.yellow, width: 1.5)),
+                                  decoration: BoxDecoration(
+                                      color: AppColor.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color: AppColor.yellow, width: 1.5)),
                                   child: Image.asset(
                                     AppIcons.convertIcon,
                                     width: 30,
@@ -182,7 +202,8 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                           top: MediaQuery.of(context).viewPadding.top + 50,
                           child: Container(
                             alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 10),
                             decoration: BoxDecoration(
                               color: AppColor.transparent,
                               borderRadius: BorderRadius.circular(10),
@@ -199,18 +220,27 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                     ),
                                   ),
                                   GestureDetector(
-                                    onTap: () => controller.isShowOriginalCoin.value = !controller.isShowOriginalCoin.value,
+                                    onTap: () => controller
+                                            .isShowOriginalCoin.value =
+                                        !controller.isShowOriginalCoin.value,
                                     child: SizedBox(
                                       width: Get.width / 1.2,
                                       child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Image.asset(AppIcons.coin, width: 40),
                                           const SizedBox(width: 10),
                                           Flexible(
                                             child: Text(
-                                              controller.isShowOriginalCoin.value ? "${controller.myRewardCoin.value}" : CustomFormatNumber.convert(controller.myRewardCoin.value),
+                                              controller
+                                                      .isShowOriginalCoin.value
+                                                  ? "${controller.myRewardCoin.value}"
+                                                  : CustomFormatNumber.convert(
+                                                      controller
+                                                          .myRewardCoin.value),
                                               overflow: TextOverflow.ellipsis,
                                               maxLines: 1,
                                               style: GoogleFonts.urbanist(
@@ -235,7 +265,8 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                             height: Get.height - 200,
                             width: Get.width,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: RefreshIndicator(
                                 color: AppColor.primaryColor,
                                 onRefresh: () async => await controller.init(),
@@ -247,13 +278,18 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                           alignment: Alignment.center,
                                           height: 215,
                                           width: Get.width,
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8),
                                           decoration: BoxDecoration(
-                                            color: isDarkMode.value ? AppColor.mainDark : AppColor.white,
-                                            borderRadius: BorderRadius.circular(30),
+                                            color: isDarkMode.value
+                                                ? AppColor.mainDark
+                                                : AppColor.white,
+                                            borderRadius:
+                                                BorderRadius.circular(30),
                                             border: Border.all(
                                               width: 1.5,
-                                              color: AppColor.primaryColor.withOpacity(0.3),
+                                              color: AppColor.primaryColor
+                                                  .withOpacity(0.3),
                                             ),
                                           ),
                                           child: Column(
@@ -261,41 +297,78 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                               SizedBox(
                                                 height: 50,
                                                 child: Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 5),
                                                   child: Row(
                                                     children: [
                                                       Text(
-                                                        AppStrings.youHaveCheckedInFor.tr,
-                                                        style: GoogleFonts.urbanist(
+                                                        AppStrings
+                                                            .youHaveCheckedInFor
+                                                            .tr,
+                                                        style: GoogleFonts
+                                                            .urbanist(
                                                           fontSize: 15,
-                                                          color: isDarkMode.value ? AppColor.primaryColor : AppColor.black.withOpacity(0.5),
-                                                          fontWeight: FontWeight.w500,
+                                                          color: isDarkMode
+                                                                  .value
+                                                              ? AppColor
+                                                                  .primaryColor
+                                                              : AppColor.black
+                                                                  .withOpacity(
+                                                                      0.5),
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
                                                       ),
                                                       Container(
-                                                        alignment: Alignment.center,
+                                                        alignment:
+                                                            Alignment.center,
                                                         height: 28,
-                                                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                                                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                                                        decoration: BoxDecoration(
-                                                          color: AppColor.lightPink.withOpacity(0.1),
-                                                          borderRadius: BorderRadius.circular(6),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 15),
+                                                        margin: const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 10),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: AppColor
+                                                              .lightPink
+                                                              .withOpacity(0.1),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(6),
                                                         ),
                                                         child: Text(
-                                                          (controller.getDailyRewardModel?.streak ?? 0).toString(),
-                                                          style: GoogleFonts.urbanist(
+                                                          (controller.getDailyRewardModel
+                                                                      ?.streak ??
+                                                                  0)
+                                                              .toString(),
+                                                          style: GoogleFonts
+                                                              .urbanist(
                                                             fontSize: 18,
-                                                            color: AppColor.primaryColor,
-                                                            fontWeight: FontWeight.w700,
+                                                            color: AppColor
+                                                                .primaryColor,
+                                                            fontWeight:
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ),
                                                       Text(
-                                                        AppStrings.dayStraight.tr,
-                                                        style: GoogleFonts.urbanist(
+                                                        AppStrings
+                                                            .dayStraight.tr,
+                                                        style: GoogleFonts
+                                                            .urbanist(
                                                           fontSize: 15,
-                                                          color: isDarkMode.value ? AppColor.primaryColor : AppColor.black.withOpacity(0.5),
-                                                          fontWeight: FontWeight.w500,
+                                                          color: isDarkMode
+                                                                  .value
+                                                              ? AppColor
+                                                                  .primaryColor
+                                                              : AppColor.black
+                                                                  .withOpacity(
+                                                                      0.5),
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
                                                       ),
                                                     ],
@@ -304,106 +377,193 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                               ),
                                               GetBuilder<EarnRewardController>(
                                                 id: "onGetDailyRewards",
-                                                builder: (controller) => SizedBox(
+                                                builder: (controller) =>
+                                                    SizedBox(
                                                   height: 75,
                                                   child: ListView.builder(
-                                                    itemCount: controller.dailyRewards.length,
+                                                    itemCount: controller
+                                                        .dailyRewards.length,
                                                     padding: EdgeInsets.zero,
-                                                    scrollDirection: Axis.horizontal,
-                                                    itemBuilder: (context, index) {
-                                                      final value = controller.dailyRewards[index];
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      final value = controller
+                                                          .dailyRewards[index];
 
-                                                      final isToday = (DateTime.now().day == CustomGetCurrentWeekDate.onGet()[index].day);
+                                                      final isToday = (DateTime
+                                                                  .now()
+                                                              .day ==
+                                                          CustomGetCurrentWeekDate
+                                                                      .onGet()[
+                                                                  index]
+                                                              .day);
 
-                                                      final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-                                                      final customDate = CustomGetCurrentWeekDate.onGet()[index];
-                                                      final isPreviousDay = customDate.isBefore(today);
+                                                      final today = DateTime(
+                                                          DateTime.now().year,
+                                                          DateTime.now().month,
+                                                          DateTime.now().day);
+                                                      final customDate =
+                                                          CustomGetCurrentWeekDate
+                                                              .onGet()[index];
+                                                      final isPreviousDay =
+                                                          customDate
+                                                              .isBefore(today);
 
                                                       return Container(
                                                         height: 65,
                                                         width: 48,
-                                                        margin: const EdgeInsets.only(right: 6),
-                                                        decoration: BoxDecoration(
-                                                          color: (isPreviousDay && value.isCheckIn == false)
-                                                              ? AppColor.lightRed
-                                                              : (value.isCheckIn == true)
-                                                                  ? AppColor.lightGreen
-                                                                  : (isToday && value.isCheckIn == false)
-                                                                      ? AppColor.primaryColor
-                                                                      : isDarkMode.value
-                                                                          ? AppColor.grey_400.withOpacity(0.2)
+                                                        margin: const EdgeInsets
+                                                            .only(right: 6),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: (isPreviousDay &&
+                                                                  value.isCheckIn ==
+                                                                      false)
+                                                              ? AppColor
+                                                                  .lightRed
+                                                              : (value.isCheckIn ==
+                                                                      true)
+                                                                  ? AppColor
+                                                                      .lightGreen
+                                                                  : (isToday &&
+                                                                          value.isCheckIn ==
+                                                                              false)
+                                                                      ? AppColor
+                                                                          .primaryColor
+                                                                      : isDarkMode
+                                                                              .value
+                                                                          ? AppColor
+                                                                              .grey_400
+                                                                              .withOpacity(0.2)
                                                                           : AppColor.grey_100,
-                                                          borderRadius: BorderRadius.circular(10),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
                                                         ),
                                                         child: Column(
-                                                          mainAxisAlignment: MainAxisAlignment.start,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             Container(
                                                               height: 20,
                                                               width: 52,
-                                                              alignment: Alignment.center,
-                                                              decoration: BoxDecoration(
-                                                                color: (isPreviousDay && value.isCheckIn == false)
-                                                                    ? AppColor.lightRed1
-                                                                    : (value.isCheckIn == true)
-                                                                        ? AppColor.lightGreen1
-                                                                        : (isToday && value.isCheckIn == false)
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: (isPreviousDay &&
+                                                                        value.isCheckIn ==
+                                                                            false)
+                                                                    ? AppColor
+                                                                        .lightRed1
+                                                                    : (value.isCheckIn ==
+                                                                            true)
+                                                                        ? AppColor
+                                                                            .lightGreen1
+                                                                        : (isToday &&
+                                                                                value.isCheckIn == false)
                                                                             ? isDarkMode.value
                                                                                 ? AppColor.black.withOpacity(0.2)
                                                                                 : AppColor.black.withOpacity(0.15)
                                                                             : isDarkMode.value
                                                                                 ? AppColor.grey_400.withOpacity(0.15)
                                                                                 : AppColor.grey_200,
-                                                                borderRadius: const BorderRadius.only(
-                                                                  topLeft: Radius.circular(10),
-                                                                  topRight: Radius.circular(10),
+                                                                borderRadius:
+                                                                    const BorderRadius
+                                                                        .only(
+                                                                  topLeft: Radius
+                                                                      .circular(
+                                                                          10),
+                                                                  topRight: Radius
+                                                                      .circular(
+                                                                          10),
                                                                 ),
                                                               ),
                                                               child: Text(
-                                                                (isPreviousDay && value.isCheckIn == false) ? "Lost" : "+${value.reward ?? 0}",
-                                                                style: GoogleFonts.urbanist(
+                                                                (isPreviousDay &&
+                                                                        value.isCheckIn ==
+                                                                            false)
+                                                                    ? "Lost"
+                                                                    : "+${value.reward ?? 0}",
+                                                                style: GoogleFonts
+                                                                    .urbanist(
                                                                   fontSize: 10,
-                                                                  color: (isPreviousDay && value.isCheckIn == false)
-                                                                      ? AppColor.white
-                                                                      : (value.isCheckIn == true)
-                                                                          ? AppColor.darkGrey
+                                                                  color: (isPreviousDay &&
+                                                                          value.isCheckIn ==
+                                                                              false)
+                                                                      ? AppColor
+                                                                          .white
+                                                                      : (value.isCheckIn ==
+                                                                              true)
+                                                                          ? AppColor
+                                                                              .darkGrey
                                                                           : (isToday && value.isCheckIn == false)
                                                                               ? AppColor.white
                                                                               : isDarkMode.value
                                                                                   ? AppColor.white
                                                                                   : AppColor.grey,
-                                                                  fontWeight: FontWeight.w800,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
                                                                 ),
                                                               ),
                                                             ),
                                                             Expanded(
                                                               child: Center(
-                                                                child: Image.asset(
-                                                                  (isPreviousDay && value.isCheckIn == false)
-                                                                      ? AppIcons.closeIcon
-                                                                      : (isToday || value.isCheckIn == true)
-                                                                          ? AppIcons.coinIcon
-                                                                          : AppIcons.coinIconGrey,
-                                                                  height: isToday ? 30 : 24,
+                                                                child:
+                                                                    Image.asset(
+                                                                  (isPreviousDay &&
+                                                                          value.isCheckIn ==
+                                                                              false)
+                                                                      ? AppIcons
+                                                                          .closeIcon
+                                                                      : (isToday ||
+                                                                              value.isCheckIn ==
+                                                                                  true)
+                                                                          ? AppIcons
+                                                                              .coinIcon
+                                                                          : AppIcons
+                                                                              .coinIconGrey,
+                                                                  height:
+                                                                      isToday
+                                                                          ? 30
+                                                                          : 24,
                                                                 ),
                                                               ),
                                                             ),
                                                             SizedBox(
                                                               height: 15,
                                                               child: Text(
-                                                                isToday ? AppStrings.today.tr : CustomGetCurrentWeekDate.onShow(CustomGetCurrentWeekDate.onGet()[index]),
-                                                                style: GoogleFonts.urbanist(
+                                                                isToday
+                                                                    ? AppStrings
+                                                                        .today
+                                                                        .tr
+                                                                    : CustomGetCurrentWeekDate
+                                                                        .onShow(
+                                                                            CustomGetCurrentWeekDate.onGet()[index]),
+                                                                style: GoogleFonts
+                                                                    .urbanist(
                                                                   fontSize: 8,
-                                                                  color: (isPreviousDay && value.isCheckIn == false)
-                                                                      ? AppColor.darkRed
-                                                                      : (value.isCheckIn == true)
-                                                                          ? AppColor.darkGrey
+                                                                  color: (isPreviousDay &&
+                                                                          value.isCheckIn ==
+                                                                              false)
+                                                                      ? AppColor
+                                                                          .darkRed
+                                                                      : (value.isCheckIn ==
+                                                                              true)
+                                                                          ? AppColor
+                                                                              .darkGrey
                                                                           : (isToday && value.isCheckIn == false)
                                                                               ? AppColor.white
                                                                               : isDarkMode.value
                                                                                   ? AppColor.white
                                                                                   : AppColor.black.withOpacity(0.6),
-                                                                  fontWeight: FontWeight.w700,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
                                                                 ),
                                                               ),
                                                             ),
@@ -416,25 +576,36 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                               ),
                                               const SizedBox(height: 15),
                                               GestureDetector(
-                                                onTap: () => controller.onCheckIn(context),
+                                                onTap: () => controller
+                                                    .onCheckIn(context),
                                                 child: Container(
                                                   height: 55,
                                                   alignment: Alignment.center,
-                                                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                                                  margin: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 10),
                                                   decoration: BoxDecoration(
-                                                    color: controller.isTodayCheckIn
+                                                    color: controller
+                                                            .isTodayCheckIn
                                                         ? isDarkMode.value
-                                                            ? AppColor.grey.withOpacity(0.15)
-                                                            : AppColor.grey.withOpacity(0.5)
+                                                            ? AppColor.grey
+                                                                .withOpacity(
+                                                                    0.15)
+                                                            : AppColor.grey
+                                                                .withOpacity(
+                                                                    0.5)
                                                         : AppColor.primaryColor,
-                                                    borderRadius: BorderRadius.circular(50),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            50),
                                                   ),
                                                   child: Text(
                                                     AppStrings.checkIn.tr,
                                                     style: GoogleFonts.urbanist(
                                                       fontSize: 16,
                                                       color: Colors.white,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
@@ -448,24 +619,34 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                         height: 242,
                                         width: Get.width,
                                         decoration: BoxDecoration(
-                                          color: isDarkMode.value ? AppColor.mainDark : AppColor.white,
-                                          borderRadius: BorderRadius.circular(30),
+                                          color: isDarkMode.value
+                                              ? AppColor.mainDark
+                                              : AppColor.white,
+                                          borderRadius:
+                                              BorderRadius.circular(30),
                                           border: Border.all(
                                             width: 1.5,
-                                            color: AppColor.primaryColor.withOpacity(0.3),
+                                            color: AppColor.primaryColor
+                                                .withOpacity(0.3),
                                           ),
                                         ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
                                           children: [
                                             Container(
                                               alignment: Alignment.centerLeft,
                                               height: 60,
-                                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20),
                                               decoration: BoxDecoration(
-                                                color: AppColor.lightPink.withOpacity(0.2),
-                                                borderRadius: const BorderRadius.only(
+                                                color: AppColor.lightPink
+                                                    .withOpacity(0.2),
+                                                borderRadius:
+                                                    const BorderRadius.only(
                                                   topLeft: Radius.circular(28),
                                                   topRight: Radius.circular(28),
                                                 ),
@@ -482,32 +663,52 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                             Container(
                                               height: 80,
                                               color: Colors.transparent,
-                                              padding: const EdgeInsets.only(left: 5, right: 15),
+                                              padding: const EdgeInsets.only(
+                                                  left: 5, right: 15),
                                               child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
                                                 children: [
                                                   Container(
                                                     alignment: Alignment.center,
                                                     height: 55,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 20),
                                                     decoration: BoxDecoration(
-                                                      color: AppColor.lightPink.withOpacity(0.2),
+                                                      color: AppColor.lightPink
+                                                          .withOpacity(0.2),
                                                       shape: BoxShape.circle,
                                                     ),
-                                                    child: Image.asset(AppIcons.referralIcon, width: 30),
+                                                    child: Image.asset(
+                                                        AppIcons.referralIcon,
+                                                        width: 30),
                                                   ),
                                                   const SizedBox(width: 8),
                                                   Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
                                                       Obx(
                                                         () => Text(
-                                                          AppStrings.referralReward.tr,
-                                                          style: GoogleFonts.urbanist(
+                                                          AppStrings
+                                                              .referralReward
+                                                              .tr,
+                                                          style: GoogleFonts
+                                                              .urbanist(
                                                             fontSize: 18,
-                                                            color: isDarkMode.value ? AppColor.primaryColor : AppColor.black,
-                                                            fontWeight: FontWeight.w700,
+                                                            color: isDarkMode
+                                                                    .value
+                                                                ? AppColor
+                                                                    .primaryColor
+                                                                : AppColor
+                                                                    .black,
+                                                            fontWeight:
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ),
@@ -516,22 +717,29 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                                   const Spacer(),
                                                   GestureDetector(
                                                     onTap: () {
-                                                      Get.to(const ReferralProgramView());
+                                                      Get.to(
+                                                          const ReferralProgramView());
                                                     },
                                                     child: Container(
                                                       height: 32,
                                                       width: 70,
-                                                      alignment: Alignment.center,
+                                                      alignment:
+                                                          Alignment.center,
                                                       decoration: BoxDecoration(
-                                                        color: AppColor.primaryColor,
-                                                        borderRadius: BorderRadius.circular(30),
+                                                        color: AppColor
+                                                            .primaryColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
                                                       ),
                                                       child: Text(
                                                         AppStrings.go.tr,
-                                                        style: GoogleFonts.urbanist(
+                                                        style: GoogleFonts
+                                                            .urbanist(
                                                           fontSize: 15,
                                                           color: AppColor.white,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                         ),
                                                       ),
                                                     ),
@@ -542,61 +750,98 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                             Divider(
                                               indent: 15,
                                               endIndent: 15,
-                                              color: AppColor.lightPink.withOpacity(0.2),
+                                              color: AppColor.lightPink
+                                                  .withOpacity(0.2),
                                             ),
                                             GestureDetector(
                                               onTap: () {
-                                                Get.to(const ContentEngagementView());
+                                                Get.to(
+                                                    const ContentEngagementView());
                                               },
                                               child: Container(
                                                 height: 80,
                                                 color: Colors.transparent,
-                                                padding: const EdgeInsets.only(left: 5, right: 15),
+                                                padding: const EdgeInsets.only(
+                                                    left: 5, right: 15),
                                                 child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
                                                   children: [
                                                     Container(
-                                                      alignment: Alignment.center,
+                                                      alignment:
+                                                          Alignment.center,
                                                       height: 55,
-                                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 20),
                                                       decoration: BoxDecoration(
-                                                        color: AppColor.lightPink.withOpacity(0.2),
+                                                        color: AppColor
+                                                            .lightPink
+                                                            .withOpacity(0.2),
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: Image.asset(AppIcons.engagementIcon, width: 30),
+                                                      child: Image.asset(
+                                                          AppIcons
+                                                              .engagementIcon,
+                                                          width: 30),
                                                     ),
                                                     const SizedBox(width: 8),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        Obx(
-                                                          () => Text(
-                                                            AppStrings.engagementRewards.tr,
-                                                            style: GoogleFonts.urbanist(
-                                                              fontSize: 18,
-                                                              color: isDarkMode.value ? AppColor.primaryColor : AppColor.black,
-                                                              fontWeight: FontWeight.w700,
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Obx(
+                                                            () => Text(
+                                                              AppStrings
+                                                                  .engagementRewards
+                                                                  .tr,
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: GoogleFonts
+                                                                  .urbanist(
+                                                                fontSize: 18,
+                                                                color: isDarkMode.value
+                                                                    ? AppColor
+                                                                        .primaryColor
+                                                                    : AppColor
+                                                                        .black,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
                                                     ),
-                                                    const Spacer(),
+                                                    const SizedBox(width: 10),
                                                     Container(
                                                       height: 32,
                                                       width: 70,
-                                                      alignment: Alignment.center,
+                                                      alignment:
+                                                          Alignment.center,
                                                       decoration: BoxDecoration(
-                                                        color: AppColor.primaryColor,
-                                                        borderRadius: BorderRadius.circular(30),
+                                                        color: AppColor
+                                                            .primaryColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(30),
                                                       ),
                                                       child: Text(
                                                         AppStrings.go.tr,
-                                                        style: GoogleFonts.urbanist(
+                                                        style: GoogleFonts
+                                                            .urbanist(
                                                           fontSize: 15,
                                                           color: AppColor.white,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                         ),
                                                       ),
                                                     ),
@@ -613,85 +858,155 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                         builder: (controller) => Container(
                                           width: Get.width,
                                           decoration: BoxDecoration(
-                                            color: isDarkMode.value ? AppColor.mainDark : AppColor.white,
-                                            borderRadius: BorderRadius.circular(30),
+                                            color: isDarkMode.value
+                                                ? AppColor.mainDark
+                                                : AppColor.white,
+                                            borderRadius:
+                                                BorderRadius.circular(30),
                                             border: Border.all(
                                               width: 1.5,
-                                              color: AppColor.primaryColor.withOpacity(0.3),
+                                              color: AppColor.primaryColor
+                                                  .withOpacity(0.3),
                                             ),
                                           ),
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
                                             children: [
                                               Container(
                                                 alignment: Alignment.centerLeft,
                                                 height: 60,
-                                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20),
                                                 decoration: BoxDecoration(
-                                                  color: AppColor.lightPink.withOpacity(0.2),
-                                                  borderRadius: const BorderRadius.only(
-                                                    topLeft: Radius.circular(28),
-                                                    topRight: Radius.circular(28),
+                                                  color: AppColor.lightPink
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      const BorderRadius.only(
+                                                    topLeft:
+                                                        Radius.circular(28),
+                                                    topRight:
+                                                        Radius.circular(28),
                                                   ),
                                                 ),
                                                 child: Text(
                                                   AppStrings.myDailyTasks.tr,
                                                   style: GoogleFonts.urbanist(
                                                     fontSize: 18,
-                                                    color: AppColor.primaryColor,
+                                                    color:
+                                                        AppColor.primaryColor,
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
                                               const SizedBox(height: 5),
-                                              for (int index = 0; index < controller.adRewards.length; index++)
-                                                GetBuilder<EarnRewardController>(
+                                              for (int index = 0;
+                                                  index <
+                                                      controller
+                                                          .adRewards.length;
+                                                  index++)
+                                                GetBuilder<
+                                                    EarnRewardController>(
                                                   id: "onChangeAdReward",
-                                                  builder: (controller) => Column(
+                                                  builder: (controller) =>
+                                                      Column(
                                                     children: [
                                                       Container(
                                                         height: 70,
-                                                        color: Colors.transparent,
-                                                        padding: const EdgeInsets.only(left: 5, right: 15),
+                                                        color:
+                                                            Colors.transparent,
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                                left: 5,
+                                                                right: 15),
                                                         child: Row(
-                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
                                                           children: [
                                                             Container(
-                                                              alignment: Alignment.center,
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
                                                               height: 55,
-                                                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                                                              decoration: BoxDecoration(
-                                                                color: AppColor.lightPink.withOpacity(0.2),
-                                                                shape: BoxShape.circle,
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      horizontal:
+                                                                          20),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: AppColor
+                                                                    .lightPink
+                                                                    .withOpacity(
+                                                                        0.2),
+                                                                shape: BoxShape
+                                                                    .circle,
                                                               ),
-                                                              child: Image.asset(AppIcons.adIcon, width: 30),
+                                                              child: Image.asset(
+                                                                  AppIcons
+                                                                      .adIcon,
+                                                                  width: 30),
                                                             ),
-                                                            const SizedBox(width: 8),
+                                                            const SizedBox(
+                                                                width: 8),
                                                             Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
                                                               children: [
                                                                 Obx(
                                                                   () => Text(
-                                                                    controller.adRewards[index].adLabel ?? "",
-                                                                    style: GoogleFonts.urbanist(
-                                                                      fontSize: 18,
-                                                                      color: isDarkMode.value ? AppColor.primaryColor : AppColor.black,
-                                                                      fontWeight: FontWeight.w700,
+                                                                    controller
+                                                                            .adRewards[index]
+                                                                            .adLabel ??
+                                                                        "",
+                                                                    style: GoogleFonts
+                                                                        .urbanist(
+                                                                      fontSize:
+                                                                          18,
+                                                                      color: isDarkMode.value
+                                                                          ? AppColor
+                                                                              .primaryColor
+                                                                          : AppColor
+                                                                              .black,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
                                                                     ),
                                                                   ),
                                                                 ),
                                                                 Row(
                                                                   children: [
-                                                                    Image.asset(AppIcons.coin, opacity: AlwaysStoppedAnimation(isDarkMode.value ? 0.7 : 1), width: 20),
-                                                                    const SizedBox(width: 3),
+                                                                    Image.asset(
+                                                                        AppIcons
+                                                                            .coin,
+                                                                        opacity: AlwaysStoppedAnimation(isDarkMode.value
+                                                                            ? 0.7
+                                                                            : 1),
+                                                                        width:
+                                                                            20),
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            3),
                                                                     Text(
                                                                       "+${controller.adRewards[index].coinEarnedFromAd ?? 0}",
-                                                                      style: GoogleFonts.urbanist(
-                                                                        fontSize: 16,
-                                                                        color: isDarkMode.value ? AppColor.yellow.withOpacity(0.7) : AppColor.yellow,
-                                                                        fontWeight: FontWeight.w800,
+                                                                      style: GoogleFonts
+                                                                          .urbanist(
+                                                                        fontSize:
+                                                                            16,
+                                                                        color: isDarkMode.value
+                                                                            ? AppColor.yellow.withOpacity(0.7)
+                                                                            : AppColor.yellow,
+                                                                        fontWeight:
+                                                                            FontWeight.w800,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -701,40 +1016,68 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                                             const Spacer(),
                                                             GestureDetector(
                                                               onTap: () {
-                                                                controller.onClickPlay(index);
+                                                                controller
+                                                                    .onClickPlay(
+                                                                        index);
                                                               },
                                                               child: Container(
                                                                 height: 32,
                                                                 width: 80,
-                                                                alignment: Alignment.center,
-                                                                decoration: BoxDecoration(
-                                                                  color: index < controller.completeAdTask
-                                                                      ? AppColor.lightGreen
-                                                                      : index != controller.completeAdTask
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: index <
+                                                                          controller
+                                                                              .completeAdTask
+                                                                      ? AppColor
+                                                                          .lightGreen
+                                                                      : index !=
+                                                                              controller.completeAdTask
                                                                           ? isDarkMode.value
                                                                               ? AppColor.grey.withOpacity(0.2)
                                                                               : AppColor.grey_300
                                                                           : controller.isEnableCurrentAdTask
                                                                               ? AppColor.primaryColor
                                                                               : AppColor.primaryColor.withOpacity(0.15),
-                                                                  borderRadius: BorderRadius.circular(30),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              30),
                                                                 ),
                                                                 child: Text(
-                                                                  index < controller.completeAdTask
-                                                                      ? AppStrings.earned.tr
-                                                                      : index != controller.completeAdTask
-                                                                          ? AppStrings.play.tr
+                                                                  index <
+                                                                          controller
+                                                                              .completeAdTask
+                                                                      ? AppStrings
+                                                                          .earned
+                                                                          .tr
+                                                                      : index !=
+                                                                              controller
+                                                                                  .completeAdTask
+                                                                          ? AppStrings
+                                                                              .play
+                                                                              .tr
                                                                           : controller.isEnableCurrentAdTask
                                                                               ? AppStrings.play.tr
                                                                               : controller.convertAdTime(controller.nextAdTaskTime),
-                                                                  style: GoogleFonts.urbanist(
-                                                                    fontSize: 15,
-                                                                    color: (index == controller.completeAdTask && !controller.isEnableCurrentAdTask)
-                                                                        ? AppColor.primaryColor
-                                                                        : index < controller.completeAdTask
+                                                                  style: GoogleFonts
+                                                                      .urbanist(
+                                                                    fontSize:
+                                                                        15,
+                                                                    color: (index == controller.completeAdTask &&
+                                                                            !controller
+                                                                                .isEnableCurrentAdTask)
+                                                                        ? AppColor
+                                                                            .primaryColor
+                                                                        : index <
+                                                                                controller.completeAdTask
                                                                             ? AppColor.darkGrey
                                                                             : AppColor.white,
-                                                                    fontWeight: FontWeight.w700,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
                                                                   ),
                                                                 ),
                                                               ),
@@ -743,11 +1086,17 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                                         ),
                                                       ),
                                                       Visibility(
-                                                        visible: index < (controller.adRewards.length - 1),
+                                                        visible: index <
+                                                            (controller
+                                                                    .adRewards
+                                                                    .length -
+                                                                1),
                                                         child: Divider(
                                                           indent: 15,
                                                           endIndent: 15,
-                                                          color: AppColor.lightPink.withOpacity(0.2),
+                                                          color: AppColor
+                                                              .lightPink
+                                                              .withOpacity(0.2),
                                                         ),
                                                       ),
                                                     ],

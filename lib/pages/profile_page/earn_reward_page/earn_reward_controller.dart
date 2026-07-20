@@ -1,7 +1,7 @@
+import 'dart:math';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:metube/ads/google_ads/google_reward_ad.dart';
 import 'package:metube/custom/custom_method/custom_get_current_week_date.dart';
 import 'package:metube/custom/custom_method/custom_toast.dart';
 import 'package:metube/custom/custom_ui/loader_ui.dart';
@@ -15,7 +15,10 @@ import 'package:metube/pages/profile_page/earn_reward_page/get_ad_reward_api.dar
 import 'package:metube/pages/profile_page/earn_reward_page/get_ad_reward_model.dart';
 import 'package:metube/pages/profile_page/earn_reward_page/get_daily_reward_api.dart';
 import 'package:metube/pages/profile_page/earn_reward_page/get_daily_reward_model.dart';
-import 'package:metube/utils/settings/app_settings.dart';
+import 'package:metube/utils/settings/app_settings.dart';  
+import 'package:metube/pages/long_video_ads/get_long_video_ads_api.dart';
+import 'package:metube/pages/long_video_ads/long_video_ad_overlay.dart';
+import 'package:metube/pages/long_video_ads/long_video_ad_model.dart';
 
 class EarnRewardController extends GetxController {
   // >>>> Ad Reward <<<<<
@@ -122,18 +125,63 @@ class EarnRewardController extends GetxController {
     }
   }
 
-  void onClickPlay(int index) async {
-    AppSettings.showLog("Click To Index => $index");
+  Future<void> onClickPlay(int index) async {
+  AppSettings.showLog("Click To Index => $index");
 
-    if (index == completeAdTask && isEnableCurrentAdTask) {
-      AppSettings.showLog("Show Ad Success");
-
-      GoogleRewardAd.showAd(fun: () {
-        onShowAd(index);
-        onCreateAdReward(adRewards[index].coinEarnedFromAd ?? 0);
-      });
-    }
+  if (index != completeAdTask || !isEnableCurrentAdTask) {
+    return;
   }
+
+  Get.dialog(
+    const LoaderUi(),
+    barrierDismissible: false,
+  );
+
+  final ads = await GetLongVideoAdsApi.callApi(
+    placement: "pre-roll",
+  );
+
+  if (Get.isDialogOpen ?? false) {
+    Get.back();
+  }
+
+  if (ads.isEmpty) {
+    CustomToast.show("No advertisement available");
+    return;
+  }
+
+  final random = Random();
+  final LongVideoAd ad = ads[random.nextInt(ads.length)];
+
+  Get.to(
+    () => LongVideoAdOverlay(
+      ad: ad,
+      isRewardAd: true,
+
+      onStarted: () {
+        AppSettings.showLog("Reward ad started");
+      },
+
+      onCompleted: () async {
+          Get.back();
+
+        onShowAd(index);
+
+        await onCreateAdReward(
+          adRewards[index].coinEarnedFromAd ?? 0,
+        );
+      },
+
+      onFailed: () {
+        if (Get.isOverlaysOpen) {
+          Get.back();
+        }
+
+        CustomToast.show("Failed to play advertisement");
+      },
+    ),
+  );
+}
 
   void onShowAd(int index) {
     final newIndex = index + 1;
@@ -184,7 +232,7 @@ class EarnRewardController extends GetxController {
     }
   }
 
-  void onCreateAdReward(int coinEarnedFromAd) async {
+  Future<void> onCreateAdReward(int coinEarnedFromAd) async {
     earnCoinFromWatchAdModel = await EarnCoinFromWatchAdApi.callApi(
       loginUserId: Database.loginUserId ?? "",
       coinEarnedFromAd: coinEarnedFromAd,

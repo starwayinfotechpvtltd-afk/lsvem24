@@ -45,6 +45,7 @@ import 'package:metube/widget/subscribe_premium_channel_bottom_sheet.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class ShortsVideoDetailsView extends StatefulWidget {
   const ShortsVideoDetailsView({
@@ -84,6 +85,7 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
   RxMap customChanges = {"like": 0, "disLike": 0, "comment": 0, "share": 0}.obs;
 
   bool _commentsOpen = false;
+  bool _subscribeActionInFlight = false;
 
   // ✅ ADD this helper method just above initializeVideoPlayer()
   String _resolveUrl(String url) => ConvertToNetwork.resolve(url);
@@ -397,13 +399,24 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
   }
 
   void onClickSubscribe() async {
+    if (_subscribeActionInFlight) return;
     final details = videoDetailsModel?.detailsOfVideo;
     if (details == null) return;
     if (isPrivateContent.value && isSubscribe.value == false) {
       onSubscribePrivateChannel();
     } else {
-      isSubscribe.value = !isSubscribe.value;
-      await SubscribeChannelApiClass.callApi(details.channelId.toString());
+      _subscribeActionInFlight = true;
+      final oldValue = isSubscribe.value;
+      try {
+        isSubscribe.value = !oldValue;
+        final success =
+            await SubscribeChannelApiClass.callApi(details.channelId.toString());
+        if (!success) {
+          isSubscribe.value = oldValue;
+        }
+      } finally {
+        _subscribeActionInFlight = false;
+      }
     }
   }
 
@@ -460,6 +473,7 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
   }
 
   void onUnlockPrivateVideo() {
+    if (!AuthService.checkLogin()) return;
     UnlockPremiumVideoBottomSheet.onShow(
       coin:
           (videoDetailsModel?.detailsOfVideo?.videoUnlockCost ?? 0).toString(),
@@ -471,8 +485,17 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
         if (UnlockPrivateVideoApi.unlockPrivateVideoModel?.isUnlocked == true) {
           isPrivateContent.value = false;
         }
-        Get.close(2);
-        SubscribedSuccessDialog.show(context);
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        if (Get.isBottomSheetOpen ?? false) {
+          await Future.delayed(const Duration(milliseconds: 60));
+          Get.back();
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          SubscribedSuccessDialog.show(context);
+        });
       },
     );
   }
@@ -482,14 +505,29 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
       coin:
           (videoDetailsModel?.detailsOfVideo?.subscriptionCost ?? 0).toString(),
       callback: () async {
-        Get.dialog(const LoaderUi(), barrierDismissible: false);
-        final bool isSuccess = await SubscribeChannelApiClass.callApi(
-            videoDetailsModel?.detailsOfVideo?.channelId ?? "");
-        Get.close(2);
-        if (isSuccess) {
-          isPrivateContent.value = false;
-          isSubscribe.value = true;
-          SubscribedSuccessDialog.show(context);
+        if (_subscribeActionInFlight) return;
+        _subscribeActionInFlight = true;
+        try {
+          Get.dialog(const LoaderUi(), barrierDismissible: false);
+          final bool isSuccess = await SubscribeChannelApiClass.callApi(
+              videoDetailsModel?.detailsOfVideo?.channelId ?? "");
+          if (Get.isDialogOpen ?? false) {
+            Get.back();
+          }
+          if (Get.isBottomSheetOpen ?? false) {
+            await Future.delayed(const Duration(milliseconds: 60));
+            Get.back();
+          }
+          if (isSuccess) {
+            isPrivateContent.value = false;
+            isSubscribe.value = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              SubscribedSuccessDialog.show(context);
+            });
+          }
+        } finally {
+          _subscribeActionInFlight = false;
         }
       },
     );

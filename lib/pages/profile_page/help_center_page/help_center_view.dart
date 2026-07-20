@@ -27,7 +27,8 @@ class _HelpCenterViewState extends State<HelpCenterView> with SingleTickerProvid
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    // _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: 1, vsync: this, initialIndex: 0);
     super.initState();
   }
 
@@ -62,13 +63,13 @@ class _HelpCenterViewState extends State<HelpCenterView> with SingleTickerProvid
           unselectedLabelColor: AppColor.grey,
           tabs: [
             Tab(text: AppStrings.faq.tr),
-            Tab(text: AppStrings.contactUs.tr),
+            // Tab(text: AppStrings.contactUs.tr),
           ],
         ),
       ),
       body: TabBarView(controller: _tabController, children: const [
         FAQ(),
-        CONTACT(),
+        // CONTACT(),
       ]),
     );
   }

@@ -4,7 +4,7 @@ class CustomFormatNumber {
       double value = number / 1000000;
       return _formatValue(value, 'm');
     } else if (number >= 1000) {
-      double value = number / 1000;
+      double value = number / 1000;  
       return _formatValue(value, 'k');
     } else {
       return number.toString();

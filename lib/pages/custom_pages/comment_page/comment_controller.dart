@@ -6,6 +6,7 @@ import 'package:metube/pages/custom_pages/comment_page/get_all_comment_model.dar
 import 'package:metube/pages/custom_pages/comment_page/like_dislike_comment_api.dart';
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/utils/utils.dart';
+import 'package:metube/database/database.dart';
 
 class CommentController extends GetxController {
   TextEditingController commentController = TextEditingController();
@@ -28,11 +29,15 @@ class CommentController extends GetxController {
   Future<void> typeWiseGetComment(int commentType, String videoId) async {
     commentInitialLoadDone = false;
     update(["onChangeShimmer"]);
+    String? loginUserId=Database.loginUserId;
+    
     try {
-      mainComments[commentType] = (await GetAllCommentApi.callApi(videoId, commentType)) ?? [];
+      mainComments[commentType] =
+          (await GetAllCommentApi.callApi(videoId, commentType, loginUserId)) ?? [];
       final list = mainComments[commentType];
       if (list.isNotEmpty) {
-        Utils.showLog("COMMENT WISE ==> ${list.first.commentText} Name : ${list.first.fullName}");
+        Utils.showLog(
+            "COMMENT WISE ==> ${list.first.commentText} Name : ${list.first.fullName}");
       }
       customChanges[commentType].clear();
 
@@ -47,7 +52,9 @@ class CommentController extends GetxController {
 
   void onChangeCommentType(int index, String videoId) {
     selectedCommentType = index;
-    if (mainComments[0].isEmpty || mainComments[1].isEmpty || mainComments[2].isEmpty) {
+    if (mainComments[0].isEmpty ||
+        mainComments[1].isEmpty ||
+        mainComments[2].isEmpty) {
       if (mainComments[selectedCommentType].isEmpty) {
         typeWiseGetComment(selectedCommentType, videoId);
       }
@@ -55,7 +62,9 @@ class CommentController extends GetxController {
 
     update(["onChangeCommentType", "onChangeCommentList"]);
 
-    if (mainComments[0].isEmpty || mainComments[1].isEmpty || mainComments[2].isEmpty) {
+    if (mainComments[0].isEmpty ||
+        mainComments[1].isEmpty ||
+        mainComments[2].isEmpty) {
       update(["onChangeShimmer"]);
     }
   }
@@ -92,9 +101,15 @@ class CommentController extends GetxController {
   // }
 
   void insertIntoCustomChanges(int commentType, int index) {
+    print(
+      "Comment ${mainComments[commentType][index].id}"
+      " like=${mainComments[commentType][index].isLike}"
+      " dislike=${mainComments[commentType][index].isDislike}",
+    );
     customChanges[commentType].add({
       "isLike": bool.parse(mainComments[commentType][index].isLike.toString()),
-      "isDisLike": bool.parse(mainComments[commentType][index].isDislike.toString()),
+      "isDisLike":
+          bool.parse(mainComments[commentType][index].isDislike.toString()),
       "like": mainComments[commentType][index].like,
       "disLike": mainComments[commentType][index].dislike,
       "reply": mainComments[commentType][index].totalReplies
@@ -102,9 +117,27 @@ class CommentController extends GetxController {
   }
 
   void advanceCustomChanges() {
-    customChanges[0].add({"isLike": false, "isDisLike": false, "like": 0, "disLike": 0, "reply": 0});
-    customChanges[1].insert(0, {"isLike": false, "isDisLike": false, "like": 0, "disLike": 0, "reply": 0});
-    customChanges[2].add({"isLike": false, "isDisLike": false, "like": 0, "disLike": 0, "reply": 0});
+    customChanges[0].add({
+      "isLike": false,
+      "isDisLike": false,
+      "like": 0,
+      "disLike": 0,
+      "reply": 0
+    });
+    customChanges[1].insert(0, {
+      "isLike": false,
+      "isDisLike": false,
+      "like": 0,
+      "disLike": 0,
+      "reply": 0
+    });
+    customChanges[2].add({
+      "isLike": false,
+      "isDisLike": false,
+      "like": 0,
+      "disLike": 0,
+      "reply": 0
+    });
   }
 
   void onChangeReplies() {
@@ -112,7 +145,8 @@ class CommentController extends GetxController {
   }
 
   void onPressLike(String videoId, int index) async {
-    AppSettings.showLog("Comment Id => ${mainComments[selectedCommentType][index].id}");
+    AppSettings.showLog(
+        "Comment Id => ${mainComments[selectedCommentType][index].id}");
 
     if (!customChanges[selectedCommentType][index]["isLike"]) {
       AppSettings.showLog("Is Already Not Liked");
@@ -151,7 +185,8 @@ class CommentController extends GetxController {
   }
 
   void onPressDisLike(String videoId, int index) async {
-    AppSettings.showLog("Comment Id => ${mainComments[selectedCommentType][index].id}");
+    AppSettings.showLog(
+        "Comment Id => ${mainComments[selectedCommentType][index].id}");
     if (!customChanges[selectedCommentType][index]["isDisLike"]) {
       AppSettings.showLog("Is Already Not DisLiked");
       if (customChanges[selectedCommentType][index]["isLike"] == true) {

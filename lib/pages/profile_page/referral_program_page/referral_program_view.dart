@@ -20,9 +20,11 @@ class ReferralProgramView extends StatelessWidget {
     print("******* ${AppSettings.referralCodeLink}");
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).viewPadding.top + 60),
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).viewPadding.top + 60),
         child: Container(
-          padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top, left: 15, right: 15),
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).viewPadding.top, left: 15, right: 15),
           height: MediaQuery.of(context).viewPadding.top + 60,
           width: Get.width,
           color: AppColor.transparent,
@@ -34,7 +36,8 @@ class ReferralProgramView extends StatelessWidget {
                   height: 40,
                   width: 40,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: Colors.transparent, shape: BoxShape.circle),
                   child: Obx(
                     () => Image.asset(
                       AppIcons.arrowBack,
@@ -62,7 +65,8 @@ class ReferralProgramView extends StatelessWidget {
                   height: 40,
                   width: 40,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: Colors.transparent, shape: BoxShape.circle),
                   child: Obx(
                     () => Image.asset(
                       AppIcons.historyIcon,
@@ -110,9 +114,17 @@ class ReferralProgramView extends StatelessWidget {
                 height: 100,
                 width: Get.width,
                 decoration: BoxDecoration(
-                  color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                  color: isDarkMode.value
+                      ? AppColor.secondDarkMode
+                      : AppColor.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: isDarkMode.value ? AppColor.transparent : AppColor.grey_200, blurRadius: 10)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: isDarkMode.value
+                            ? AppColor.transparent
+                            : AppColor.grey_200,
+                        blurRadius: 10)
+                  ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -125,12 +137,18 @@ class ReferralProgramView extends StatelessWidget {
                           height: 35,
                           child: Text(
                             "1",
-                            style: GoogleFonts.urbanist(fontSize: 24, color: AppColor.primaryColor, fontWeight: FontWeight.w800),
+                            style: GoogleFonts.urbanist(
+                                fontSize: 24,
+                                color: AppColor.primaryColor,
+                                fontWeight: FontWeight.w800),
                           ),
                         ),
                         Text(
                           AppStrings.numberOfMember.tr,
-                          style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.grey, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.urbanist(
+                              fontSize: 12,
+                              color: AppColor.grey,
+                              fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -142,13 +160,22 @@ class ReferralProgramView extends StatelessWidget {
                         SizedBox(
                           height: 35,
                           child: Text(
-                            (WithdrawSettingApi.withdrawSettingModel?.data?.referralRewardCoins ?? 0).toString(),
-                            style: GoogleFonts.urbanist(fontSize: 24, color: AppColor.primaryColor, fontWeight: FontWeight.w800),
+                            (WithdrawSettingApi.withdrawSettingModel?.data
+                                        ?.referralRewardCoins ??
+                                    0)
+                                .toString(),
+                            style: GoogleFonts.urbanist(
+                                fontSize: 24,
+                                color: AppColor.primaryColor,
+                                fontWeight: FontWeight.w800),
                           ),
                         ),
                         Text(
                           AppStrings.earnCoins.tr,
-                          style: GoogleFonts.urbanist(fontSize: 12, color: AppColor.grey, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.urbanist(
+                              fontSize: 12,
+                              color: AppColor.grey,
+                              fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -182,14 +209,17 @@ class ReferralProgramView extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.urbanist(
                           fontSize: 14,
-                          color: isDarkMode.value ? AppColor.white : AppColor.black,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.black,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: AppSettings.referralCodeLink));
+                        Clipboard.setData(
+                            ClipboardData(text: AppSettings.referralCodeLink));
                         CustomToast.show(AppStrings.copiedOnClipboard.tr);
                       },
                       child: Image.asset(
@@ -208,7 +238,21 @@ class ReferralProgramView extends StatelessWidget {
       bottomNavigationBar: GestureDetector(
         onTap: () async {
           try {
-            Share.shareUri(Uri.parse(AppSettings.referralCodeLink));
+            if (AppSettings.referralCodeLink.isEmpty) {
+              CustomToast.show("Referral link not available.");
+              return;
+            }
+            final message = '''
+🎉 Join LSVEM24 and enjoy amazing videos!
+
+Use my referral link to join:
+
+${AppSettings.referralCodeLink}
+
+Download now and start watching!
+''';
+
+            Share.share(message);
           } catch (e) {
             AppSettings.showLog("Share Error => $e");
           }

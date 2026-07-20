@@ -24,20 +24,49 @@ class ProfileController extends GetxController {
   }
 
   Future<void> onGetPurchaseHistory() async {
-    premiumPurchaseHistory = null;
-    await GetPremiumPlanHistoryApi.callApi(Database.loginUserId!);
-
+  if (Database.loginUserId == null || Database.loginUserId!.isEmpty) {
     premiumPurchaseHistory = [];
     coinPurchaseHistory = [];
-    premiumPurchaseHistory?.addAll(GetPremiumPlanHistoryApi.historyModel?.planHistory ?? []);
-    coinPurchaseHistory?.addAll(GetPremiumPlanHistoryApi.historyModel?.coinplanHistory ?? []);
     update(["onGetPurchaseHistory"]);
+    return;
   }
 
+  premiumPurchaseHistory = null;
+
+  await GetPremiumPlanHistoryApi.callApi(Database.loginUserId!);
+
+  premiumPurchaseHistory = [];
+  coinPurchaseHistory = [];
+
+  premiumPurchaseHistory?.addAll(
+    GetPremiumPlanHistoryApi.historyModel?.planHistory ?? [],
+  );
+
+  coinPurchaseHistory?.addAll(
+    GetPremiumPlanHistoryApi.historyModel?.coinplanHistory ?? [],
+  );
+
+  update(["onGetPurchaseHistory"]);
+}
+
   void onGetRewardCoin() async {
-    getDailyRewardModel = await GetDailyRewardApi.callApi(loginUserId: Database.loginUserId ?? "");
-    getWalletHistoryModel = await GetWalletHistoryApi.callApi(loginUserId: Database.loginUserId ?? "", startDate: "All", endDate: "All");
-    rewardCoins.value = getDailyRewardModel?.totalCoins ?? 0;
-    myBalance.value = (getWalletHistoryModel?.total ?? 0).toInt();
+  if (Database.loginUserId == null || Database.loginUserId!.isEmpty) {
+    rewardCoins.value = 0;
+    myBalance.value = 0;
+    return;
   }
+
+  getDailyRewardModel = await GetDailyRewardApi.callApi(
+    loginUserId: Database.loginUserId!,
+  );
+
+  getWalletHistoryModel = await GetWalletHistoryApi.callApi(
+    loginUserId: Database.loginUserId!,
+    startDate: "All",
+    endDate: "All",
+  );
+
+  rewardCoins.value = getDailyRewardModel?.totalCoins ?? 0;
+  myBalance.value = (getWalletHistoryModel?.total ?? 0).toInt();
+}
 }

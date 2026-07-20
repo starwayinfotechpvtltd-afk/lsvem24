@@ -26,7 +26,7 @@ import 'package:metube/localization/localizations_delegate.dart';
 import 'package:metube/notification/local_notification_services.dart';
 import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
-import 'package:metube/pages/nav_home_page/controller/nav_home_controller.dart'; 
+import 'package:metube/pages/nav_home_page/controller/nav_home_controller.dart';
 import 'package:metube/pages/nav_shorts_page/nav_shorts_controller.dart';
 import 'package:metube/pages/profile_page/earn_reward_page/earn_reward_controller.dart';
 import 'package:metube/pages/splash_screen_page/view/splash_screen_view.dart';
@@ -44,6 +44,7 @@ import 'package:metube/utils/theme/theme_view.dart';
 import 'package:mobile_device_identifier/mobile_device_identifier.dart';
 import 'package:zego_express_engine/zego_express_engine.dart';
 import 'package:metube/firebase_options.dart';
+import 'package:metube/utils/navigation/navigation_observer.dart';
 
 RxBool isDarkMode = false.obs;
 
@@ -93,21 +94,21 @@ void main() async {
   // };
 
   FlutterError.onError = (FlutterErrorDetails details) {
-  FlutterError.presentError(details);
+    FlutterError.presentError(details);
 
-  final exception = details.exceptionAsString();
+    final exception = details.exceptionAsString();
 
-  // Ignore common layout/UI overflow issues
-  if (exception.contains('RenderFlex overflowed') ||
-      exception.contains('Incorrect use of ParentDataWidget')) {
-    debugPrint('Ignored Flutter layout issue: $exception');
-    return;
-  }
+    // Ignore common layout/UI overflow issues
+    if (exception.contains('RenderFlex overflowed') ||
+        exception.contains('Incorrect use of ParentDataWidget')) {
+      debugPrint('Ignored Flutter layout issue: $exception');
+      return;
+    }
 
-  if (!kIsWeb) {
-    FirebaseCrashlytics.instance.recordFlutterError(details);
-  }
-};
+    if (!kIsWeb) {
+      FirebaseCrashlytics.instance.recordFlutterError(details);
+    }
+  };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (!kIsWeb) {
@@ -185,7 +186,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       _showNoInternetDialog();
     } else if (hasInternet && dialogShowing) {
       if (Get.isDialogOpen ?? false) {
-        Get.back(); // close dialog
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
+        });
       }
       dialogShowing = false;
     }
@@ -209,28 +215,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void _showNoInternetDialog() {
     dialogShowing = true;
-    // Get.dialog(
-    //   AlertDialog(
-    //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    //     title: const Text("No Internet Connection"),
-    //     content: const Text("Please check your internet and try again."),
-    //     actions: [
-    //       TextButton(
-    //         onPressed: () async {
-    //           final hasInternet = await hasRealInternet();
-    //           if (hasInternet) {
-    //             if (Get.isDialogOpen ?? false) {
-    //               Get.back();
-    //             }
-    //             dialogShowing = false;
-    //           }
-    //         },
-    //         child: const Text("Retry"),
-    //       ),
-    //     ],
-    //   ),
-    //   barrierDismissible: false,
-    // );
     Get.dialog(
       Dialog(
         backgroundColor:
@@ -295,7 +279,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     final hasInternet = await hasRealInternet();
                     if (hasInternet) {
                       if (Get.isDialogOpen ?? false) {
-                        Get.back();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
+                        });
                       }
                       dialogShowing = false;
                     }
@@ -341,7 +330,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       CustomWatchTime.isAppOn = true;
       CustomWatchTime.init();
       AppSettings.showLog("User Back To App...");
-      controller.onOpenApp();
+      controller.onOpenApp(); // 15450   
     }
     if (state == AppLifecycleState.inactive) {
       CustomWatchTime.isAppOn = false;
@@ -500,7 +489,14 @@ Future<void> onConnectInternet() async {
   if (GetProfileApi.profileModel?.user != null &&
       AdminSettingsApi.adminSettingsModel?.setting != null) {
     AppSettings.isAvailableProfileData.value = true;
-    Get.back();
+    if (Get.isDialogOpen ?? false) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!NavigationObserver.isNavigating &&
+    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
+  Get.back();
+}
+  });
+}
   } else {
     AppSettings.isAvailableProfileData.value = false;
   }

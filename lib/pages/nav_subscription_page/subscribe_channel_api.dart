@@ -18,17 +18,12 @@ class SubscribeChannelApiClass {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-
-        AppSettings.showLog("Subscribe Channel Api Response => ${response.body}");
-        AppSettings.showLog("jsonResponse => ${jsonResponse["isSubscribed"]}");
         return jsonResponse["isSubscribed"] ?? false;
-      } else {
-        AppSettings.showLog("Subscribe Channel Api StateCode Error");
-        throw "Error";
       }
+      return false;
     } catch (error) {
       AppSettings.showLog("Subscribe Channel Api Error => $error");
-      throw "Error";
+      return false;
     }
   }
 }

@@ -12,6 +12,7 @@ import 'package:metube/pages/splash_screen_page/api/unlock_private_video_api.dar
 import 'package:metube/utils/settings/app_settings.dart';
 import 'package:metube/widget/subscribed_success_dialog.dart';
 import 'package:metube/widget/unlock_premium_video_bottom_sheet.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class NavSubscriptionPageController extends GetxController {
   RxBool isPaginationLoading = false.obs;
@@ -129,6 +130,7 @@ class NavSubscriptionPageController extends GetxController {
 
   void onUnlockPrivateVideo({required int index, required BuildContext context, bool? isShorts, required bool isAllChannel}) async {
     if (isAllChannel) {
+      if (!AuthService.checkLogin()) return;
       UnlockPremiumVideoBottomSheet.onShow(
         coin: (mainAllChannelVideos[selectedSubscribeType]?[index].videoUnlockCost ?? 0).toString(),
         callback: () async {
@@ -152,6 +154,7 @@ class NavSubscriptionPageController extends GetxController {
       );
     } else {
       if (isShorts == true) {
+        if (!AuthService.checkLogin()) return;
         UnlockPremiumVideoBottomSheet.onShow(
           coin: (particularChannelVideos[1]?[index].videoUnlockCost ?? 0).toString(),
           callback: () async {
@@ -174,6 +177,7 @@ class NavSubscriptionPageController extends GetxController {
           },
         );
       } else if (isShorts == false) {
+        if (!AuthService.checkLogin()) return;
         UnlockPremiumVideoBottomSheet.onShow(
           coin: (particularChannelVideos[0]?[index].videoUnlockCost ?? 0).toString(),
           callback: () async {

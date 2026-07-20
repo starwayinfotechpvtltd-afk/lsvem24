@@ -62,7 +62,7 @@ class _CreateNewPasswordViewState extends State<CreateNewPasswordView> {
             }
           },
         ),
-      ),
+      ),   
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Padding(

@@ -19,7 +19,7 @@ class PremiumPlanDialog {
         buttonPadding: EdgeInsets.zero,
         actionsPadding: EdgeInsets.zero,
         title: Container(
-          height: 490,
+          height: 530,
           width: Get.width,
           decoration: BoxDecoration(
             color: isDarkMode.value ? AppColor.mainDark : Colors.white,
