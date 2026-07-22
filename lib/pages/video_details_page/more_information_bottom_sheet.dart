@@ -216,6 +216,8 @@ class MoreInfoBottomSheet {
                     image: element.videoImage,
                     pageRoutes: isShorts ? "ShortsVideo" : "NormalVideo",
                     channelId: element.channelId,
+                    slug: element.slug,
+                    isShort: isShorts || element.videoType == 2,
                   );
                   await ShareCountApiClass.callApi(
                       Database.loginUserId!, element.videoId);

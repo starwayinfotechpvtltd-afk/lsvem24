@@ -207,6 +207,7 @@ class Constant {
 
 // >>>>> >>>>> >>>>> Delete Account Api <<<<< <<<<< <<<<<<
   static const deleteAccount = "client/user/deleteUserAccount";
+  static const deleteaccountotp = "client/otp/deleteAccountOtp";
 
 // >>>>> >>>>> >>>>> Not Using Api (Do Not Remove) <<<<< <<<<< <<<<<<
 

@@ -11,9 +11,16 @@ class CustomShare {
     required String image,
     required String url,
     required String pageRoutes,
+    String? slug,
+    bool isShort = false,
   }) async {
     log("Share Method Called Success");
-    final shareLink = _resolveShareLink(url: url, videoId: videoId);
+    final shareLink = _resolveShareLink(
+      url: url,
+      videoId: videoId,
+      slug: slug,
+      isShort: isShort,
+    );
 
     final shareText = [
       if (name.trim().isNotEmpty) name.trim(),
@@ -32,25 +39,22 @@ class CustomShare {
       log("Native Share Sheet Failed => $e");
       return null;
     }
-    // await FlutterShare.share(title: title, linkUrl: "https://play.google.com/store/apps/details?id=AppPackageName");
   }
 
   static String _resolveShareLink({
     required String url,
     required String videoId,
+    String? slug,
+    bool isShort = false,
   }) {
-    final trimmedUrl = url.trim();
-    if (trimmedUrl.isNotEmpty) {
-      return ConvertToNetwork.resolve(trimmedUrl);
+    final slugVal = (slug ?? '').trim();
+    final effectiveSlug = slugVal.isNotEmpty ? slugVal : videoId.trim();
+
+    if (effectiveSlug.isNotEmpty) {
+      final prefix = isShort ? "shorts" : "videos";
+      return "https://lsvem24.com/$prefix/$effectiveSlug";
     }
 
-    final trimmedVideoId = videoId.trim();
-    if (trimmedVideoId.isEmpty) return "";
-
-    final baseUrl = Constant.mediaBaseURL.endsWith("/")
-        ? Constant.mediaBaseURL.substring(0, Constant.mediaBaseURL.length - 1)
-        : Constant.mediaBaseURL;
-
-    return "$baseUrl/video/$trimmedVideoId";
+    return url.trim();
   }
 }

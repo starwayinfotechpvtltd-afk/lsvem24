@@ -1,6 +1,10 @@
 import 'dart:io';
 
 import 'package:get/get.dart';
+import 'package:metube/custom/custom_method/custom_toast.dart';
+import 'package:metube/database/database.dart';
+import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
+import 'package:metube/pages/profile_page/ads_management_page/create_ads_api.dart';
 
 enum AdsUploadStatus {
   waiting,
@@ -59,7 +63,12 @@ class AdsUploadTask {
 }
 
 class AdsUploadManager extends GetxService {
-  static AdsUploadManager get to => Get.find<AdsUploadManager>();
+  static AdsUploadManager get to {
+    if (!Get.isRegistered<AdsUploadManager>()) {
+      Get.put(AdsUploadManager(), permanent: true);
+    }
+    return Get.find<AdsUploadManager>();
+  }
 
   /// Queue
   final RxList<AdsUploadTask> uploads = <AdsUploadTask>[].obs;
@@ -103,7 +112,43 @@ class AdsUploadManager extends GetxService {
   }
 
   Future<void> _upload(AdsUploadTask task) async {
-    /// Actual upload code will be added in Part 2.
+    try {
+      final isSuccess = await CreateAdsApi.callApi(
+        title: task.title,
+        description: task.description,
+        country: task.country,
+        state: task.state,
+        type: task.type,
+        category: task.category,
+        adRuns: task.adRuns,
+        city: task.city,
+        budget: task.budget,
+        placement: task.placement,
+        durationSeconds: task.durationSeconds,
+        fileSizeMB: task.fileSizeMB,
+        image: task.image,
+        video: task.video,
+      );
+
+      if (isSuccess) {
+        task.status = AdsUploadStatus.success;
+        task.message = CreateAdsApi.message?.isNotEmpty == true
+            ? CreateAdsApi.message!
+            : "Ads uploaded successfully";
+        CustomToast.show(task.message);
+        await GetProfileApi.callApi(Database.loginUserId ?? '');
+      } else {
+        task.status = AdsUploadStatus.failed;
+        task.message = CreateAdsApi.message?.isNotEmpty == true
+            ? CreateAdsApi.message!
+            : "Failed to upload ad";
+        CustomToast.show(task.message);
+      }
+    } catch (e) {
+      task.status = AdsUploadStatus.failed;
+      task.message = e.toString().replaceFirst('Exception: ', '');
+      CustomToast.show("Ad upload failed: ${task.message}");
+    }
   }
 
   int get totalUploads => uploads.length;

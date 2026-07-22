@@ -1,10 +1,13 @@
 import 'dart:convert';
 
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:metube/custom/custom_method/custom_toast.dart';
 import 'package:metube/database/database.dart';
 import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_model.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_modell.dart';
+import 'package:metube/pages/profile_page/premium_plan_page/premium_plan_view.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/services/convert_to_network.dart';
 import 'package:metube/utils/settings/app_settings.dart';
@@ -98,8 +101,16 @@ class GetProfileApi {
         print("❌ No badge mapped — productKey '$productKey' not in badgeMap");
       }
     } else {
-      Database.purchasedPlanBadgeRx.value = "";
-      print("No premium plan — badge cleared");
+      String? oldBadge = Database.purchasedPlanBadge;
+      if (oldBadge != null && oldBadge != 'Creator' && oldBadge != '') {
+        Database.onSetPurchasedPlan("", "Creator");
+        CustomToast.show("Your premium plan has expired.");
+        Get.to(() => PremiumPlanView());
+        print("Premium plan expired — badge reset and redirected");
+      } else {
+        Database.onSetPurchasedPlan("", "Creator");
+        print("No premium plan — badge set to default Creator");
+      }
     }
     print("==========================");
   }

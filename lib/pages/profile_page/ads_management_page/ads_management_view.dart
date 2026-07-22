@@ -25,6 +25,8 @@ import 'package:video_player/video_player.dart';
 import 'package:metube/database/database.dart';
 import 'package:video_player/video_player.dart';
 import 'package:metube/utils/navigation/navigation_observer.dart';
+import 'package:metube/utils/services/ads_upload_manager.dart';
+import 'package:metube/pages/main_home_page/main_home_view.dart';
 
 class AdsManagementScreen extends StatefulWidget {
   const AdsManagementScreen({super.key});
@@ -312,33 +314,6 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
           }
 
           AppSettings.showLog("Create Ads Method Called");
-          // if (adsTitleController.text.trim().isEmpty ||
-          //     adsDescriptionController.text.trim().isEmpty ||
-          //     selectedCountry == null ||
-          //     selectedState == null ||
-          //     selectedAdsType == null ||
-          //     selectedAdsCategory == null ||
-          //     selectedAdsRuns == null ||
-          //     cityController.text.trim().isEmpty ||
-          //     adsBudgetController.text.trim().isEmpty ||
-          //     selectedImage == null ||
-          //     selectedVideo == null) {
-          //   CustomToast.show(AppStrings.pleaseFillUpDetails.tr);
-          // } else {
-          Get.dialog(
-            PopScope(
-              canPop: false,
-              child: Obx(
-                () => LoaderUi(
-                  color: AppColor.white,
-                  message: CreateAdsApi.uploadStatusRx.value.isNotEmpty
-                      ? CreateAdsApi.uploadStatusRx.value
-                      : 'Creating ad...',
-                ),
-              ),
-            ),
-            barrierDismissible: false,
-          );
 
           final mediaFile = selectedVideo ?? selectedImage!;
           final sizeMB = (await mediaFile.length()) / (1024 * 1024);
@@ -349,7 +324,9 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
             );
             return;
           }
-          final isSuccess = await CreateAdsApi.callApi(
+
+          final task = AdsUploadTask(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
             title: adsTitleController.text.trim(),
             description: adsDescriptionController.text.trim(),
             country: selectedCountry?.name,
@@ -366,30 +343,10 @@ class _AdsManagementScreenState extends State<AdsManagementScreen> {
             video: selectedVideo,
           );
 
-          if (Get.isDialogOpen ?? false) {
- if (!NavigationObserver.isNavigating &&
-    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
-  Get.back();
-}
-}
+          AdsUploadManager.to.addTask(task);
+          CustomToast.show("Ad upload started in background");
 
-if (isSuccess) {
-  await GetProfileApi.callApi(Database.loginUserId ?? '');
-  _loadUserCoins();
-
-  CustomToast.show(
-    CreateAdsApi.message?.isNotEmpty == true
-        ? CreateAdsApi.message!
-        : "Ads uploaded successfully",
-  );
-
-  await Future.delayed(const Duration(milliseconds: 250));
-
-  if (!NavigationObserver.isNavigating &&
-    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
-  Get.back();
-}
-}
+          Get.offAll(() => const MainHomePageView());
         },
         child: Container(
           alignment: Alignment.center,

@@ -110,9 +110,11 @@ class Database {
     return "${Constant.mediaBaseURL}/lsvem24/invite/$referralCode";
   }
 
-  static String getVideoShareLink(String videoId) {
-  return "${Constant.mediaBaseURL}/lsvem24/video/$videoId";
-}
+  static String getVideoShareLink(String videoId, {String? slug, bool isShort = false}) {
+    final effectiveSlug = (slug != null && slug.trim().isNotEmpty) ? slug.trim() : videoId;
+    final prefix = isShort ? "shorts" : "videos";
+    return "https://lsvem24.com/$prefix/$effectiveSlug";
+  }
 
   static onSetIsChannel(bool isChannel) async =>
       localStorage.write("isChannel", isChannel);

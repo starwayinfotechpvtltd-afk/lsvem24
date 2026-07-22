@@ -55,6 +55,7 @@ class Shorts {
   int? channelType;
   int? subscriptionCost;
   int? videoUnlockCost;
+  String? slug;
 
   Shorts(
       {this.id,
@@ -83,7 +84,8 @@ class Shorts {
       this.views,
       this.channelType,
       this.subscriptionCost,
-      this.videoUnlockCost});
+      this.videoUnlockCost,
+      this.slug});
 
   Shorts.fromJson(Map<String, dynamic> json) {
     id = json['_id']?.toString() ?? "";
@@ -114,6 +116,7 @@ class Shorts {
     channelType = json['channelType'] ?? 0;
     subscriptionCost = json['subscriptionCost'] ?? 0;
     videoUnlockCost = json['videoUnlockCost'] ?? 0;
+    slug = json['slug']?.toString() ?? "";
   }
 
   Map<String, dynamic> toJson() {
@@ -145,6 +148,7 @@ class Shorts {
     data['channelType'] = this.channelType;
     data['subscriptionCost'] = this.subscriptionCost;
     data['videoUnlockCost'] = this.videoUnlockCost;
+    data['slug'] = this.slug;
     return data;
   }
 }

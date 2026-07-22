@@ -52,6 +52,7 @@ class DetailsOfVideo {
   bool? isLike;
   bool? isDislike;
   String? time;
+  String? slug;
 
   DetailsOfVideo(
       {this.id,
@@ -82,7 +83,8 @@ class DetailsOfVideo {
       this.isSaveToWatchLater,
       this.isLike,
       this.isDislike,
-      this.time});
+      this.time,
+      this.slug});
 
   DetailsOfVideo.fromJson(Map<String, dynamic> json) {
     id = json['_id']?.toString() ?? "";
@@ -114,6 +116,7 @@ class DetailsOfVideo {
     isLike = json['isLike'] ?? false;
     isDislike = json['isDislike'] ?? false;
     time = json['time']?.toString() ?? "";
+    slug = json['slug']?.toString() ?? "";
   }
 
   Map<String, dynamic> toJson() {
@@ -147,6 +150,7 @@ class DetailsOfVideo {
     data['isLike'] = isLike;
     data['isDislike'] = isDislike;
     data['time'] = time;
+    data['slug'] = slug;
     return data;
   }
 }

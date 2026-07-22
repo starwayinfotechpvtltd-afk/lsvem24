@@ -24,7 +24,7 @@
     <!-- ── Storage: Android 13+ (API 33+) ───────────────────────────────── -->
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
+ 
     <!-- ── Other ─────────────────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.android.vending.BILLING" />
@@ -63,21 +63,38 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Branch URI Scheme -->
-            <intent-filter>
-                <data android:scheme="example.app.link" android:host="open" />
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
-
-            <!-- Branch App Links -->
+            <!-- LSVEM24 Web Deep Links (https://lsvem24.com/videos/..., /shorts/..., /invite/..., /referral/...) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="example.app.link" />
-                <data android:scheme="https" android:host="example-alternate.app.link" />
+
+                <data android:scheme="https" android:host="lsvem24.com" android:pathPrefix="/videos" />
+                <data android:scheme="https" android:host="lsvem24.com" android:pathPrefix="/shorts" />
+                <data android:scheme="https" android:host="lsvem24.com" android:pathPrefix="/invite" />
+                <data android:scheme="https" android:host="lsvem24.com" android:pathPrefix="/referral" />
+
+                <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/videos" />
+                <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/shorts" />
+                <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/invite" />
+                <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/referral" />
+
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/videos" />
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/shorts" />
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/invite" />
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/referral" />
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/video" />
+            </intent-filter>
+
+            <!-- LSVEM24 Custom Scheme Links (lsvem24://...) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="lsvem24" />
             </intent-filter>
 
         </activity>

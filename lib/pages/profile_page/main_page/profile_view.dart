@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_typedefs/rx_typedefs.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -163,7 +164,8 @@ class ProfileView extends GetView<ProfileController> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  GetProfileApi.profileModel?.user?.fullName ?? "",// ✅ safe inside Obx
+                                  GetProfileApi.profileModel?.user?.fullName ??
+                                      "", // ✅ safe inside Obx
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.urbanist(
@@ -740,134 +742,12 @@ class ProfileView extends GetView<ProfileController> {
                     color: AppColor.primaryColor,
                     callback: () {
                       Get.bottomSheet(
-                        backgroundColor: isDarkMode.value
-                            ? AppColor.secondDarkMode
-                            : AppColor.white,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(40),
-                            topLeft: Radius.circular(40),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.only(
-                            left: SizeConfig.blockSizeHorizontal * 3,
-                            right: SizeConfig.blockSizeHorizontal * 3,
-                          ),
-                          height: 180,
-                          decoration: BoxDecoration(
-                            color: isDarkMode.value
-                                ? AppColor.secondDarkMode
-                                : AppColor.white,
-                            borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(40),
-                                topLeft: Radius.circular(40)),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 10),
-                              Container(
-                                width: 30,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(60),
-                                  color: isDarkMode.value
-                                      ? AppColor.white.withOpacity(0.2)
-                                      : AppColor.grey_200,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                AppStrings.deleteAccount.tr,
-                                style: GoogleFonts.urbanist(
-                                  fontSize: 22,
-                                  color: isDarkMode.value
-                                      ? AppColor.white
-                                      : AppColor.logOutColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Divider(
-                                  indent: 30,
-                                  color: AppColor.grey_200,
-                                  endIndent: 30),
-                              const SizedBox(height: 5),
-                              Text(
-                                AppStrings.deleteAccountText.tr,
-                                style: GoogleFonts.urbanist(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => Get.back(),
-                                    child: Container(
-                                      height: 45,
-                                      width: 130,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        color: AppColor.primaryColor
-                                            .withOpacity(0.2),
-                                      ),
-                                      child: Text(
-                                        AppStrings.cancel.tr,
-                                        style: GoogleFonts.urbanist(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: AppColor.primaryColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  GestureDetector(
-                                    child: Container(
-                                      height: 45,
-                                      width: 130,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                          color: AppColor.primaryColor),
-                                      child: Text(
-                                        AppStrings.delete.tr,
-                                        style: GoogleFonts.urbanist(
-                                            color: AppColor.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14),
-                                      ),
-                                    ),
-                                    onTap: () async {
-                                      log("${Database.loginUserId} ");
-                                      Get.dialog(const LoaderUi(),
-                                          barrierDismissible: false);
-                                      final response =
-                                          await DeleteUserApi.callApi(
-                                              loginUserId:
-                                                  Database.loginUserId ?? '');
-                                      if (response) {
-                                        Get.back();
-                                        Database.logOut();
-                                        CustomToast.show(
-                                            AppStrings.deleteAccountSuccess.tr);
-                                      } else {
-                                        Get.close(2);
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+                        const DeleteAccountBottomSheet(),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: false,
+                        isDismissible: true,
+                        ignoreSafeArea: false,
                       );
                     },
                   ),
@@ -974,3 +854,466 @@ class ProfileItemUi extends StatelessWidget {
 //     tital: AppStrings.helpCenter,
 //   ),
 // ];
+
+class DeleteAccountBottomSheet extends StatefulWidget {
+  const DeleteAccountBottomSheet({super.key});
+
+  @override
+  State<DeleteAccountBottomSheet> createState() =>
+      _DeleteAccountBottomSheetState();
+}
+
+class _DeleteAccountBottomSheetState extends State<DeleteAccountBottomSheet> {
+  int step = 1;
+  bool isLoading = false;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    otpController.dispose();
+    super.dispose();
+  }
+
+  void _onSendOtp() async {
+    final enteredEmail = emailController.text.trim();
+    if (enteredEmail.isEmpty) {
+      CustomToast.show("Please enter your email address");
+      return;
+    }
+
+    if (!GetUtils.isEmail(enteredEmail)) {
+      CustomToast.show("Please enter a valid email address");
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final success = await DeleteUserApi.sendDeleteOtp(email: enteredEmail);
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (success) {
+      setState(() {
+        step = 2;
+      });
+    }
+  }
+
+  void _onVerifyAndDelete() async {
+    final otp = otpController.text.trim();
+    if (otp.isEmpty) {
+      CustomToast.show("Please enter the OTP");
+      return;
+    }
+
+    final enteredEmail = emailController.text.trim();
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final response = await DeleteUserApi.callApi(
+      loginUserId: Database.loginUserId ?? '',
+      email: enteredEmail,
+      otp: otp,
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response) {
+      CustomToast.show(AppStrings.deleteAccountSuccess.tr);
+
+      await Future.delayed(
+        const Duration(seconds: 1),
+      );
+
+      Get.back();
+
+      Database.logOut();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+            child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          minChildSize: 0.60,
+          maxChildSize: 0.85,
+          builder: (context, scrollController) {
+            return Container(
+                decoration: BoxDecoration(
+                  color: isDarkMode.value
+                      ? AppColor.secondDarkMode
+                      : AppColor.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  left: SizeConfig.blockSizeHorizontal * 4,
+                  right: SizeConfig.blockSizeHorizontal * 4,
+                  top: 20,
+                  bottom: 20,
+                ),
+                // decoration: BoxDecoration(
+                //   color:
+                //       isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+                //   borderRadius: BorderRadius.circular(30),
+                // ),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(
+                    left: 18,
+                    right: 18,
+                    top: 20,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 35,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(60),
+                          color: isDarkMode.value
+                              ? AppColor.white.withOpacity(0.2)
+                              : AppColor.grey_200,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor: Colors.red.withOpacity(.12),
+                        child: const Icon(
+                          Icons.delete_forever_rounded,
+                          color: Colors.red,
+                          size: 34,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        step == 1 ? AppStrings.deleteAccount.tr : "Verify OTP",
+                        style: GoogleFonts.urbanist(
+                          fontSize: 22,
+                          color: isDarkMode.value
+                              ? AppColor.white
+                              : AppColor.logOutColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Container(
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(.08),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(.2),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                "Deleting your account is permanent. All your videos, wallet, subscriptions and personal data will be removed forever.",
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        step == 1
+                            ? "Enter your registered login email to receive an OTP for account deletion."
+                            : "We've sent a 4-digit verification code to\n${emailController.text.trim()}",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.urbanist(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode.value
+                              ? AppColor.grey_400
+                              : AppColor.black,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: AppColor.primaryColor,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: step == 2
+                                    ? AppColor.primaryColor
+                                    : Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        step == 1
+                            ? "Step 1 of 2 • Verify Email"
+                            : "Step 2 of 2 • Verify OTP",
+                      ),
+                      TextFormField(
+                        controller: emailController,
+                        readOnly: step == 2,
+                        keyboardType: TextInputType.emailAddress,
+                        style: GoogleFonts.urbanist(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: AppStrings.yourEmail.tr,
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          filled: true,
+                          fillColor: isDarkMode.value
+                              ? AppColor.black.withOpacity(.3)
+                              : AppColor.grey_200.withOpacity(.5),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      if (step == 1) ...[
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => Get.back(),
+                                child: Container(
+                                  height: 45,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color:
+                                        AppColor.primaryColor.withOpacity(0.15),
+                                  ),
+                                  child: Text(
+                                    AppStrings.cancel.tr,
+                                    style: GoogleFonts.urbanist(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColor.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: isLoading ? null : _onSendOtp,
+                                child: Container(
+                                  height: 45,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color: AppColor.primaryColor,
+                                  ),
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: AppColor.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          AppStrings.sendOtp.tr,
+                                          style: GoogleFonts.urbanist(
+                                            color: AppColor.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(.08),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.mark_email_read,
+                                color: Colors.green,
+                                size: 34,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "OTP sent successfully",
+                                style: GoogleFonts.urbanist(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                emailController.text.trim(),
+                                style: GoogleFonts.urbanist(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        OtpTextField(
+                          numberOfFields: 4,
+                          fillColor: isDarkMode.value
+                              ? AppColor.black.withOpacity(0.3)
+                              : AppColor.grey_200.withOpacity(0.5),
+                          fieldWidth: 50,
+                          filled: true,
+                          focusedBorderColor: AppColor.primaryColor,
+                          showFieldAsBox: true,
+                          textStyle: GoogleFonts.urbanist(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode.value
+                                ? AppColor.white
+                                : AppColor.black,
+                          ),
+                          onCodeChanged: (String code) {
+                            // Do nothing for partial changes to avoid overwriting with single character
+                          },
+                          onSubmit: (String otpCode) {
+                            otpController.text = otpCode;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: isLoading ? null : _onSendOtp,
+                            child: Text(
+                              "Resend OTP",
+                              style: GoogleFonts.urbanist(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColor.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    step = 1;
+                                  });
+                                },
+                                child: Container(
+                                  height: 45,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color:
+                                        AppColor.primaryColor.withOpacity(0.15),
+                                  ),
+                                  child: Text(
+                                    "Back",
+                                    style: GoogleFonts.urbanist(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColor.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: isLoading ? null : _onVerifyAndDelete,
+                                child: Container(
+                                  height: 45,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color: AppColor.primaryColor,
+                                  ),
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: AppColor.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          "Verify & Delete",
+                                          style: GoogleFonts.urbanist(
+                                            color: AppColor.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ));
+          },
+        )));
+  }
+}

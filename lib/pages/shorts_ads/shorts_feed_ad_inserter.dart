@@ -35,13 +35,13 @@ class ShortsFeedAdInserter {
 
     final ads = await GetShortsFeedAdsApi.callApi();
 
-    // Shorts feed supports only non-skippable video ads.
-    _pool = ads.where((ad) => ad.isNonSkippable).toList();
+    // Shorts feed supports video and image ads.
+    _pool = ads.where((ad) => ad.hasVideo || ad.hasImage).toList();
 
     _poolLoaded = true;
 
     AppSettings.showLog(
-      "Shorts feed non-skippable ad pool size => ${_pool.length}",
+      "Shorts feed ad pool size => ${_pool.length}",
     );
   }
 

@@ -11,6 +11,7 @@ class MoreInformationModel {
   String channelName;
   String videoImage;
   int views;
+  String? slug;
 
   MoreInformationModel({
     required this.channelId,
@@ -23,5 +24,6 @@ class MoreInformationModel {
     required this.channelName,
     required this.views,
     required this.isSave,
+    this.slug,
   });
 }

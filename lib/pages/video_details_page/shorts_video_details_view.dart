@@ -302,6 +302,8 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
           : widget.videoUrl,
       channelId: details.channelId ?? "",
       videoId: details.id ?? "",
+      slug: details.slug,
+      isShort: true,
       image: details.videoImage ?? "",
       pageRoutes: "ShortsVideo",
     );

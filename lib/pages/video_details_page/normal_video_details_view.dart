@@ -3310,6 +3310,8 @@ class PreviewVideoUi extends StatelessWidget {
                                                                               details?.channelId ?? "",
                                                                           videoId:
                                                                               details?.id ?? "",
+                                                                          slug: details?.slug,
+                                                                          isShort: details?.videoType == 2,
                                                                           image:
                                                                               details?.videoImage ?? "",
                                                                           pageRoutes:
@@ -4703,9 +4705,11 @@ class VideoDetailsUi extends GetView<NormalVideoDetailsController> {
 
                       await CustomShare.share(
                         name: details?.title ?? "",
-                        url: Database.getVideoShareLink(details?.id ?? ""),
+                        url: Database.getVideoShareLink(details?.id ?? "", slug: details?.slug, isShort: details?.videoType == 2),
                         channelId: details?.channelId ?? "",
                         videoId: details?.id ?? "",
+                        slug: details?.slug,
+                        isShort: details?.videoType == 2,
                         image: details?.videoImage ?? "",
                         pageRoutes: "NormalVideo",
                       );
