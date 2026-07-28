@@ -98,7 +98,9 @@ class YourChannelController extends GetxController {
     GetChannelVideoApiClass.startPagination[0] = 0; // Normal Video Restart Pagination
     GetChannelVideoApiClass.startPagination[1] = 0; // Shorts Video Restart Pagination
 
-    GetMyCoinApi.callApi(loginUserId: loginUserId);
+    if (loginUserId.isNotEmpty) {
+      GetMyCoinApi.callApi(loginUserId: loginUserId);
+    }
 
     await onGetChannelHomeVideo(loginUserId, channelId);
   }
@@ -111,23 +113,34 @@ class YourChannelController extends GetxController {
   Future<void> onGetChannelHomeVideo(String loginUserId, String channelId) async {
     channelHomeModel = await ChannelHomeApi.callApi(loginUserId, channelId);
 
+    if (channelHomeModel == null) {
+      channelHomeModel = ChannelHomeModel(
+        status: true,
+        channelName: "",
+        channelImage: "",
+        totalSubscribers: 0,
+        totalVideosOfChannel: 0,
+        detailsOfChannel: [],
+      );
+    }
+
     final data = channelHomeModel?.detailsOfChannel;
     isSubscribe.value = channelHomeModel?.isSubscribed ?? false;
     countSubscribes.value = channelHomeModel?.totalSubscribers ?? 0;
     AppSettings.showLog("Channel Home Pagination Api Data Length => ${data?.length}");
-    if (channelHomeModel != null && channelHomeVideos == null) {
+    if (channelHomeVideos == null) {
       channelHomeVideos = [];
-      update(["onGetChannelHomeVideo", "onChangeScrollController"]);
     }
 
     if (data != null && data.isNotEmpty) {
       channelHomeVideos?.addAll(data);
       AppSettings.showLog("Channel Home Video Length => ${channelHomeVideos?.length}");
-      update(["onGetChannelHomeVideo", "onChangeScrollController"]);
     } else {
-      ChannelHomeApi.startPagination--;
-      update(["onGetChannelHomeVideo", "onChangeScrollController"]);
+      if (ChannelHomeApi.startPagination > 0) {
+        ChannelHomeApi.startPagination--;
+      }
     }
+    update(["onGetChannelHomeVideo", "onChangeScrollController"]);
   }
 
   void onHomeScrolling() async {
@@ -181,20 +194,22 @@ class YourChannelController extends GetxController {
     final data = await GetChannelVideoApiClass.callApi(type, channelId);
     if (channelVideos[type] == null) {
       channelVideos[type] = [];
-      type == 0 ? update(["onChangeNormalVideo"]) : update(["onChangeShortsVideo"]);
     }
     if (data != null && data.isNotEmpty) {
       channelVideos[type]?.addAll(data);
-      type == 0 ? update(["onChangeNormalVideo"]) : update(["onChangeShortsVideo"]);
     } else {
-      GetChannelVideoApiClass.startPagination[type]--;
+      if (GetChannelVideoApiClass.startPagination[type] > 0) {
+        GetChannelVideoApiClass.startPagination[type]--;
+      }
     }
+    type == 0 ? update(["onChangeNormalVideo"]) : update(["onChangeShortsVideo"]);
   }
 
   void onChangeVideoType(int index) {
     selectedVideoType = index;
     update(["onChangeVideoType", "onChangeScrollController"]);
     if (channelVideos[selectedVideoType] == null) {
+      GetChannelVideoApiClass.startPagination[selectedVideoType] = 0;
       typeWiseChannelVideo(selectedVideoType);
     }
   }

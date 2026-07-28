@@ -7,6 +7,7 @@ import 'package:metube/database/download_history_database.dart';
 import 'package:metube/database/watch_history_database.dart';
 import 'package:metube/pages/nav_library_page/create_playlist_page/controller/create_playlist_controller.dart';
 import 'package:metube/pages/nav_library_page/create_playlist_page/create_play_list_api.dart';
+import 'package:metube/pages/nav_library_page/watch_later_page/remove_watch_later_api.dart';
 import 'package:metube/pages/nav_library_page/watch_later_page/watch_later_api.dart';
 import 'package:metube/pages/nav_library_page/watch_later_page/watch_later_model.dart';
 import 'package:metube/pages/profile_page/your_channel_page/channel_video_page/get_channel_video_api.dart';
@@ -124,6 +125,16 @@ class NavLibraryPageController extends GetxController {
     mainWatchLaterVideos = null; // Remove Old Video
     mainWatchLaterVideos = (await GetWatchLaterApiClass.callApi()) ?? [];
     update(["onGetWatchLaterVideo"]);
+  }
+
+  Future<void> onRemoveWatchLaterVideo(String videoId) async {
+    if (!AuthService.checkLogin()) return;
+    final isSuccess = await RemoveWatchLaterApi.callApi(Database.loginUserId ?? "", videoId);
+    if (isSuccess) {
+      mainWatchLaterVideos?.removeWhere((element) => element.videoId == videoId || element.id == videoId);
+      update(["onGetWatchLaterVideo"]);
+      CustomToast.show("Video removed from Watch Later");
+    }
   }
 
   void onUnlockPrivateVideo({required int index, required BuildContext context}) async {

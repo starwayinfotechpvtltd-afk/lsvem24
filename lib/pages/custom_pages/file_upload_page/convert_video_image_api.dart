@@ -1,18 +1,23 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:metube/pages/custom_pages/file_upload_page/convert_video_api.dart';
 import 'package:metube/pages/custom_pages/file_upload_page/file_upload_model.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/helpers/media_path_helper.dart';
 import 'package:metube/utils/services/convert_to_network.dart';
-import 'package:metube/utils/settings/app_settings.dart';
 
 class ConvertVideoImageApi {
   static FileUploadModel? _fileUploadModel;
 
-  static Future<String?> callApi(String thumbnailPath, bool isNormalVideo) async {
+  static Future<String?> callApi(
+    String thumbnailPath,
+    bool isNormalVideo, {
+    void Function(double progress)? onProgress,
+  }) async {
     final path = localFilePath(thumbnailPath);
     if (path.isEmpty || !File(path).existsSync()) {
       debugPrint('❌ ConvertVideoImage: invalid path => $thumbnailPath');
@@ -23,7 +28,7 @@ class ConvertVideoImageApi {
 
     for (var attempt = 1; attempt <= 2; attempt++) {
       try {
-        final url = await _uploadOnce(path, isNormalVideo);
+        final url = await _uploadOnce(path, isNormalVideo, onProgress: onProgress);
         if (url != null && url.isNotEmpty) {
           debugPrint('✅ ConvertVideoImage: $url');
           return url;
@@ -40,10 +45,19 @@ class ConvertVideoImageApi {
     return null;
   }
 
-  static Future<String?> _uploadOnce(String path, bool isNormalVideo) async {
-    final request = http.MultipartRequest(
+  static Future<String?> _uploadOnce(
+    String path,
+    bool isNormalVideo, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final request = ProgressMultipartRequest(
       'PUT',
       Uri.parse(Constant.baseURL + Constant.fileUpload),
+      onProgress: (bytes, total) {
+        if (onProgress != null && total > 0) {
+          onProgress(bytes / total);
+        }
+      },
     );
 
     request.fields.addAll(

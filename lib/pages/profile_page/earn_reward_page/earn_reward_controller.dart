@@ -262,22 +262,31 @@ class EarnRewardController extends GetxController {
       dailyRewards.clear();
       dailyRewards.addAll(getDailyRewardModel?.data ?? []);
       isLoadingDailyRewards = false;
-      update(["onGetDailyRewards"]);
 
       myRewardCoin.value = getDailyRewardModel?.totalCoins ?? 0;
 
+      int currentWeekday = DateTime.now().weekday; // Monday = 1, Sunday = 7
+
+      isTodayCheckIn = false;
+      todayCoin = 0;
+
       for (int index = 0; index < dailyRewards.length; index++) {
-        if (DateTime.now().day == CustomGetCurrentWeekDate.onGet()[index].day) {
+        if (dailyRewards[index].day == currentWeekday) {
           todayCoin = dailyRewards[index].reward ?? 0;
           isTodayCheckIn = dailyRewards[index].isCheckIn ?? false;
-          update(["onGetDailyRewards"]);
+          break;
         }
       }
+      update(["onGetDailyRewards"]);
+    } else {
+      isLoadingDailyRewards = false;
+      update(["onGetDailyRewards"]);
     }
   }
 
   void onCheckIn(BuildContext context) async {
     if (isTodayCheckIn) {
+      CustomToast.show("You have already checked in today.");
     } else {
       Get.dialog(const LoaderUi(), barrierDismissible: false);
       earnCoinFromCheckInModel = await EarnCoinFromCheckInApi.callApi(
@@ -285,16 +294,15 @@ class EarnRewardController extends GetxController {
         dailyRewardCoin: todayCoin,
       );
 
-      Get.back();
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
 
       if (earnCoinFromCheckInModel?.status == true) {
         CheckInDoneDialog.show(context, todayCoin.toString());
-      }
-
-      CustomToast.show(earnCoinFromCheckInModel?.message ?? "");
-      if (earnCoinFromCheckInModel?.isCheckIn ?? false) {
-        isTodayCheckIn = true;
-        update(["onGetDailyRewards"]);
+        await onGetDailyRewards();
+      } else {
+        CustomToast.show(earnCoinFromCheckInModel?.message ?? "Check-in failed");
       }
     }
   }

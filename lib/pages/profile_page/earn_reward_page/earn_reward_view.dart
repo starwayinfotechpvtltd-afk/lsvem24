@@ -15,6 +15,7 @@ import 'package:metube/pages/profile_page/referral_program_page/referral_program
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/string/app_string.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class EarnRewardView extends StatefulWidget {
   const EarnRewardView({super.key});
@@ -174,7 +175,11 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                               ),
                               const Spacer(),
                               GestureDetector(
-                                onTap: () => Get.to(const ConvertCoinView()),
+                                onTap: () {
+                                  if (!AuthService.checkLogin()) return;
+
+                                  Get.to(() => const ConvertCoinView());
+                                },
                                 child: Container(
                                   height: 35,
                                   width: 35,
@@ -576,8 +581,12 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                               ),
                                               const SizedBox(height: 15),
                                               GestureDetector(
-                                                onTap: () => controller
-                                                    .onCheckIn(context),
+                                                onTap: () {
+                                                  if (!AuthService.checkLogin())
+                                                    return;
+
+                                                  controller.onCheckIn(context);
+                                                },
                                                 child: Container(
                                                   height: 55,
                                                   alignment: Alignment.center,
@@ -717,6 +726,9 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                                   const Spacer(),
                                                   GestureDetector(
                                                     onTap: () {
+                                                      if (!AuthService
+                                                          .checkLogin()) return;
+
                                                       Get.to(
                                                           const ReferralProgramView());
                                                     },

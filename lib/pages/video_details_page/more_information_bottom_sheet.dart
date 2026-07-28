@@ -15,6 +15,7 @@ import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_ap
 import 'package:metube/pages/nav_library_page/create_playlist_page/add_into_playlist.dart';
 import 'package:metube/pages/nav_library_page/download_page/download_view.dart';
 import 'package:metube/pages/nav_library_page/watch_later_page/create_watch_later_api.dart';
+import 'package:metube/pages/nav_library_page/watch_later_page/remove_watch_later_api.dart';
 import 'package:metube/pages/video_details_page/more_information_model.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/config/size_config.dart';
@@ -69,9 +70,14 @@ class MoreInfoBottomSheet {
                     CustomToast.show(AppStrings.addToWatchLater.tr);
                     CreateWatchLater.callApi(
                         Database.loginUserId!, element.videoId);
+                    element.isSave = true;
                     Get.back();
                   } else {
-                    AppSettings.showLog("Video Already Saved");
+                    CustomToast.show("Removed from Watch Later");
+                    RemoveWatchLaterApi.callApi(
+                        Database.loginUserId!, element.videoId);
+                    element.isSave = false;
+                    Get.back();
                   }
                 },
               ),

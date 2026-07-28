@@ -2768,7 +2768,7 @@ class _NormalVideoDetailsViewState extends State<NormalVideoDetailsView> {
                       false))
               ? SizedBox.expand(
                   child: FittedBox(
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     child: SizedBox(
                       width:
                           _controller.videoPlayerController?.value.size.width ??
@@ -3071,7 +3071,7 @@ class PreviewVideoUi extends StatelessWidget {
                                               color: Colors.black,
                                               child: SizedBox.expand(
                                                 child: FittedBox(
-                                                  fit: BoxFit.cover,
+                                                  fit: BoxFit.contain,
                                                   child: Visibility(
                                                     visible: !controller
                                                         .isShowingInterruptAd,

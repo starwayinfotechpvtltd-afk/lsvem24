@@ -79,7 +79,7 @@ class _NavHomePageViewState extends State<NavHomePageView> {
           const SizedBox(width: 18),
           GestureDetector(
             onTap: () {
-              if (!AuthService.checkLogin()) return;
+              // if (!AuthService.checkLogin()) return;
 
               Get.to(() => const EarnRewardView());
             },

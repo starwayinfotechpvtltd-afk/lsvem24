@@ -20,7 +20,7 @@ class VisibilityPageView extends GetView<UploadVideoController> {
           const SizedBox(height: 10),
           const VisibilityDataView(index: 0),
           const VisibilityDataView(index: 1),
-          const VisibilityDataView(index: 2),
+          // const VisibilityDataView(index: 2),
           const Expanded(child: Offstage()),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -43,7 +43,7 @@ class VisibilityDataView extends GetView<UploadVideoController> {
     List visibilityCollection = [
       {"title": AppStrings.public.tr, "subTitle": AppStrings.anyoneCanSearchForAndView.tr},
       {"title": AppStrings.private.tr, "subTitle": AppStrings.onlyFollowersCanView.tr},
-      {"title": AppStrings.unlisted.tr, "subTitle": AppStrings.anyoneWithTheLinkCanView.tr},
+      // {"title": AppStrings.unlisted.tr, "subTitle": AppStrings.anyoneWithTheLinkCanView.tr},
     ];
     return GestureDetector(
       onTap: () => controller.selectVisibility.value = index,

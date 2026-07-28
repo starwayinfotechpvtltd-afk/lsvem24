@@ -15,8 +15,8 @@ class CommentsPageView extends GetView<UploadVideoController> {
     final List commentCollection = [
       AppStrings.allowAllComments.tr,
       AppStrings.disableComments.tr,
-      AppStrings.holdPotentiallyInappropriateCommentsForReview.tr,
-      AppStrings.holdAllCommentsForReview.tr,
+      // AppStrings.holdPotentiallyInappropriateCommentsForReview.tr,
+      // AppStrings.holdAllCommentsForReview.tr,
     ];
 
     return Scaffold(
@@ -32,7 +32,7 @@ class CommentsPageView extends GetView<UploadVideoController> {
               children: [
                 Text(AppStrings.commentText.tr, style: GoogleFonts.urbanist(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 10),
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 2; i++)
                   Row(
                     children: [
                       Obx(() => Radio(

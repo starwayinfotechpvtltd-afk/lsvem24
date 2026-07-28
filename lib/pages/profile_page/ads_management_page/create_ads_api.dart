@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:metube/database/database.dart';
+import 'package:metube/pages/custom_pages/file_upload_page/convert_video_api.dart';
 import 'package:metube/pages/custom_pages/file_upload_page/file_upload_model.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/settings/app_settings.dart';
@@ -13,12 +14,6 @@ class CreateAdsApi {
   static String? message;
   static String uploadStatus = '';
   static final uploadStatusRx = ''.obs;
-
-  // static void _setStatus(String value) {
-  //   uploadStatus = value;
-  //   uploadStatusRx.value = value;
-  //   AppSettings.showLog(value);
-  // }
 
   static Future<bool> callApi({
     String? title,
@@ -35,6 +30,7 @@ class CreateAdsApi {
     double? fileSizeMB,
     File? image,
     File? video,
+    void Function(double progress)? onProgress,
   }) async {
     status = null;
     message = '';
@@ -58,8 +54,7 @@ class CreateAdsApi {
       final isShortAd = adRuns == 'short videos';
 
       if (image != null) {
-        // _setStatus('Optimizing ad image...');
-        imageUrl = await _compressAndUploadImage(image);
+        imageUrl = await _compressAndUploadImage(image, onProgress: onProgress);
         if (imageUrl == null) {
           message = 'Image upload failed';
           return false;
@@ -67,18 +62,16 @@ class CreateAdsApi {
       }
 
       if (video != null) {
-        // _setStatus('Optimizing ad video...');
         videoUrl = await _compressAndUploadVideo(
           video,
           isShort: isShortAd,
+          onProgress: onProgress,
         );
         if (videoUrl == null) {
           message = 'Video upload failed';
           return false;
         }
       }
-
-      // _setStatus('Saving ad...');
 
       final uri = Uri.parse(
         '${Constant.baseURL}${Constant.createAds}?userId=$userId',
@@ -130,67 +123,33 @@ class CreateAdsApi {
     return false;
   }
 
-  static Future<String?> _compressAndUploadImage(File image) async {
+  static Future<String?> _compressAndUploadImage(
+    File image, {
+    void Function(double progress)? onProgress,
+  }) async {
     if (!image.existsSync()) return null;
 
-    File uploadFile = image;
-
-    // ==================== //
-    // Ads image compress
-    // ==================== //
-    // try {
-    //   final compressed = await ImageCompressor.compress(image.path);
-    //   if (compressed != null && File(compressed).existsSync()) {
-    //     uploadFile = File(compressed);  
-    //   }
-    // } catch (e) {
-    //   AppSettings.showLog('Ads image compression skipped => $e');
-    // }
-
-    // _setStatus('Uploading ad image...');
     return _uploadFile(
-      file: uploadFile,
+      file: image,
       folderStructure: '${Constant.folderStructurePath}/adsImage',
       extension: 'jpg',
+      onProgress: onProgress,
     );
   }
 
   static Future<String?> _compressAndUploadVideo(
     File video, {
     required bool isShort,
+    void Function(double progress)? onProgress,
   }) async {
     if (!video.existsSync()) return null;
 
-    File uploadFile = video;
-
-
-    // ======================== //
-    // Ads video compress 
-    // ======================== //
-    // try {
-    //   final compressed = await VideoCompressor.compress(
-    //     input: video.path,
-    //     isShort: isShort,
-    //   );
-    //   if (compressed != null && File(compressed).existsSync()) {
-    //     final size = await File(compressed).length();
-    //     if (size > 10000) {
-    //       uploadFile = File(compressed);
-    //       AppSettings.showLog(
-    //         'Ad video size => ${(size / 1024 / 1024).toStringAsFixed(2)} MB',
-    //       );
-    //     }
-    //   }
-    // } catch (e) {
-    //   AppSettings.showLog('Ads video compression skipped => $e');
-    // }
-
-    // _setStatus('Uploading ad video...');
     return _uploadFile(
-      file: uploadFile,
+      file: video,
       folderStructure: '${Constant.folderStructurePath}/adsVideo',
       extension: 'mp4',
       timeoutMinutes: 15,
+      onProgress: onProgress,
     );
   }
 
@@ -199,6 +158,7 @@ class CreateAdsApi {
     required String folderStructure,
     required String extension,
     int timeoutMinutes = 5,
+    void Function(double progress)? onProgress,
   }) async {
     if (!file.existsSync()) {
       AppSettings.showLog('_uploadFile: file missing');
@@ -206,9 +166,14 @@ class CreateAdsApi {
     }
 
     try {
-      final request = http.MultipartRequest(
+      final request = ProgressMultipartRequest(
         'PUT',
         Uri.parse('${Constant.baseURL}${Constant.fileUpload}'),
+        onProgress: (bytes, total) {
+          if (onProgress != null && total > 0) {
+            onProgress(bytes / total);
+          }
+        },
       );
 
       request.headers['key'] = Constant.secretKey;

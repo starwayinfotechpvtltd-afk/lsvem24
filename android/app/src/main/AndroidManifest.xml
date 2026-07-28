@@ -80,11 +80,11 @@
                 <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/invite" />
                 <data android:scheme="https" android:host="www.lsvem24.com" android:pathPrefix="/referral" />
 
-                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/videos" />
+                <!-- <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/videos" />
                 <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/shorts" />
                 <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/invite" />
                 <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/referral" />
-                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/video" />
+                <data android:scheme="https" android:host="api.lsvem24.com" android:pathPrefix="/video" /> -->
             </intent-filter>
 
             <!-- LSVEM24 Custom Scheme Links (lsvem24://...) -->

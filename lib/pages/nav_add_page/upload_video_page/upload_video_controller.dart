@@ -15,7 +15,6 @@ import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_ap
 import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/upload_video_api.dart';
 import 'package:metube/pages/nav_library_page/main_page/nav_library_controller.dart';
-import 'package:metube/pages/main_home_page/main_home_view.dart';
 import 'package:metube/pages/nav_library_page/your_video_page/your_video_page.dart';
 import 'package:metube/pages/profile_page/your_channel_page/channel_video_page/get_channel_video_api.dart';
 import 'package:metube/utils/colors/app_color.dart';
@@ -24,8 +23,6 @@ import 'package:metube/utils/string/app_string.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:metube/utils/compressor/video_compressor.dart';
-import 'package:metube/utils/compressor/image_compressor.dart';
 import 'package:metube/utils/helpers/media_path_helper.dart';
 import 'package:metube/utils/navigation/navigation_observer.dart';
 
@@ -182,11 +179,6 @@ class UploadVideoController extends GetxController {
     }
   }
 
-  void _setUploadStatus(String message) {
-    AppSettings.uploadStatusMessage.value = message;
-    debugPrint('📤 UPLOAD: $message');
-  }
-
   Future<void> _ensureVideoDuration(String videoPath) async {
     if (videoTime.value > 0) return;
     if (videoPlayerController?.value.isInitialized ?? false) {
@@ -204,37 +196,18 @@ class UploadVideoController extends GetxController {
     }
   }
 
-  void _showUploadLoader() {
-    if (Get.isDialogOpen ?? false) return;
-    Get.dialog(
-      PopScope(
-        canPop: false,
-        child: Obx(
-          () => LoaderUi(
-            color: AppColor.white,
-            message: AppSettings.uploadStatusMessage.value,
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
-  void _hideUploadLoader() {
-    if (Get.isDialogOpen ?? false) {
-      if (!NavigationObserver.isNavigating &&
-    (Get.isDialogOpen ?? false || Get.key.currentState?.canPop() == true)) {
-  Get.back();
-}
-    }
-  }
-
   Future<void> onUploadVideoProcess(
     String videoPath,
     int videoType,
     String loginUserId,
     String loginUserChannelId,
   ) async {
+    final uploadNotificationId = DateTime.now().millisecondsSinceEpoch % 100000;
+    final videoTypeName = videoType == 1 ? "Long Video" : "Short Video";
+    final displayTitle = videoTitleController.text.trim().isNotEmpty
+        ? videoTitleController.text.trim()
+        : videoTypeName;
+
     try {
       if (!CustomCheckInternet.isConnect.value) {
         CustomToast.show(AppStrings.connectionIssue.tr);
@@ -247,9 +220,12 @@ class UploadVideoController extends GetxController {
 
       onStopVideoPlay();
 
-      // AppSettings.isUploading.value = true;
-      // _showUploadLoader();
-      // _setUploadStatus('Preparing video...');
+      LocalNotificationServices.showUploadProgressNotification(
+        id: uploadNotificationId,
+        title: "Uploading $videoTypeName",
+        body: "Preparing video...",
+        progress: 5,
+      );
 
       final effectiveChannelId =
           loginUserChannelId.isNotEmpty ? loginUserChannelId : '';
@@ -262,66 +238,12 @@ class UploadVideoController extends GetxController {
 
       String safeVideoPath = localFilePath(videoPath);
       print("Using original file:");
-
       print(safeVideoPath);
-
-      // try {
-      //   final appDir = await getApplicationDocumentsDirectory();
-      //   final uploadDir = Directory('${appDir.path}/pending_uploads');
-      //   if (!uploadDir.existsSync()) {
-      //     await uploadDir.create(recursive: true);
-      //   }
-      //   final copiedFile = File(
-      //     '${uploadDir.path}/video_${DateTime.now().millisecondsSinceEpoch}.mp4',
-      //   );
-      //   await File(safeVideoPath).copy(copiedFile.path);
-      //   safeVideoPath = copiedFile.path;
-      // } catch (e) {
-      //   AppSettings.showLog('Video copy skipped, using original path: $e');
-      // }
 
       await _ensureVideoDuration(safeVideoPath);
 
       String finalVideo = safeVideoPath;
 
-      // Optional light compression (skipped for large files; server optimizes too).
-      final sizeMb = (await File(safeVideoPath).length()) / 1024 / 1024;
-
-      if (sizeMb > 300) {
-        // _setUploadStatus(
-        //   "Large video detected. Optimizing..."
-        // );
-      }
-
-      // _setUploadStatus("Optimizing video...");
-
-      // ============================ //
-      // Video Compress
-      // ============================ //
-
-      // try {
-      //   final compressed = await VideoCompressor.compress(
-      //     input: safeVideoPath,
-      //     isShort: videoType == 2,
-      //   );
-
-      //   if (compressed != null && localFileExists(compressed)) {
-      //     finalVideo = localFilePath(compressed);
-
-      //     final mb = await File(finalVideo).length() / 1024 / 1024;
-
-      //     print(
-      //       "Final compressed size: "
-      //       "${mb.toStringAsFixed(2)} MB",
-      //     );
-      //   }
-      // } catch (e) {
-      //   debugPrint(
-      //     "Compression skipped: $e",
-      //   );
-      // }
-
-      // _setUploadStatus('Preparing thumbnail...');
       if (!localFileExists(thumbnail.value)) {
         await onGetThumbnail(finalVideo);
       }
@@ -329,39 +251,36 @@ class UploadVideoController extends GetxController {
       String finalThumb =
           thumbnail.value.isNotEmpty ? localFilePath(thumbnail.value) : '';
 
-      // Use thumbnail as-is (VideoThumbnail already outputs JPEG).
-      // ImageCompressor can fail on some Android devices (ImageDecoder errors).
-
       if (!localFileExists(finalThumb)) {
         throw Exception('Thumbnail could not be generated');
       }
 
-      // _setUploadStatus('Uploading thumbnail...');
       AppSettings.showLog('Thumb size => ${await File(finalThumb).length()}');
 
-      // ============================ //
-      // Image Compress
-      // ============================ //
-
-      // final compressedThumb =
-      //   await ImageCompressor.compress(
-      //   finalThumb,
-      //   );
-
-      // if (compressedThumb != null) {
-      // finalThumb = compressedThumb;
-      // }
+      LocalNotificationServices.showUploadProgressNotification(
+        id: uploadNotificationId,
+        title: "Uploading $videoTypeName",
+        body: "Uploading thumbnail...",
+        progress: 15,
+      );
 
       final uploadedThumbnail = await ConvertVideoImageApi.callApi(
         finalThumb,
         videoType == 1,
+        onProgress: (p) {
+          final currentProgress = 15 + (p * 15).toInt();
+          LocalNotificationServices.showUploadProgressNotification(
+            id: uploadNotificationId,
+            title: "Uploading $videoTypeName",
+            body: "Uploading thumbnail (${(p * 100).toInt()}%)...",
+            progress: currentProgress,
+          );
+        },
       );
 
       if (uploadedThumbnail == null || uploadedThumbnail.isEmpty) {
         throw Exception('Thumbnail upload failed');
       }
-
-      // _setUploadStatus('Uploading video...');
 
       if (!localFileExists(finalVideo)) {
         throw Exception('Video file is missing after processing');
@@ -375,9 +294,26 @@ class UploadVideoController extends GetxController {
       if (size < 1024) {
         throw Exception('Video file is too small or corrupted');
       }
+
+      LocalNotificationServices.showUploadProgressNotification(
+        id: uploadNotificationId,
+        title: "Uploading $videoTypeName",
+        body: "Uploading video...",
+        progress: 30,
+      );
+
       final uploadedVideo = await ConvertVideoApi.callApi(
         finalVideo,
         videoType == 1,
+        onProgress: (p) {
+          final currentProgress = 30 + (p * 60).toInt();
+          LocalNotificationServices.showUploadProgressNotification(
+            id: uploadNotificationId,
+            title: "Uploading $videoTypeName",
+            body: "Uploading video (${(p * 100).toInt()}%)...",
+            progress: currentProgress,
+          );
+        },
       );
 
       if (uploadedVideo == null || uploadedVideo.isEmpty) {
@@ -399,7 +335,13 @@ class UploadVideoController extends GetxController {
         }
       }
 
-      // _setUploadStatus('Saving video details...');
+      LocalNotificationServices.showUploadProgressNotification(
+        id: uploadNotificationId,
+        title: "Uploading $videoTypeName",
+        body: "Saving video details...",
+        progress: 95,
+      );
+
       AppSettings.showLog('Uploaded video => $uploadedVideo');
       AppSettings.showLog('Uploaded thumbnail => $uploadedThumbnail');
 
@@ -407,6 +349,7 @@ class UploadVideoController extends GetxController {
       print("uploadedThumbnail = $uploadedThumbnail");
       print("loginUserId=[$loginUserId]");
       print("channelId=[$effectiveChannelId]");
+
       final uploadResult = await UploadVideoApi.callApi(
         title: videoTitleController.text.trim().isEmpty
             ? "${DateTime.now().day.toString().padLeft(2, '0')}-"
@@ -435,29 +378,41 @@ class UploadVideoController extends GetxController {
         videoPrivacyType: videoChargeType.value,
       );
 
-      // AppSettings.isUploading.value = false;
-      // _hideUploadLoader();
-
       if (uploadResult.success) {
-        sendNotification('Upload Success', videoTitleController.text);
+        LocalNotificationServices.showUploadSuccessNotification(
+          id: uploadNotificationId,
+          title: '$videoTypeName Upload Complete',
+          body: displayTitle,
+          function: () {
+            GetChannelVideoApiClass.startPagination[0] = 0;
+            GetChannelVideoApiClass.startPagination[1] = 0;
+            libraryController.mainChannelVideos[0] = null;
+            libraryController.mainChannelVideos[1] = null;
+            libraryController.typeWiseGetChannelVideo(0);
+            _openYourVideos();
+          },
+        );
         await GetProfileApi.callApi(Database.loginUserId ?? '');
         CustomToast.show('Upload completed');
-        // Get.offAll(() => const MainHomePageView());
       } else {
-        sendNotification('Upload Failed', videoTitleController.text);
+        LocalNotificationServices.showUploadFailedNotification(
+          id: uploadNotificationId,
+          title: '$videoTypeName Upload Failed',
+          body: uploadResult.message ?? 'Upload failed',
+        );
         throw Exception(uploadResult.message ?? 'Upload failed');
       }
 
       await onDeleteDirectory();
     } catch (e) {
-      // AppSettings.isUploading.value = false;
-      // _hideUploadLoader();
-
-      sendNotification('Upload Failed', videoTitleController.text);
-
       final message = e.toString().replaceFirst('Exception: ', '');
-      CustomToast.show(message.isNotEmpty ? message : 'Upload failed');
+      LocalNotificationServices.showUploadFailedNotification(
+        id: uploadNotificationId,
+        title: '$videoTypeName Upload Failed',
+        body: message.isNotEmpty ? message : 'Upload failed',
+      );
 
+      CustomToast.show(message.isNotEmpty ? message : 'Upload failed');
       debugPrint('❌ UPLOAD ERROR: $e');
       AppSettings.showLog('Upload Error => $e');
 

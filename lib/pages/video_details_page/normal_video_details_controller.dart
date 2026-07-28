@@ -613,14 +613,21 @@ void _videoListener() async {
   }
 
   if (videoPlayerController!.value.isInitialized) {
-    // View count tracking
-    if (!isViewAdded && videoPlayerController!.value.position.inSeconds >= 5) {
+    // View count tracking (automatically after at least 30 seconds of watching)
+    if (!isViewAdded && videoPlayerController!.value.position.inSeconds >= 30) {
       isViewAdded = true;
-      await AddViewApi.callApi(
+      final newViews = await AddViewApi.callApi(
         videoId,
         Database.loginUserId ?? "",
       );
-      AppSettings.showLog("View Count Added For Video => $videoId");
+      if (newViews != null) {
+        if (videoDetailsModel?.detailsOfVideo != null) {
+          videoDetailsModel!.detailsOfVideo!.views = newViews;
+        }
+        customChanges["views"] = newViews;
+        update(["onVideoInitialize", "onChangeVideoDetails", "onGetVideoDetails"]);
+        AppSettings.showLog("View Count Updated To $newViews For Video => $videoId");
+      }
     }
     
     // Buffering state

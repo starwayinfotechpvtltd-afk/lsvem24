@@ -18,6 +18,7 @@ import 'package:metube/main.dart';
 import 'package:metube/pages/custom_pages/comment_page/comment_bottom_sheet.dart';
 import 'package:metube/pages/custom_pages/comment_page/comment_sheet_panel.dart';
 import 'package:metube/pages/custom_pages/report_page/custom_report_view.dart';
+import 'package:metube/utils/videoViews/add_view_api.dart';
 import 'package:metube/pages/custom_pages/share_count_page/share_count_api.dart';
 import 'package:metube/pages/nav_add_page/create_short_page/create_short_view.dart';
 import 'package:metube/pages/nav_library_page/history_page/create_watch_history_api.dart';
@@ -134,6 +135,7 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
         } else {
           isVideoLoading.value = true;
         }
+        bool isViewAdded = false;
         videoPlayerController?.addListener(
           () {
             final listenerController = videoPlayerController;
@@ -148,6 +150,17 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
               if (Get.currentRoute != "/MainHomePageView") {
                 isShortsPage.value = false;
                 onStopVideo();
+              }
+
+              if (!isViewAdded && listenerController.value.position.inSeconds >= 30) {
+                isViewAdded = true;
+                AddViewApi.callApi(shorts.id ?? "", Database.loginUserId ?? "").then((newViews) {
+                  if (newViews != null) {
+                    shorts.views = newViews;
+                    customChanges["views"] = newViews;
+                    controller.update(["onChangeShortsVideo", "onGetShortsVideo"]);
+                  }
+                });
               }
 
               if (listenerController.value.position >=

@@ -18,6 +18,7 @@ import 'package:metube/main.dart';
 import 'package:metube/pages/custom_pages/comment_page/comment_bottom_sheet.dart';
 import 'package:metube/pages/custom_pages/comment_page/comment_sheet_panel.dart';
 import 'package:metube/pages/custom_pages/report_page/custom_report_view.dart';
+import 'package:metube/utils/videoViews/add_view_api.dart';
 import 'package:metube/pages/custom_pages/share_count_page/share_count_api.dart';
 import 'package:metube/pages/nav_add_page/create_short_page/create_short_view.dart';
 import 'package:metube/pages/nav_add_page/live_page/widget/device_orientation.dart';
@@ -205,11 +206,22 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
 
         if (!isPrivateContent.value) onPlayVideo();
 
+        bool isViewAdded = false;
         videoPlayerController!.addListener(() {
           if (videoPlayerController == null) return;
           if (videoPlayerController!.value.isInitialized) {
             isBuffering.value = videoPlayerController!.value.isBuffering;
             if (isPrivateContent.value && isPlaying.value) onStopVideo();
+            if (!isViewAdded && videoPlayerController!.value.position.inSeconds >= 30) {
+              isViewAdded = true;
+              AddViewApi.callApi(widget.videoId, Database.loginUserId ?? "").then((newViews) {
+                if (newViews != null && videoDetailsModel?.detailsOfVideo != null) {
+                  videoDetailsModel!.detailsOfVideo!.views = newViews;
+                  customChanges["views"] = newViews;
+                  if (mounted) setState(() {});
+                }
+              });
+            }
           }
           if (videoPlayerController!.value.duration > Duration.zero &&
               videoPlayerController!.value.position >=

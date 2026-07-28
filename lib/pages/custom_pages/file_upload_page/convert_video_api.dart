@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,12 +8,44 @@ import 'package:metube/pages/custom_pages/file_upload_page/file_upload_model.dar
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/helpers/media_path_helper.dart';
 import 'package:metube/utils/services/convert_to_network.dart';
-import 'package:metube/utils/settings/app_settings.dart';
+
+class ProgressMultipartRequest extends http.MultipartRequest {
+  final void Function(int bytes, int totalBytes) onProgress;
+
+  ProgressMultipartRequest(
+    super.method,
+    super.url, {
+    required this.onProgress,
+  });
+
+  @override
+  http.ByteStream finalize() {
+    final byteStream = super.finalize();
+    final total = contentLength;
+    int bytesSent = 0;
+
+    final transformer = StreamTransformer<List<int>, List<int>>.fromHandlers(
+      handleData: (data, sink) {
+        bytesSent += data.length;
+        if (total > 0) {
+          onProgress(bytesSent, total);
+        }
+        sink.add(data);
+      },
+    );
+
+    return http.ByteStream(byteStream.transform(transformer));
+  }
+}
 
 class ConvertVideoApi {
   static FileUploadModel? _fileUploadModel;
 
-  static Future<String?> callApi(String videoPath, bool isNormalVideo) async {
+  static Future<String?> callApi(
+    String videoPath,
+    bool isNormalVideo, {
+    void Function(double progress)? onProgress,
+  }) async {
     final path = localFilePath(videoPath);
     if (!File(path).existsSync()) {
       debugPrint('❌ ConvertVideo: file not found => $videoPath');
@@ -25,7 +58,7 @@ class ConvertVideoApi {
     Object? lastError;
     for (var attempt = 1; attempt <= 2; attempt++) {
       try {
-        final url = await _uploadOnce(path, isNormalVideo);
+        final url = await _uploadOnce(path, isNormalVideo, onProgress: onProgress);
         if (url != null && url.isNotEmpty) {
           debugPrint('✅ ConvertVideo: $url');
           return url;
@@ -45,10 +78,19 @@ class ConvertVideoApi {
     return null;
   }
 
-  static Future<String?> _uploadOnce(String path, bool isNormalVideo) async {
-    final request = http.MultipartRequest(
+  static Future<String?> _uploadOnce(
+    String path,
+    bool isNormalVideo, {
+    void Function(double progress)? onProgress,
+  }) async {
+    final request = ProgressMultipartRequest(
       'PUT',
       Uri.parse(Constant.baseURL + Constant.fileUpload),
+      onProgress: (bytes, total) {
+        if (onProgress != null && total > 0) {
+          onProgress(bytes / total);
+        }
+      },
     );
 
     request.fields.addAll(

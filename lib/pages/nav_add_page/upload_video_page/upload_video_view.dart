@@ -7,19 +7,15 @@ import 'package:get/get.dart';
 import 'package:get/get_rx/src/rx_typedefs/rx_typedefs.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:metube/custom/custom_method/custom_country_picker.dart';
 import 'package:metube/custom/custom_method/custom_filled_button.dart';
 import 'package:metube/custom/custom_method/custom_format_timer.dart';
 import 'package:metube/custom/custom_ui/loader_ui.dart';
-import 'package:metube/database/database.dart';
 import 'package:metube/main.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/audience_page.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/comments_page.dart';
-import 'package:metube/pages/nav_add_page/upload_video_page/create_channel_view.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/description_page.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/set_thumbnail_page.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/upload_video_controller.dart';
-import 'package:metube/pages/nav_add_page/upload_video_page/video_charges_view.dart';
 import 'package:metube/pages/nav_add_page/upload_video_page/visibility_page.dart';
 import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/icons/app_icons.dart';
@@ -190,7 +186,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                                                     BorderRadius.circular(18)),
                                             child: SizedBox.expand(
                                               child: FittedBox(
-                                                fit: BoxFit.cover,
+                                                fit: BoxFit.contain,
                                                 child: SizedBox(
                                                   width: controller
                                                           .videoPlayerController
@@ -394,7 +390,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                                                     BorderRadius.circular(20)),
                                             child: SizedBox.expand(
                                               child: FittedBox(
-                                                fit: BoxFit.cover,
+                                                fit: BoxFit.contain,
                                                 child: SizedBox(
                                                   width: controller
                                                           .videoPlayerController
@@ -669,19 +665,19 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                           },
                         ),
                       ),
-                      Obx(
-                        () => InsertDataView(
-                          leading: AppIcons.videoCharges,
-                          title: "Video Charges",
-                          subTitle: controller.videoChargeType.value == 1
-                              ? "Free"
-                              : "Paid",
-                          callback: () {
-                            controller.onStopVideoPlay();
-                            Get.to(const VideoChargesView());
-                          },
-                        ),
-                      ),
+                      // Obx(
+                      //   () => InsertDataView(
+                      //     leading: AppIcons.videoCharges,
+                      //     title: "Video Charges",
+                      //     subTitle: controller.videoChargeType.value == 1
+                      //         ? "Free"
+                      //         : "Paid",
+                      //     callback: () {
+                      //       controller.onStopVideoPlay();
+                      //       Get.to(const VideoChargesView());
+                      //     },
+                      //   ),
+                      // ),
                       Obx(
                         () => InsertDataView(
                           leading: AppIcons.audienceIcon,
@@ -723,7 +719,7 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                             final formatDate = DateFormat('yyyy-MM-dd')
                                 .format(picked ?? DateTime.now());
                             if (currentDate != formatDate) {
-                              controller.selectDate.value =
+                              controller.selectDate.value = 
                                   formatDate.toString();
                               controller.scheduleType.value = 1;
                             } else {
@@ -747,18 +743,18 @@ class _UploadVideoViewState extends State<UploadVideoView> {
                           },
                         ),
                       ),
-                      Obx(
-                        () => InsertDataView(
-                          leading: AppIcons.locationIcon,
-                          title: AppStrings.location.tr,
-                          subTitle: controller.selectCounty.value,
-                          callback: () {
-                            controller.onStopVideoPlay();
+                      // Obx(
+                      //   () => InsertDataView(
+                      //     leading: AppIcons.locationIcon,
+                      //     title: AppStrings.location.tr,
+                      //     subTitle: controller.selectCounty.value,
+                      //     callback: () {
+                      //       controller.onStopVideoPlay();
 
-                            CustomCountryPicker.pickCountry(context);
-                          },
-                        ),
-                      ),
+                      //       CustomCountryPicker.pickCountry(context);
+                      //     },
+                      //   ),
+                      // ),
                       const SizedBox(height: 20),
                     ],
                   ),

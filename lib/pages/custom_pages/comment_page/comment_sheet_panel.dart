@@ -81,7 +81,8 @@ class CommentSheetPanel extends StatelessWidget {
                 builder: (controller) => GestureDetector(
                   onTap: () => controller.onChangeCommentType(index, videoId),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 2),
                     margin: const EdgeInsets.only(right: 5),
                     decoration: BoxDecoration(
                       color: controller.selectedCommentType != index
@@ -99,7 +100,9 @@ class CommentSheetPanel extends StatelessWidget {
                         style: GoogleFonts.urbanist(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color: controller.selectedCommentType == index ? AppColor.white : AppColor.primaryColor,
+                          color: controller.selectedCommentType == index
+                              ? AppColor.white
+                              : AppColor.primaryColor,
                         ),
                       ),
                     ),
@@ -131,18 +134,25 @@ class CommentSheetPanel extends StatelessWidget {
                 maxLines: 4,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_200,
+                  fillColor: isDarkMode.value
+                      ? AppColor.secondDarkMode
+                      : AppColor.grey_200,
                   contentPadding: const EdgeInsets.only(left: 10),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                   hintText: AppStrings.addComments.tr,
-                  hintStyle: GoogleFonts.urbanist(color: Colors.grey, fontSize: 14),
+                  hintStyle:
+                      GoogleFonts.urbanist(color: Colors.grey, fontSize: 14),
                   suffixIcon: IconButton(
                     onPressed: () async {
                       if (!AuthService.checkLogin()) return;
-                      if (_commentController.commentController.text.isNotEmpty) {
+                      if (_commentController
+                          .commentController.text.isNotEmpty) {
                         FocusScope.of(context).requestFocus(FocusNode());
 
-                        final messageText = _commentController.commentController.text;
+                        final messageText =
+                            _commentController.commentController.text;
                         _commentController.commentController.clear();
 
                         Get.dialog(barrierDismissible: false, const LoaderUi());
@@ -154,9 +164,11 @@ class CommentSheetPanel extends StatelessWidget {
 
                         Get.back();
 
-                        await CreateCommentApiClass.callApi(videoId, messageText);
+                        await CreateCommentApiClass.callApi(
+                            videoId, messageText);
 
-                        await _commentController.typeWiseGetComment(_commentController.selectedCommentType, videoId);
+                        await _commentController.typeWiseGetComment(
+                            _commentController.selectedCommentType, videoId);
 
                         if (_commentController.selectedCommentType != 0) {
                           _commentController.mainComments[0].clear();
@@ -169,7 +181,10 @@ class CommentSheetPanel extends StatelessWidget {
                         }
 
                         CommentSheetSession.latestTotalComments =
-                            _commentController.mainComments[_commentController.selectedCommentType].length;
+                            _commentController
+                                .mainComments[
+                                    _commentController.selectedCommentType]
+                                .length;
                       } else {
                         AppSettings.showLog("Please enter your comment !!");
                       }
@@ -196,156 +211,275 @@ class CommentSheetPanel extends StatelessWidget {
                         if (!controller.commentInitialLoadDone) {
                           return const CommentShimmerUi();
                         }
-                        final list = controller.mainComments[controller.selectedCommentType];
+                        final list = controller
+                            .mainComments[controller.selectedCommentType];
                         if (list.isEmpty) {
-                          return Center(child: Text(AppStrings.dataNotFound.tr, style: GoogleFonts.urbanist(color: AppColor.grey)));
+                          return Center(
+                              child: Text(AppStrings.dataNotFound.tr,
+                                  style: GoogleFonts.urbanist(
+                                      color: AppColor.grey)));
                         }
                         return SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: GetBuilder<CommentController>(
-                                id: "onChangeCommentList",
-                                builder: (controller) => ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: controller.mainComments[controller.selectedCommentType].length,
-                                  padding: const EdgeInsets.only(left: 5),
-                                  itemBuilder: (context, index) {
-                                    return Column(
+                          physics: const BouncingScrollPhysics(),
+                          child: GetBuilder<CommentController>(
+                            id: "onChangeCommentList",
+                            builder: (controller) => ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: controller
+                                  .mainComments[controller.selectedCommentType]
+                                  .length,
+                              padding: const EdgeInsets.only(left: 5),
+                              itemBuilder: (context, index) {
+                                return Column(
+                                  children: [
+                                    Row(
                                       children: [
-                                        Row(
-                                          children: [
-                                            PreviewProfileImage(
-                                              size: 30,
-                                              id: controller.mainComments[controller.selectedCommentType][index].id ?? "",
-                                              image: controller.mainComments[controller.selectedCommentType][index].userImage ?? "",
-                                              fit: BoxFit.cover,
-                                            ),
-                                            SizedBox(width: SizeConfig.blockSizeHorizontal * 3),
-                                            Flexible(
-                                              fit: FlexFit.loose,
-                                              child: Text(
-                                                controller.mainComments[controller.selectedCommentType][index].fullName.toString(),
-                                                style: GoogleFonts.urbanist(fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                            SizedBox(width: SizeConfig.blockSizeHorizontal * 3),
-                                            Text(
-                                              " •  ${controller.mainComments[controller.selectedCommentType][index].time}",
-                                              style: GoogleFonts.urbanist(fontSize: 13),
-                                            ),
-                                          ],
+                                        PreviewProfileImage(
+                                          size: 30,
+                                          id: controller
+                                                  .mainComments[controller
+                                                          .selectedCommentType]
+                                                      [index]
+                                                  .id ??
+                                              "",
+                                          image: controller
+                                                  .mainComments[controller
+                                                          .selectedCommentType]
+                                                      [index]
+                                                  .userImage ??
+                                              "",
+                                          fit: BoxFit.cover,
                                         ),
-                                        SizedBox(height: SizeConfig.blockSizeVertical * 2),
                                         SizedBox(
-                                          width: SizeConfig.screenWidth / 1.1,
-                                          child: Text(controller.mainComments[controller.selectedCommentType][index].commentText.toString(),
-                                              style: GoogleFonts.urbanist(), maxLines: 3, overflow: TextOverflow.ellipsis),
+                                            width:
+                                                SizeConfig.blockSizeHorizontal *
+                                                    3),
+                                        Flexible(
+                                          fit: FlexFit.loose,
+                                          child: Text(
+                                            controller
+                                                .mainComments[controller
+                                                    .selectedCommentType][index]
+                                                .fullName
+                                                .toString(),
+                                            style: GoogleFonts.urbanist(
+                                                fontWeight: FontWeight.bold),
+                                          ),
                                         ),
-                                        Row(
-                                          children: [
-                                            GetBuilder<CommentController>(
-                                              id: "onChangeLike",
-                                              builder: (controller) => GestureDetector(
-                                                onTap: () async => controller.onPressLike(videoId, index),
-                                                child: Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  color: Colors.transparent,
-                                                  child: Row(
-                                                    children: [
-                                                      ImageIcon(
-                                                        AssetImage(controller.customChanges[controller.selectedCommentType][index]["isLike"] == true ? AppIcons.likeBold : AppIcons.like),
-                                                        color: controller.customChanges[controller.selectedCommentType][index]["isLike"] == true ? AppColor.primaryColor : null,
-                                                        size: 17,
-                                                      ),
-                                                      SizedBox(width: SizeConfig.blockSizeHorizontal * 3),
-                                                      Text(
-                                                        controller.customChanges[controller.selectedCommentType][index]["like"].toString(),
-                                                        style: GoogleFonts.urbanist(fontSize: 13),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            GetBuilder<CommentController>(
-                                              id: "onChangeDisLike",
-                                              builder: (controller) => GestureDetector(
-                                                onTap: () async => controller.onPressDisLike(videoId, index),
-                                                child: Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  color: Colors.transparent,
-                                                  child: Row(
-                                                    children: [
-                                                      ImageIcon(
-                                                        AssetImage(controller.customChanges[controller.selectedCommentType][index]["isDisLike"] ? AppIcons.disLikeBold : AppIcons.disLike),
-                                                        color: controller.customChanges[controller.selectedCommentType][index]["isDisLike"] ? AppColor.primaryColor : null,
-                                                        size: 17,
-                                                      ),
-                                                      SizedBox(width: SizeConfig.blockSizeHorizontal * 3),
-                                                      Text(
-                                                        controller.customChanges[controller.selectedCommentType][index]["disLike"].toString(),
-                                                        style: GoogleFonts.urbanist(fontSize: 13),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            GetBuilder<CommentController>(
-                                              id: "onChangeReplies",
-                                              builder: (controller) => GestureDetector(
-                                                onTap: () async {
-                                                  final commentId = controller
-                                                      .mainComments[controller.selectedCommentType][index].id;
-                                                  if (commentId == null || commentId.isEmpty) {
-                                                    AppSettings.showLog("Reply skipped: missing comment id");
-                                                    return;
-                                                  }
-                                                  controller.customChanges[controller.selectedCommentType][index]["reply"] = await ReplyBottomSheet.show(
-                                                    context,
-                                                    index,
-                                                    videoId,
-                                                    commentId,
-                                                    controller.customChanges[controller.selectedCommentType][index]["reply"],
-                                                  );
-
-                                                  controller.onChangeReplies();
-                                                },
-                                                child: Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  color: Colors.transparent,
-                                                  child: Row(
-                                                    children: [
-                                                      const ImageIcon(AssetImage(AppIcons.reply), size: 17),
-                                                      SizedBox(width: SizeConfig.blockSizeHorizontal * 3),
-                                                      Text(
-                                                        controller.customChanges[controller.selectedCommentType][index]["reply"].toString(),
-                                                        style: GoogleFonts.urbanist(fontSize: 13),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                                        SizedBox(
+                                            width:
+                                                SizeConfig.blockSizeHorizontal *
+                                                    3),
+                                        Text(
+                                          " •  ${controller.mainComments[controller.selectedCommentType][index].time}",
+                                          style: GoogleFonts.urbanist(
+                                              fontSize: 13),
                                         ),
-                                        const Divider(indent: 5, endIndent: 5),
-                                        SizedBox(height: SizeConfig.blockSizeVertical * 1),
                                       ],
-                                    );
-                                  },
-                                ),
-                              ),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            SizeConfig.blockSizeVertical * 2),
+                                    SizedBox(
+                                      width: SizeConfig.screenWidth / 1.1,
+                                      child: Text(
+                                          controller
+                                              .mainComments[controller
+                                                  .selectedCommentType][index]
+                                              .commentText
+                                              .toString(),
+                                          style: GoogleFonts.urbanist(),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis),
+                                    ),
+                                    Row(
+                                      children: [
+                                        GetBuilder<CommentController>(
+                                          id: "onChangeLike",
+                                          builder: (controller) =>
+                                              GestureDetector(
+                                            onTap: () async {
+                                              if (!AuthService.checkLogin())
+                                                return;
+
+                                              controller.onPressLike(
+                                                  videoId, index);
+                                            },
+                                            child: Container(
+                                              width: 50,
+                                              height: 50,
+                                              color: Colors.transparent,
+                                              child: Row(
+                                                children: [
+                                                  ImageIcon(
+                                                    AssetImage(controller
+                                                                        .customChanges[
+                                                                    controller
+                                                                        .selectedCommentType]
+                                                                [
+                                                                index]["isLike"] ==
+                                                            true
+                                                        ? AppIcons.likeBold
+                                                        : AppIcons.like),
+                                                    color: controller.customChanges[
+                                                                    controller
+                                                                        .selectedCommentType]
+                                                                [
+                                                                index]["isLike"] ==
+                                                            true
+                                                        ? AppColor.primaryColor
+                                                        : null,
+                                                    size: 17,
+                                                  ),
+                                                  SizedBox(
+                                                      width: SizeConfig
+                                                              .blockSizeHorizontal *
+                                                          3),
+                                                  Text(
+                                                    controller.customChanges[
+                                                            controller
+                                                                .selectedCommentType]
+                                                            [index]["like"]
+                                                        .toString(),
+                                                    style: GoogleFonts.urbanist(
+                                                        fontSize: 13),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        GetBuilder<CommentController>(
+                                          id: "onChangeDisLike",
+                                          builder: (controller) =>
+                                              GestureDetector(
+                                            onTap: () async {
+                                              if (!AuthService.checkLogin())
+                                                return;
+
+                                              controller.onPressDisLike(
+                                                  videoId, index);
+                                            },
+                                            child: Container(
+                                              width: 50,
+                                              height: 50,
+                                              color: Colors.transparent,
+                                              child: Row(
+                                                children: [
+                                                  ImageIcon(
+                                                    AssetImage(controller
+                                                                    .customChanges[
+                                                                controller
+                                                                    .selectedCommentType]
+                                                            [index]["isDisLike"]
+                                                        ? AppIcons.disLikeBold
+                                                        : AppIcons.disLike),
+                                                    color: controller
+                                                                    .customChanges[
+                                                                controller
+                                                                    .selectedCommentType]
+                                                            [index]["isDisLike"]
+                                                        ? AppColor.primaryColor
+                                                        : null,
+                                                    size: 17,
+                                                  ),
+                                                  SizedBox(
+                                                      width: SizeConfig
+                                                              .blockSizeHorizontal *
+                                                          3),
+                                                  Text(
+                                                    controller.customChanges[
+                                                            controller
+                                                                .selectedCommentType]
+                                                            [index]["disLike"]
+                                                        .toString(),
+                                                    style: GoogleFonts.urbanist(
+                                                        fontSize: 13),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        GetBuilder<CommentController>(
+                                          id: "onChangeReplies",
+                                          builder: (controller) =>
+                                              GestureDetector(
+                                            onTap: () async {
+                                              final commentId = controller
+                                                  .mainComments[controller
+                                                          .selectedCommentType]
+                                                      [index]
+                                                  .id;
+                                              if (commentId == null ||
+                                                  commentId.isEmpty) {
+                                                AppSettings.showLog(
+                                                    "Reply skipped: missing comment id");
+                                                return;
+                                              }
+                                              controller.customChanges[controller
+                                                          .selectedCommentType]
+                                                      [index]["reply"] =
+                                                  await ReplyBottomSheet.show(
+                                                context,
+                                                index,
+                                                videoId,
+                                                commentId,
+                                                controller.customChanges[
+                                                        controller
+                                                            .selectedCommentType]
+                                                    [index]["reply"],
+                                              );
+
+                                              controller.onChangeReplies();
+                                            },
+                                            child: Container(
+                                              width: 50,
+                                              height: 50,
+                                              color: Colors.transparent,
+                                              child: Row(
+                                                children: [
+                                                  const ImageIcon(
+                                                      AssetImage(
+                                                          AppIcons.reply),
+                                                      size: 17),
+                                                  SizedBox(
+                                                      width: SizeConfig
+                                                              .blockSizeHorizontal *
+                                                          3),
+                                                  Text(
+                                                    controller.customChanges[
+                                                            controller
+                                                                .selectedCommentType]
+                                                            [index]["reply"]
+                                                        .toString(),
+                                                    style: GoogleFonts.urbanist(
+                                                        fontSize: 13),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const Divider(indent: 5, endIndent: 5),
+                                    SizedBox(
+                                        height:
+                                            SizeConfig.blockSizeVertical * 1),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
                         );
                       },
                     ),
-                  ),
-                ),
-              ),
-          ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -409,7 +543,8 @@ class ShortsCommentsWithMiniPlayer extends StatelessWidget {
           ),
           Expanded(
             child: Material(
-              color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
+              color:
+                  isDarkMode.value ? AppColor.secondDarkMode : AppColor.white,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
               ),

@@ -51,6 +51,81 @@ class LocalNotificationServices {
       notificationId++;
     }
   }
+
+  static void showUploadProgressNotification({
+    required int id,
+    required String title,
+    required String body,
+    required int progress,
+    bool isIndeterminate = false,
+  }) {
+    if (!Database.showNotification) return;
+
+    final androidDetails = AndroidNotificationDetails(
+      'upload_progress_channel',
+      'Upload Progress',
+      channelDescription: 'Shows progress of video and ad uploads',
+      importance: Importance.low,
+      priority: Priority.low,
+      showProgress: true,
+      maxProgress: 100,
+      progress: progress.clamp(0, 100),
+      indeterminate: isIndeterminate,
+      ongoing: true,
+      onlyAlertOnce: true,
+      autoCancel: false,
+    );
+
+    final notificationDetails = NotificationDetails(android: androidDetails);
+    _flutterLocalNotificationsPlugin.show(id, title, body, notificationDetails);
+  }
+
+  static void showUploadSuccessNotification({
+    required int id,
+    required String title,
+    required String body,
+    Callback? function,
+  }) {
+    if (!Database.showNotification) return;
+
+    if (function != null) callback = function;
+
+    const androidDetails = AndroidNotificationDetails(
+      'upload_channel',
+      'Uploads',
+      channelDescription: 'Upload completion notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+      showProgress: false,
+      ongoing: false,
+      autoCancel: true,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    _flutterLocalNotificationsPlugin.show(id, title, body, notificationDetails);
+  }
+
+  static void showUploadFailedNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) {
+    if (!Database.showNotification) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'upload_channel',
+      'Uploads',
+      channelDescription: 'Upload failure notifications',
+      importance: Importance.high,
+      priority: Priority.high,
+      showProgress: false,
+      ongoing: false,
+      autoCancel: true,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+    _flutterLocalNotificationsPlugin.show(id, title, body, notificationDetails);
+  }
 }
 
 class NotificationServices {

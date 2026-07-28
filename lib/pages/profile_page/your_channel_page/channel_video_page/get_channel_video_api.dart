@@ -19,7 +19,7 @@ class GetChannelVideoApiClass {
     AppSettings.showLog("Get Channel [${Database.channelId}] Video Api Calling...");
 
     final uri = Uri.parse(
-        "${Constant.baseURL + Constant.channelVideos}?userId=${Database.loginUserId ?? ""}&channelId=$channelId&start=${startPagination[videoType]}&limit=${limitPagination[videoType]}&videoType=${videoType + 1}");
+        "${Constant.baseURL + Constant.channelVideos}?channelId=$channelId&start=${startPagination[videoType]}&limit=${limitPagination[videoType]}&videoType=${videoType + 1}");
 
     print("************ ${uri}");
 

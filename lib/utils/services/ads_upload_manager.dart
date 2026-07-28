@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:metube/custom/custom_method/custom_toast.dart';
 import 'package:metube/database/database.dart';
+import 'package:metube/notification/local_notification_services.dart';
 import 'package:metube/pages/login_related_page/fill_profile_page/get_profile_api.dart';
 import 'package:metube/pages/profile_page/ads_management_page/create_ads_api.dart';
 
@@ -112,6 +113,16 @@ class AdsUploadManager extends GetxService {
   }
 
   Future<void> _upload(AdsUploadTask task) async {
+    final notificationId = DateTime.now().millisecondsSinceEpoch % 100000;
+    final adTitle = task.title.isNotEmpty ? task.title : 'Ad';
+
+    LocalNotificationServices.showUploadProgressNotification(
+      id: notificationId,
+      title: 'Uploading Ad',
+      body: 'Preparing ad media...',
+      progress: 5,
+    );
+
     try {
       final isSuccess = await CreateAdsApi.callApi(
         title: task.title,
@@ -128,6 +139,22 @@ class AdsUploadManager extends GetxService {
         fileSizeMB: task.fileSizeMB,
         image: task.image,
         video: task.video,
+        onProgress: (p) {
+          final currentProgress = 10 + (p * 75).toInt();
+          LocalNotificationServices.showUploadProgressNotification(
+            id: notificationId,
+            title: 'Uploading Ad',
+            body: 'Uploading ad media (${(p * 100).toInt()}%)...',
+            progress: currentProgress,
+          );
+        },
+      );
+
+      LocalNotificationServices.showUploadProgressNotification(
+        id: notificationId,
+        title: 'Uploading Ad',
+        body: 'Saving ad details...',
+        progress: 95,
       );
 
       if (isSuccess) {
@@ -135,6 +162,13 @@ class AdsUploadManager extends GetxService {
         task.message = CreateAdsApi.message?.isNotEmpty == true
             ? CreateAdsApi.message!
             : "Ads uploaded successfully";
+
+        LocalNotificationServices.showUploadSuccessNotification(
+          id: notificationId,
+          title: 'Ad Upload Complete',
+          body: adTitle,
+        );
+
         CustomToast.show(task.message);
         await GetProfileApi.callApi(Database.loginUserId ?? '');
       } else {
@@ -142,11 +176,25 @@ class AdsUploadManager extends GetxService {
         task.message = CreateAdsApi.message?.isNotEmpty == true
             ? CreateAdsApi.message!
             : "Failed to upload ad";
+
+        LocalNotificationServices.showUploadFailedNotification(
+          id: notificationId,
+          title: 'Ad Upload Failed',
+          body: task.message,
+        );
+
         CustomToast.show(task.message);
       }
     } catch (e) {
       task.status = AdsUploadStatus.failed;
       task.message = e.toString().replaceFirst('Exception: ', '');
+
+      LocalNotificationServices.showUploadFailedNotification(
+        id: notificationId,
+        title: 'Ad Upload Failed',
+        body: task.message,
+      );
+
       CustomToast.show("Ad upload failed: ${task.message}");
     }
   }

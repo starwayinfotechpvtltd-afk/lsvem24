@@ -29,12 +29,20 @@ class WatchLaterView extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: isDarkMode.value ? Brightness.light : Brightness.dark),
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                isDarkMode.value ? Brightness.light : Brightness.dark),
         leading: IconButtonUi(
-            callback: () => Get.back(), icon: Image.asset(AppIcons.arrowBack, color: isDarkMode.value ? AppColor.white : AppColor.black).paddingOnly(left: 15, right: 20)),
+            callback: () => Get.back(),
+            icon: Image.asset(AppIcons.arrowBack,
+                    color: isDarkMode.value ? AppColor.white : AppColor.black)
+                .paddingOnly(left: 15, right: 20)),
         leadingWidth: 55,
         centerTitle: AppSettings.isCenterTitle,
-        title: Text(AppStrings.watchLater.tr, style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.watchLater.tr,
+            style: GoogleFonts.urbanist(
+                fontSize: 18, fontWeight: FontWeight.bold)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -78,44 +86,64 @@ class WatchLaterView extends StatelessWidget {
                       ? DataNotFoundUi(title: AppStrings.videoNotSaved.tr)
                       : RefreshIndicator(
                           color: AppColor.primaryColor,
-                          onRefresh: () async => await controller.onGetWatchLaterVideo(),
+                          onRefresh: () async =>
+                              await controller.onGetWatchLaterVideo(),
                           child: SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             child: ListView.separated(
-                              itemCount: controller.mainWatchLaterVideos!.length,
+                              itemCount:
+                                  controller.mainWatchLaterVideos!.length,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               padding: const EdgeInsets.all(10),
                               itemBuilder: (context, index) {
-                                final indexData = controller.mainWatchLaterVideos![index];
+                                final indexData =
+                                    controller.mainWatchLaterVideos![index];
 
-                                return ((indexData.videoPrivacyType == 2 && indexData.channelType == 1) ||
-                                        (indexData.videoPrivacyType == 2 && indexData.channelType == 2 && indexData.isSubscribed == false))
+                                return ((indexData.videoPrivacyType == 2 &&
+                                            indexData.channelType == 1) ||
+                                        (indexData.videoPrivacyType == 2 &&
+                                            indexData.channelType == 2 &&
+                                            indexData.isSubscribed == false))
                                     ? GestureDetector(
-                                        onTap: () => controller.onUnlockPrivateVideo(index: index, context: context),
+                                        onTap: () =>
+                                            controller.onUnlockPrivateVideo(
+                                                index: index, context: context),
                                         child: SmallVideoWidget(
                                           id: indexData.id ?? "",
                                           image: indexData.videoImage ?? "",
-                                          videoTime: (indexData.videoTime ?? 0).toString(),
+                                          videoTime: (indexData.videoTime ?? 0)
+                                              .toString(),
                                           title: indexData.videoTitle ?? "",
                                           views: 0,
                                           uploadTime: "",
                                           channelName: indexData.channelName,
                                         ),
                                       )
-                                    : controller.mainWatchLaterVideos![index].videoType == 1
+                                    : controller.mainWatchLaterVideos![index]
+                                                .videoType ==
+                                            1
                                         ? GestureDetector(
                                             onTap: () => Get.to(
                                               NormalVideoDetailsView(
-                                                videoId: controller.mainWatchLaterVideos![index].videoId!,
-                                                videoUrl: controller.mainWatchLaterVideos![index].videoUrl!,
+                                                videoId: controller
+                                                    .mainWatchLaterVideos![
+                                                        index]
+                                                    .videoId!,
+                                                videoUrl: controller
+                                                    .mainWatchLaterVideos![
+                                                        index]
+                                                    .videoUrl!,
                                               ),
                                             ),
                                             child: Padding(
-                                              padding: const EdgeInsets.only(bottom: 10),
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 10),
                                               child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
                                                 children: [
                                                   // Padding(
                                                   //   padding: EdgeInsets.only(top: Get.width * 0.15),
@@ -128,14 +156,33 @@ class WatchLaterView extends StatelessWidget {
                                                     children: [
                                                       Obx(
                                                         () => Container(
-                                                          clipBehavior: Clip.hardEdge,
-                                                          height: SizeConfig.smallVideoImageHeight,
-                                                          width: SizeConfig.smallVideoImageWidth,
+                                                          clipBehavior:
+                                                              Clip.hardEdge,
+                                                          height: SizeConfig
+                                                              .smallVideoImageHeight,
+                                                          width: SizeConfig
+                                                              .smallVideoImageWidth,
                                                           decoration: BoxDecoration(
-                                                              color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_400, borderRadius: BorderRadius.circular(19)),
-                                                          child: PreviewVideoImage(
-                                                            videoId: controller.mainWatchLaterVideos![index].id!,
-                                                            videoImage: controller.mainWatchLaterVideos![index].videoImage!,
+                                                              color: isDarkMode
+                                                                      .value
+                                                                  ? AppColor
+                                                                      .secondDarkMode
+                                                                  : AppColor
+                                                                      .grey_400,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          19)),
+                                                          child:
+                                                              PreviewVideoImage(
+                                                            videoId: controller
+                                                                .mainWatchLaterVideos![
+                                                                    index]
+                                                                .id!,
+                                                            videoImage: controller
+                                                                .mainWatchLaterVideos![
+                                                                    index]
+                                                                .videoImage!,
                                                           ),
                                                         ),
                                                       ),
@@ -143,109 +190,273 @@ class WatchLaterView extends StatelessWidget {
                                                         bottom: 10,
                                                         right: 10,
                                                         child: Container(
-                                                          alignment: Alignment.center,
-                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(7),
-                                                            color: AppColor.black,
+                                                          alignment:
+                                                              Alignment.center,
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      10,
+                                                                  vertical: 5),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        7),
+                                                            color:
+                                                                AppColor.black,
                                                           ),
                                                           child: Text(
-                                                            CustomFormatTime.convert(int.parse(controller.mainWatchLaterVideos![index].videoTime.toString())),
-                                                            style: GoogleFonts.urbanist(color: AppColor.white, fontSize: 11),
+                                                            CustomFormatTime.convert(
+                                                                int.parse(controller
+                                                                    .mainWatchLaterVideos![
+                                                                        index]
+                                                                    .videoTime
+                                                                    .toString())),
+                                                            style: GoogleFonts
+                                                                .urbanist(
+                                                                    color: AppColor
+                                                                        .white,
+                                                                    fontSize:
+                                                                        11),
                                                           ),
                                                         ),
                                                       ),
                                                     ],
                                                   ),
-                                                  SizedBox(width: Get.width * 0.02),
+                                                  SizedBox(
+                                                      width: Get.width * 0.02),
 
                                                   Expanded(
                                                     child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
-                                                          controller.mainWatchLaterVideos![index].videoTitle.toString(),
+                                                          controller
+                                                              .mainWatchLaterVideos![
+                                                                  index]
+                                                              .videoTitle
+                                                              .toString(),
                                                           maxLines: 3,
-                                                          style: GoogleFonts.urbanist(fontSize: 16, fontWeight: FontWeight.bold),
+                                                          style: GoogleFonts
+                                                              .urbanist(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
                                                         ),
-                                                        SizedBox(height: Get.height * 0.01),
+                                                        SizedBox(
+                                                            height: Get.height *
+                                                                0.01),
                                                         Text(
-                                                          controller.mainWatchLaterVideos![index].channelName.toString(),
-                                                          style: GoogleFonts.urbanist(
+                                                          controller
+                                                              .mainWatchLaterVideos![
+                                                                  index]
+                                                              .channelName
+                                                              .toString(),
+                                                          style: GoogleFonts
+                                                              .urbanist(
                                                             fontSize: 12,
-                                                            color: isDarkMode.value ? AppColor.white.withOpacity(0.7) : AppColor.black.withOpacity(0.7),
+                                                            color: isDarkMode
+                                                                    .value
+                                                                ? AppColor.white
+                                                                    .withOpacity(
+                                                                        0.7)
+                                                                : AppColor.black
+                                                                    .withOpacity(
+                                                                        0.7),
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
-                                                  SizedBox(width: Get.width * 0.01),
+                                                  IconButton(
+                                                    onPressed: () => controller
+                                                        .onRemoveWatchLaterVideo(
+                                                      controller
+                                                              .mainWatchLaterVideos![
+                                                                  index]
+                                                              .videoId ??
+                                                          controller
+                                                              .mainWatchLaterVideos![
+                                                                  index]
+                                                              .id ??
+                                                          "",
+                                                    ),
+                                                    icon: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red
+                                                            .withOpacity(
+                                                                0.1), // Light red background
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.delete_outline,
+                                                        size: 22,
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ),
                                           )
                                         : const Offstage();
                               },
-                              separatorBuilder: (context, index) => (controller.mainWatchLaterVideos!.where((element) => element.videoType == 2).isNotEmpty) && index == 0
-                                  ? SizedBox(
-                                      height: 250,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: ListView.builder(
-                                          itemCount: controller.mainWatchLaterVideos?.length ?? 0,
-                                          scrollDirection: Axis.horizontal,
-                                          shrinkWrap: true,
-                                          physics: const BouncingScrollPhysics(),
-                                          padding: const EdgeInsets.only(bottom: 10),
-                                          itemBuilder: (BuildContext context, int index) {
-                                            return controller.mainWatchLaterVideos![index].videoType == 2
-                                                ? GestureDetector(
-                                                    onTap: () => Get.to(
-                                                          ShortsVideoDetailsView(
-                                                            videoId: controller.mainWatchLaterVideos![index].videoId!,
-                                                            videoUrl: controller.mainWatchLaterVideos![index].videoUrl!,
-                                                          ),
-                                                        ),
-                                                    child: Container(
-                                                      height: 250,
-                                                      width: 165,
-                                                      clipBehavior: Clip.antiAlias,
-                                                      margin: EdgeInsets.only(right: index == (controller.mainWatchLaterVideos!.length - 1) ? 0 : 10),
-                                                      decoration: BoxDecoration(
-                                                          color: isDarkMode.value ? AppColor.secondDarkMode : AppColor.grey_300, borderRadius: BorderRadius.circular(20)),
-                                                      child: Stack(
-                                                        children: [
-                                                          PreviewVideoImage(
-                                                            videoId: controller.mainWatchLaterVideos![index].videoId!,
-                                                            videoImage: controller.mainWatchLaterVideos![index].videoImage!,
-                                                          ),
-                                                          Positioned(
-                                                            bottom: 0,
-                                                            left: 10,
-                                                            child: Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 145,
-                                                                  child: Text(
-                                                                    controller.mainWatchLaterVideos![index].videoTitle!.toString(),
-                                                                    maxLines: 3,
-                                                                    style: shortsStyle,
+                              separatorBuilder:
+                                  (context, index) =>
+                                      (controller.mainWatchLaterVideos!
+                                                  .where((element) =>
+                                                      element.videoType == 2)
+                                                  .isNotEmpty) &&
+                                              index == 0
+                                          ? SizedBox(
+                                              height: 250,
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: ListView.builder(
+                                                  itemCount: controller
+                                                          .mainWatchLaterVideos
+                                                          ?.length ??
+                                                      0,
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  shrinkWrap: true,
+                                                  physics:
+                                                      const BouncingScrollPhysics(),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 10),
+                                                  itemBuilder:
+                                                      (BuildContext context,
+                                                          int index) {
+                                                    return controller
+                                                                .mainWatchLaterVideos![
+                                                                    index]
+                                                                .videoType ==
+                                                            2
+                                                        ? GestureDetector(
+                                                            onTap: () => Get.to(
+                                                                  ShortsVideoDetailsView(
+                                                                    videoId: controller
+                                                                        .mainWatchLaterVideos![
+                                                                            index]
+                                                                        .videoId!,
+                                                                    videoUrl: controller
+                                                                        .mainWatchLaterVideos![
+                                                                            index]
+                                                                        .videoUrl!,
                                                                   ),
                                                                 ),
-                                                                const SizedBox(height: 10),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ))
-                                                : const Offstage();
-                                          },
-                                        ),
-                                      ),
-                                    )
-                                  : const Offstage(),
+                                                            child: Container(
+                                                              height: 250,
+                                                              width: 165,
+                                                              clipBehavior: Clip
+                                                                  .antiAlias,
+                                                              margin: EdgeInsets.only(
+                                                                  right: index ==
+                                                                          (controller.mainWatchLaterVideos!.length -
+                                                                              1)
+                                                                      ? 0
+                                                                      : 10),
+                                                              decoration: BoxDecoration(
+                                                                  color: isDarkMode.value
+                                                                      ? AppColor
+                                                                          .secondDarkMode
+                                                                      : AppColor
+                                                                          .grey_300,
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              20)),
+                                                              child: Stack(
+                                                                children: [
+                                                                  PreviewVideoImage(
+                                                                    videoId: controller
+                                                                        .mainWatchLaterVideos![
+                                                                            index]
+                                                                        .videoId!,
+                                                                    videoImage: controller
+                                                                        .mainWatchLaterVideos![
+                                                                            index]
+                                                                        .videoImage!,
+                                                                  ),
+                                                                  Positioned(
+                                                                    top: 8,
+                                                                    right: 8,
+                                                                    child:
+                                                                        GestureDetector(
+                                                                      onTap: () =>
+                                                                          controller
+                                                                              .onRemoveWatchLaterVideo(
+                                                                        controller.mainWatchLaterVideos![index].videoId ??
+                                                                            controller.mainWatchLaterVideos![index].id ??
+                                                                            "",
+                                                                      ),
+                                                                      child:
+                                                                          Container(
+                                                                        padding: const EdgeInsets
+                                                                            .all(
+                                                                            5),
+                                                                        decoration: const BoxDecoration(
+                                                                            color:
+                                                                                Colors.black54,
+                                                                            shape: BoxShape.circle),
+                                                                        child: const Icon(
+                                                                            Icons
+                                                                                .delete_outline,
+                                                                            size:
+                                                                                18,
+                                                                            color:
+                                                                                AppColor.white),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Positioned(
+                                                                    bottom: 0,
+                                                                    left: 10,
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        SizedBox(
+                                                                          width:
+                                                                              145,
+                                                                          child:
+                                                                              Text(
+                                                                            controller.mainWatchLaterVideos![index].videoTitle!.toString(),
+                                                                            maxLines:
+                                                                                3,
+                                                                            style:
+                                                                                shortsStyle,
+                                                                          ),
+                                                                        ),
+                                                                        const SizedBox(
+                                                                            height:
+                                                                                10),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ))
+                                                        : const Offstage();
+                                                  },
+                                                ),
+                                              ),
+                                            )
+                                          : const Offstage(),
                             ),
                           ),
                         ),
