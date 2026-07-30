@@ -192,6 +192,7 @@ class User {
     _usedForAdsCoin = json['usedForAdsCoin'];
     _videoUnlockCost = json['videoUnlockCost'];
     _isMonetization = json['isMonetization'];
+    _isInfluencer = json['isInfluencer'];
     _totalWatchTime = json['totalWatchTime'];
     _totalCurrentWatchTime = json['totalCurrentWatchTime'];
     _totalWithdrawableAmount = json['totalWithdrawableAmount'];
@@ -247,6 +248,7 @@ class User {
   int? _totalPurchasedCoin;
   int? _usedForAdsCoin;
   bool? _isMonetization;
+  bool? _isInfluencer;
   int? _totalWatchTime;
   int? _totalCurrentWatchTime;
   int? _totalWithdrawableAmount;
@@ -398,6 +400,7 @@ class User {
   int? get totalPurchasedCoin => _totalPurchasedCoin;
   int? get usedForAdsCoin => _usedForAdsCoin;
   bool? get isMonetization => _isMonetization;
+  bool? get isInfluencer => _isInfluencer;
   int? get totalWatchTime => _totalWatchTime;
   int? get totalCurrentWatchTime => _totalCurrentWatchTime;
   int? get totalWithdrawableAmount => _totalWithdrawableAmount;

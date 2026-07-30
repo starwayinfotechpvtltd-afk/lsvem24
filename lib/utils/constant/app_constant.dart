@@ -1,10 +1,10 @@
 import 'package:metube/pages/admin_settings/admin_settings_api.dart';
 
 class Constant {
-  static const baseURL = 
-      "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5003/api/";
+  static const baseURL = "http://192.168.0.104:5003/api/";
+      // "https://api.lsvem24.com/api/"; // "http://192.168.0.104:5003/api/";
 
-  static const mediaBaseURL =  "https://api.lsvem24.com"; // "http://192.168.0.104:5003";
+  static const mediaBaseURL =  "http://192.168.0.104:5003"; // "https://api.lsvem24.com"; // "http://192.168.0.104:5003";
   static const secretKey =
       "lsv123xyz789"; // Ex :- ssf45sd1fs5d1sdf1s56165s15sdf1s
   static const folderStructurePath = "uploads";

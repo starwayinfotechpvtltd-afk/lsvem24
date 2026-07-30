@@ -39,6 +39,7 @@ import 'package:metube/utils/utils.dart';
 import 'package:metube/pages/profile_page/profile_badge_page/plan_badge_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:metube/pages/profile_page/ads_management_page/ads_management_view.dart';
+import 'package:metube/pages/profile_page/influencer_page/influencer_view.dart';
 import 'package:metube/utils/auth/auth_service.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -605,6 +606,11 @@ class ProfileView extends GetView<ProfileController> {
                     leading: AppIcons.help,
                     title: AppStrings.helpCenter.tr,
                     callback: () => Get.to(() => const HelpCenterView()),
+                  ),
+                  ProfileItemUi(
+                    leading: AppIcons.king,
+                    title: "Influencer",
+                    callback: () => Get.to(() => const InfluencerView()),
                   ),
                   ProfileItemUi(
                     leading: AppIcons.adIcon,
