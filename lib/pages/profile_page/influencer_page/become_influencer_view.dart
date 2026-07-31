@@ -12,6 +12,7 @@ import 'package:metube/utils/colors/app_color.dart';
 import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/settings/app_settings.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class BecomeInfluencerView extends StatefulWidget {
   const BecomeInfluencerView({super.key});
@@ -303,7 +304,10 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
                 // Disabled when user is already an influencer or when API is loading
                 onPressed: (isInfluencer.value || isLoading.value)
                     ? null
-                    : _handleSubscribeInfluencer,
+                    : () {
+          if (!AuthService.checkLogin()) return;
+          _handleSubscribeInfluencer();
+        },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isInfluencer.value ? Colors.green : AppColor.primaryColor,
                   disabledBackgroundColor: isInfluencer.value ? Colors.green.shade700 : Colors.grey.shade400,

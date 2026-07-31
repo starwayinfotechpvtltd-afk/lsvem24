@@ -491,36 +491,14 @@ class _InfluencerViewState extends State<InfluencerView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.urbanist(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            "VIP",
-                            style: GoogleFonts.urbanist(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.amber.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.urbanist(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
 
@@ -532,19 +510,23 @@ class _InfluencerViewState extends State<InfluencerView> {
                         Text(
                           "$followers Followers",
                           style: GoogleFonts.urbanist(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: isDarkMode.value ? Colors.grey.shade300 : Colors.grey.shade700,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text("•", style: GoogleFonts.urbanist(color: Colors.grey)),
-                        const SizedBox(width: 8),
-                        Text(
-                          country,
-                          style: GoogleFonts.urbanist(
-                            fontSize: 12,
-                            color: Colors.grey,
+                        const SizedBox(width: 6),
+                        Text("•", style: GoogleFonts.urbanist(color: Colors.grey, fontSize: 12)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            country,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.urbanist(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                       ],

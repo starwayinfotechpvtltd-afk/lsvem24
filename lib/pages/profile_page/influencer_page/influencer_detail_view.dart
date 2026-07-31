@@ -14,6 +14,7 @@ import 'package:metube/utils/constant/app_constant.dart';
 import 'package:metube/utils/icons/app_icons.dart';
 import 'package:metube/utils/services/preview_image.dart';
 import 'package:metube/utils/settings/app_settings.dart';
+import 'package:metube/utils/auth/auth_service.dart';
 
 class InfluencerDetailView extends StatefulWidget {
   final Map<String, dynamic> influencer;
@@ -160,6 +161,7 @@ class _InfluencerDetailViewState extends State<InfluencerDetailView> {
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
+                        if (!AuthService.checkLogin()) return;
                         _executeFollowApi();
                       },
                       style: ElevatedButton.styleFrom(
