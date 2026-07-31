@@ -98,23 +98,23 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                         ),
                       ),
                       const Spacer(),
-                      GestureDetector(
-                        onTap: () => Get.to(const ConvertCoinView()),
-                        child: Container(
-                          height: 35,
-                          width: 35,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                              color: AppColor.white,
-                              shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: AppColor.yellow, width: 1)),
-                          child: Image.asset(
-                            AppIcons.convertIcon,
-                            width: 30,
-                          ),
-                        ),
-                      ),
+                      // GestureDetector(
+                      //   onTap: () => Get.to(const ConvertCoinView()),
+                      //   child: Container(
+                      //     height: 35,
+                      //     width: 35,
+                      //     alignment: Alignment.center,
+                      //     decoration: BoxDecoration(
+                      //         color: AppColor.white,
+                      //         shape: BoxShape.circle,
+                      //         border:
+                      //             Border.all(color: AppColor.yellow, width: 1)),
+                      //     child: Image.asset(
+                      //       AppIcons.convertIcon,
+                      //       width: 30,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -174,27 +174,27 @@ class _EarnRewardViewState extends State<EarnRewardView> {
                                 ),
                               ),
                               const Spacer(),
-                              GestureDetector(
-                                onTap: () {
-                                  if (!AuthService.checkLogin()) return;
+                              // GestureDetector(
+                              //   onTap: () {
+                              //     if (!AuthService.checkLogin()) return;
 
-                                  Get.to(() => const ConvertCoinView());
-                                },
-                                child: Container(
-                                  height: 35,
-                                  width: 35,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                      color: AppColor.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: AppColor.yellow, width: 1.5)),
-                                  child: Image.asset(
-                                    AppIcons.convertIcon,
-                                    width: 30,
-                                  ),
-                                ),
-                              ),
+                              //     Get.to(() => const ConvertCoinView());
+                              //   },
+                              //   child: Container(
+                              //     height: 35,
+                              //     width: 35,
+                              //     alignment: Alignment.center,
+                              //     decoration: BoxDecoration(
+                              //         color: AppColor.white,
+                              //         shape: BoxShape.circle,
+                              //         border: Border.all(
+                              //             color: AppColor.yellow, width: 1.5)),
+                              //     child: Image.asset(
+                              //       AppIcons.convertIcon,
+                              //       width: 30,
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),

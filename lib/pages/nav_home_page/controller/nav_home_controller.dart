@@ -23,7 +23,7 @@ class NavHomeController extends GetxController {
   bool isLoadingPagination = false;
 
   int selectedTabIndex = 0;
-  List<String> tabTitles = ["All", "Popular", "New", "Live"];
+  List<String> tabTitles = ["All", "Popular", "New"];
 
   ScrollController allTabScrollController = ScrollController();
   FetchAllVideoModel? fetchAllVideoModel;

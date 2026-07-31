@@ -520,11 +520,11 @@ class ProfileView extends GetView<ProfileController> {
                     iconSize: 23,
                     callback: () => Get.to(() => const EarnRewardView()),
                   ),
-                  ProfileItemUi(
-                    leading: AppIcons.wallet,
-                    title: AppStrings.myWallet.tr,
-                    callback: () => Get.to(() => const MyWalletView()),
-                  ),
+                  // ProfileItemUi(
+                  //   leading: AppIcons.wallet,
+                  //   title: AppStrings.myWallet.tr,
+                  //   callback: () => Get.to(() => const MyWalletView()),
+                  // ),
                   ProfileItemUi(
                     leading: AppIcons.timeWatched,
                     title: AppStrings.timeWatched.tr,

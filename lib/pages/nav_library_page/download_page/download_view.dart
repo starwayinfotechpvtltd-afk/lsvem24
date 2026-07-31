@@ -35,76 +35,76 @@ class DownloadView extends StatelessWidget {
             callback: () {
               Get.back();
               Utils.showLog("isAvailableProfileData ==> ${AppSettings.isAvailableProfileData.value}");
-              if (AppSettings.isAvailableProfileData.value == false) {
-                Get.defaultDialog(
-                  barrierDismissible: false,
-                  title: "",
-                  titlePadding: EdgeInsets.zero,
-                  titleStyle: GoogleFonts.urbanist(
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                  backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.transparent,
-                  // contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                  content: PopScope(
-                    canPop: false,
-                    child: Container(
-                      height: 375,
-                      width: Get.width / 1.4,
-                      // padding: EdgeInsets.only(
-                      //   left: SizeConfig.blockSizeHorizontal * 2,
-                      //   right: SizeConfig.blockSizeHorizontal * 2,
-                      // ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: isDarkMode.value ? AppColor.transparent : Colors.white,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 200,
-                              width: 200,
-                              clipBehavior: Clip.antiAlias,
-                              padding: const EdgeInsets.all(0),
-                              decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                              child: Image.asset("assets/icons/Internet.jpg", width: 200),
-                            ),
-                            isDarkMode.value ? const SizedBox(height: 10) : const Offstage(),
-                            Text("Lost Connection", style: GoogleFonts.urbanist(fontSize: 25, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 5),
-                            Text("No internet connection found\nCheck your connection", textAlign: TextAlign.center, style: GoogleFonts.urbanist(fontSize: 15)),
-                            const SizedBox(height: 15),
-                            Obx(
-                              () => isRefreshing.value
-                                  ? const LoaderUi()
-                                  : GestureDetector(
-                                      onTap: () async {
-                                        isRefreshing.value = true;
-                                        await onConnectInternet();
-                                        isRefreshing.value = false;
-                                      },
-                                      child: Container(
-                                        height: 45,
-                                        width: 120,
-                                        decoration: BoxDecoration(
-                                          color: AppColor.grey_200,
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                        child: Center(child: Text("Refresh", style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.black, fontWeight: FontWeight.bold))),
-                                      ),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
+              // if (AppSettings.isAvailableProfileData.value == false) {
+              //   Get.defaultDialog(
+              //     barrierDismissible: false,
+              //     title: "",
+              //     titlePadding: EdgeInsets.zero,
+              //     titleStyle: GoogleFonts.urbanist(
+              //       textStyle: const TextStyle(
+              //         fontWeight: FontWeight.bold,
+              //         fontSize: 20,
+              //       ),
+              //     ),
+              //     backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.transparent,
+              //     // contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+              //     content: PopScope(
+              //       canPop: false,
+              //       child: Container(
+              //         height: 375,
+              //         width: Get.width / 1.4,
+              //         // padding: EdgeInsets.only(
+              //         //   left: SizeConfig.blockSizeHorizontal * 2,
+              //         //   right: SizeConfig.blockSizeHorizontal * 2,
+              //         // ),
+              //         decoration: BoxDecoration(
+              //           borderRadius: BorderRadius.circular(20),
+              //           color: isDarkMode.value ? AppColor.transparent : Colors.white,
+              //         ),
+              //         child: SingleChildScrollView(
+              //           child: Column(
+              //             crossAxisAlignment: CrossAxisAlignment.center,
+              //             children: [
+              //               Container(
+              //                 height: 200,
+              //                 width: 200,
+              //                 clipBehavior: Clip.antiAlias,
+              //                 padding: const EdgeInsets.all(0),
+              //                 decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+              //                 child: Image.asset("assets/icons/Internet.jpg", width: 200),
+              //               ),
+              //               isDarkMode.value ? const SizedBox(height: 10) : const Offstage(),
+              //               Text("Lost Connection", style: GoogleFonts.urbanist(fontSize: 25, fontWeight: FontWeight.bold)),
+              //               const SizedBox(height: 5),
+              //               Text("No internet connection found\nCheck your connection", textAlign: TextAlign.center, style: GoogleFonts.urbanist(fontSize: 15)),
+              //               const SizedBox(height: 15),
+              //               Obx(
+              //                 () => isRefreshing.value
+              //                     ? const LoaderUi()
+              //                     : GestureDetector(
+              //                         onTap: () async {
+              //                           isRefreshing.value = true;
+              //                           await onConnectInternet();
+              //                           isRefreshing.value = false;
+              //                         },
+              //                         child: Container(
+              //                           height: 45,
+              //                           width: 120,
+              //                           decoration: BoxDecoration(
+              //                             color: AppColor.grey_200,
+              //                             borderRadius: BorderRadius.circular(30),
+              //                           ),
+              //                           child: Center(child: Text("Refresh", style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.black, fontWeight: FontWeight.bold))),
+              //                         ),
+              //                       ),
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   );
+              // }
             },
             icon: Image.asset(AppIcons.arrowBack, color: isDarkMode.value ? AppColor.white : AppColor.black).paddingOnly(left: 15, right: 20)),
         leadingWidth: 55,
@@ -133,76 +133,76 @@ class DownloadView extends StatelessWidget {
       body: PopScope(
         canPop: AppSettings.isAvailableProfileData.value,
         onPopInvoked: (didPop) async {
-          if (AppSettings.isAvailableProfileData.value == false) {
-            Get.defaultDialog(
-              barrierDismissible: false,
-              title: "",
-              titlePadding: EdgeInsets.zero,
-              titleStyle: GoogleFonts.urbanist(
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.transparent,
-              // contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-              content: PopScope(
-                canPop: false,
-                child: Container(
-                  height: 375,
-                  width: Get.width / 1.4,
-                  // padding: EdgeInsets.only(
-                  //   left: SizeConfig.blockSizeHorizontal * 2,
-                  //   right: SizeConfig.blockSizeHorizontal * 2,
-                  // ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: isDarkMode.value ? AppColor.transparent : Colors.white,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: 200,
-                          width: 200,
-                          clipBehavior: Clip.antiAlias,
-                          padding: const EdgeInsets.all(0),
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-                          child: Image.asset("assets/icons/Internet.jpg", width: 200),
-                        ),
-                        isDarkMode.value ? const SizedBox(height: 10) : const Offstage(),
-                        Text("Lost Connection", style: GoogleFonts.urbanist(fontSize: 25, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 5),
-                        Text("No internet connection found\nCheck your connection", textAlign: TextAlign.center, style: GoogleFonts.urbanist(fontSize: 15)),
-                        const SizedBox(height: 15),
-                        Obx(
-                          () => isRefreshing.value
-                              ? const LoaderUi()
-                              : GestureDetector(
-                                  onTap: () async {
-                                    isRefreshing.value = true;
-                                    await onConnectInternet();
-                                    isRefreshing.value = false;
-                                  },
-                                  child: Container(
-                                    height: 45,
-                                    width: 120,
-                                    decoration: BoxDecoration(
-                                      color: AppColor.grey_200,
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Center(child: Text("Refresh", style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.black, fontWeight: FontWeight.bold))),
-                                  ),
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
+          // if (AppSettings.isAvailableProfileData.value == false) {
+          //   Get.defaultDialog(
+          //     barrierDismissible: false,
+          //     title: "",
+          //     titlePadding: EdgeInsets.zero,
+          //     titleStyle: GoogleFonts.urbanist(
+          //       textStyle: const TextStyle(
+          //         fontWeight: FontWeight.bold,
+          //         fontSize: 20,
+          //       ),
+          //     ),
+          //     backgroundColor: isDarkMode.value ? AppColor.secondDarkMode : AppColor.transparent,
+          //     // contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          //     content: PopScope(
+          //       canPop: false,
+          //       child: Container(
+          //         height: 375,
+          //         width: Get.width / 1.4,
+          //         // padding: EdgeInsets.only(
+          //         //   left: SizeConfig.blockSizeHorizontal * 2,
+          //         //   right: SizeConfig.blockSizeHorizontal * 2,
+          //         // ),
+          //         decoration: BoxDecoration(
+          //           borderRadius: BorderRadius.circular(20),
+          //           color: isDarkMode.value ? AppColor.transparent : Colors.white,
+          //         ),
+          //         child: SingleChildScrollView(
+          //           child: Column(
+          //             crossAxisAlignment: CrossAxisAlignment.center,
+          //             children: [
+          //               Container(
+          //                 height: 200,
+          //                 width: 200,
+          //                 clipBehavior: Clip.antiAlias,
+          //                 padding: const EdgeInsets.all(0),
+          //                 decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+          //                 child: Image.asset("assets/icons/Internet.jpg", width: 200),
+          //               ),
+          //               isDarkMode.value ? const SizedBox(height: 10) : const Offstage(),
+          //               Text("Lost Connection", style: GoogleFonts.urbanist(fontSize: 25, fontWeight: FontWeight.bold)),
+          //               const SizedBox(height: 5),
+          //               Text("No internet connection found\nCheck your connection", textAlign: TextAlign.center, style: GoogleFonts.urbanist(fontSize: 15)),
+          //               const SizedBox(height: 15),
+          //               Obx(
+          //                 () => isRefreshing.value
+          //                     ? const LoaderUi()
+          //                     : GestureDetector(
+          //                         onTap: () async {
+          //                           isRefreshing.value = true;
+          //                           await onConnectInternet();
+          //                           isRefreshing.value = false;
+          //                         },
+          //                         child: Container(
+          //                           height: 45,
+          //                           width: 120,
+          //                           decoration: BoxDecoration(
+          //                             color: AppColor.grey_200,
+          //                             borderRadius: BorderRadius.circular(30),
+          //                           ),
+          //                           child: Center(child: Text("Refresh", style: GoogleFonts.urbanist(fontSize: 16, color: AppColor.black, fontWeight: FontWeight.bold))),
+          //                         ),
+          //                       ),
+          //               ),
+          //             ],
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   );
+          // }
         },
         child: Obx(
           () => DownloadHistory.mainDownloadHistory.isEmpty
