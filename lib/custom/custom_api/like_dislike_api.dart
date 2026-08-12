@@ -9,9 +9,8 @@ class LikeDisLikeVideoApi {
     AppSettings.showLog("Like DisLike Video Api Calling... videoId=$videoId");
 
     if (GuestLikeStorage.isGuest) {
-      await GuestLikeStorage.saveReaction(videoId, isLike);
       AppSettings.showLog(
-        'Guest ${isLike ? 'like' : 'dislike'} saved locally for $videoId',
+        'Guest user clicked ${isLike ? 'like' : 'dislike'} - ignored for guest',
       );
       return;
     }

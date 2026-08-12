@@ -374,24 +374,22 @@ class NormalVideoDetailsController extends GetxController {
 
       if (videoDetailsModel != null) {
         final details = videoDetailsModel?.detailsOfVideo;
-        isLike.value = videoDetailsModel?.detailsOfVideo?.isLike ?? false;
-        isDisLike.value = videoDetailsModel?.detailsOfVideo?.isDislike ?? false;
-        isSubscribe.value =
-            videoDetailsModel?.detailsOfVideo?.isSubscribed ?? false;
-        isSave.value =
-            videoDetailsModel?.detailsOfVideo?.isSaveToWatchLater ?? false;
+        if (GuestLikeStorage.isGuest) {
+          isLike.value = false;
+          isDisLike.value = false;
+          isSubscribe.value = false;
+          isSave.value = false;
+        } else {
+          isLike.value = details?.isLike ?? false;
+          isDisLike.value = details?.isDislike ?? false;
+          isSubscribe.value = details?.isSubscribed ?? false;
+          isSave.value = details?.isSaveToWatchLater ?? false;
+        }
 
         customChanges["like"] = details?.like ?? 0;
         customChanges["disLike"] = details?.dislike ?? 0;
         customChanges["comment"] = details?.totalComments ?? 0;
         customChanges["subscribe"] = details?.totalSubscribers ?? 0;
-
-        GuestLikeStorage.applyToUi(
-          videoId: videoId,
-          isLike: isLike,
-          isDisLike: isDisLike,
-          customChanges: customChanges,
-        );
 
         createWatchHistory();
       }

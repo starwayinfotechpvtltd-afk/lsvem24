@@ -14,7 +14,8 @@ class FetchAllVideoApi {
 
     startPagination += 1;
 
-    final uri = Uri.parse("${Constant.baseURL + Constant.homeVideo}?start=$startPagination&type=all&limit=$limitPagination");
+    final userParam = (loginUserId.isNotEmpty && loginUserId != "null") ? "&userId=$loginUserId" : "";
+    final uri = Uri.parse("${Constant.baseURL + Constant.homeVideo}?start=$startPagination&type=all&limit=$limitPagination$userParam");
 
     AppSettings.showLog("Uri => $uri");
 

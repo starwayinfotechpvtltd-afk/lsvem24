@@ -17,7 +17,8 @@ class GetShortsVideoApi {
 
     AppSettings.showLog("Get Shorts Pagination Page => $startPagination");
 
-    final uri = Uri.parse("${Constant.baseURL + Constant.getShortsVideo}?start=$nextPage&limit=$limitPagination");
+    final userParam = (loginUserId.isNotEmpty && loginUserId != "null") ? "&userId=$loginUserId" : "";
+    final uri = Uri.parse("${Constant.baseURL + Constant.getShortsVideo}?start=$nextPage&limit=$limitPagination$userParam");
 
     try {
     final response = await http

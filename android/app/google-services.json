@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "14196027823-hl5h6jc2blrrqkl903n6athepki18ep8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lsvem24.app",
+            "certificate_hash": "d0d3e91bbb1be58e4e7e8a7ffe4387b8ab68946b"
+          }
+        },
+        {
           "client_id": "14196027823-f9jnmsu7hu5q1qdt564jvbv4t341u3fu.apps.googleusercontent.com",
           "client_type": 3
         }

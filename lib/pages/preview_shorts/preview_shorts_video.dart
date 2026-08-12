@@ -153,9 +153,15 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
         (controller.mainShortsVideos[widget.index].videoPrivacyType == 2 &&
             controller.mainShortsVideos[widget.index].isSubscribed == false);
 
-    isLike.value = controller.mainShortsVideos[widget.index].isLike!;
-    isDisLike.value = controller.mainShortsVideos[widget.index].isDislike!;
-    isSubscribe.value = controller.mainShortsVideos[widget.index].isSubscribed!;
+    if (GuestLikeStorage.isGuest) {
+      isLike.value = false;
+      isDisLike.value = false;
+      isSubscribe.value = false;
+    } else {
+      isLike.value = controller.mainShortsVideos[widget.index].isLike ?? false;
+      isDisLike.value = controller.mainShortsVideos[widget.index].isDislike ?? false;
+      isSubscribe.value = controller.mainShortsVideos[widget.index].isSubscribed ?? false;
+    }
 
     customChanges["like"] =
         int.parse(controller.mainShortsVideos[widget.index].like.toString());
@@ -165,13 +171,6 @@ class _PreviewShortsVideoState extends State<PreviewShortsVideo> {
         controller.mainShortsVideos[widget.index].shareCount.toString());
     customChanges["comment"] = int.parse(
         controller.mainShortsVideos[widget.index].totalComments.toString());
-
-    GuestLikeStorage.applyToUi(
-      videoId: controller.mainShortsVideos[widget.index].id?.toString() ?? '',
-      isLike: isLike,
-      isDisLike: isDisLike,
-      customChanges: customChanges,
-    );
   }
 
   void onClickLike() async {

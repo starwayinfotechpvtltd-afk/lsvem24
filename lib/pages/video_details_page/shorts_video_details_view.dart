@@ -106,21 +106,20 @@ class _ShortsVideoDetailsViewState extends State<ShortsVideoDetailsView> {
           Database.loginUserId ?? "", widget.videoId, 2);
       if (videoDetailsModel != null) {
         final details = videoDetailsModel?.detailsOfVideo;
-        isSubscribe.value = details?.isSubscribed ?? false;
-        isLike.value = details?.isLike ?? false;
-        isDisLike.value = details?.isDislike ?? false;
+        if (GuestLikeStorage.isGuest) {
+          isLike.value = false;
+          isDisLike.value = false;
+          isSubscribe.value = false;
+        } else {
+          isSubscribe.value = details?.isSubscribed ?? false;
+          isLike.value = details?.isLike ?? false;
+          isDisLike.value = details?.isDislike ?? false;
+        }
 
         customChanges["like"] = details?.like ?? 0;
         customChanges["disLike"] = details?.dislike ?? 0;
         customChanges["comment"] = details?.totalComments ?? 0;
         customChanges["share"] = details?.shareCount ?? 0;
-
-        GuestLikeStorage.applyToUi(
-          videoId: widget.videoId,
-          isLike: isLike,
-          isDisLike: isDisLike,
-          customChanges: customChanges,
-        );
 
         isPrivateContent.value =
             (videoDetailsModel?.detailsOfVideo?.videoPrivacyType == 2 &&

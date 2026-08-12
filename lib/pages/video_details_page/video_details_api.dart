@@ -9,7 +9,8 @@ class VideoDetailsApi {
   static Future<VideoDetailsModel?> callApi(String loginUserId, String videoId, int videoType) async {
     AppSettings.showLog("Video Details Api Calling...");
 
-    final uri = Uri.parse("${Constant.baseURL + Constant.getVideoDetail}?videoId=$videoId&videoType=$videoType");
+    final userParam = (loginUserId.isNotEmpty && loginUserId != "null") ? "&userId=$loginUserId" : "";
+    final uri = Uri.parse("${Constant.baseURL + Constant.getVideoDetail}?videoId=$videoId&videoType=$videoType$userParam");
 
     final headers = {"key": Constant.secretKey};
 

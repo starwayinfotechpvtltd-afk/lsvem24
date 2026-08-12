@@ -46,25 +46,10 @@ class GuestLikeStorage {
     required RxBool isDisLike,
     required RxMap customChanges,
   }) {
-    if (!isGuest) return;
-
-    final stored = getReaction(videoId);
-    if (stored == null) return;
-
-    if (stored == 'like' && !isLike.value) {
-      if (isDisLike.value) {
-        isDisLike.value = false;
-        customChanges['disLike'] = _decrement(customChanges['disLike']);
-      }
-      isLike.value = true;
-      customChanges['like'] = _increment(customChanges['like']);
-    } else if (stored == 'dislike' && !isDisLike.value) {
-      if (isLike.value) {
-        isLike.value = false;
-        customChanges['like'] = _decrement(customChanges['like']);
-      }
-      isDisLike.value = true;
-      customChanges['disLike'] = _increment(customChanges['disLike']);
+    if (isGuest) {
+      isLike.value = false;
+      isDisLike.value = false;
+      return;
     }
   }
 

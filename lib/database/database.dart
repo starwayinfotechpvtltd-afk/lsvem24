@@ -107,7 +107,7 @@ class Database {
   static String get referralLink {
     if (referralCode.isEmpty) return "";
 
-    return "${Constant.mediaBaseURL}/lsvem24/invite/$referralCode";
+    return "https://lsvem24.com/invite/$referralCode";
   }
 
   static String getVideoShareLink(String videoId, {String? slug, bool isShort = false}) {

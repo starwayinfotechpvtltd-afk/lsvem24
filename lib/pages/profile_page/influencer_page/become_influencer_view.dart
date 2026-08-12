@@ -30,7 +30,8 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
   void initState() {
     super.initState();
     userCoins.value = GetProfileApi.profileModel?.user?.coin ?? 0;
-    isInfluencer.value = GetProfileApi.profileModel?.user?.isInfluencer ?? false;
+    isInfluencer.value =
+        GetProfileApi.profileModel?.user?.isInfluencer ?? false;
   }
 
   Future<void> _handleSubscribeInfluencer() async {
@@ -48,7 +49,8 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
 
     try {
       isLoading.value = true;
-      final uri = Uri.parse("${Constant.baseURL}client/user/becomeInfluencer?userId=$userId");
+      final uri = Uri.parse(
+          "${Constant.baseURL}client/user/becomeInfluencer?userId=$userId");
       final headers = {
         "key": Constant.secretKey,
         "Content-Type": "application/json"
@@ -61,19 +63,23 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
           if (GetProfileApi.profileModel?.user != null) {
             await GetProfileApi.callApi(userId);
           }
-          userCoins.value = GetProfileApi.profileModel?.user?.coin ?? (userCoins.value - 100);
+          userCoins.value =
+              GetProfileApi.profileModel?.user?.coin ?? (userCoins.value - 100);
           isInfluencer.value = true;
           CustomToast.show(jsonResponse['message'] ??
               "Congratulations! You are now a verified Influencer 🎉");
         } else {
-          CustomToast.show(jsonResponse['message'] ?? "Failed to become an influencer.");
+          CustomToast.show(
+              jsonResponse['message'] ?? "Failed to become an influencer.");
         }
       } else {
         try {
           final jsonResponse = json.decode(response.body);
-          CustomToast.show(jsonResponse['message'] ?? "Server error (${response.statusCode})");
+          CustomToast.show(jsonResponse['message'] ??
+              "Server error (${response.statusCode})");
         } catch (_) {
-          CustomToast.show("Server error (${response.statusCode}). Please try again later.");
+          CustomToast.show(
+              "Server error (${response.statusCode}). Please try again later.");
         }
       }
     } catch (e) {
@@ -114,7 +120,8 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
         centerTitle: AppSettings.isCenterTitle,
         title: Text(
           "Become Influencer",
-          style: GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold),
+          style:
+              GoogleFonts.urbanist(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -149,7 +156,8 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
                       color: Colors.white24,
                       shape: BoxShape.circle,
                     ),
-                    child: Image.asset(AppIcons.king, width: 50, height: 50, color: Colors.amber),
+                    child: Image.asset(AppIcons.king,
+                        width: 50, height: 50, color: Colors.amber),
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -247,35 +255,53 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
               icon: Icons.verified,
               iconColor: Colors.blue,
               title: "Verified Influencer Badge",
-              subtitle: "Special influencer tick badge displayed on your channel and comments.",
+              subtitle:
+                  "Special influencer badge displayed on your profile, videos, and comments.",
             ),
             const SizedBox(height: 12),
+
             _buildBenefitRow(
-              icon: Icons.rocket_launch,
-              iconColor: Colors.purple,
-              title: "3x Algorithm Boost",
-              subtitle: "Higher video & shorts distribution on home feed and search suggestions.",
+              icon: Icons.campaign,
+              iconColor: Colors.deepPurple,
+              title: "Brand Collaboration Requests",
+              subtitle:
+                  "Receive direct promotion requests from businesses and creators looking to advertise their products.",
             ),
             const SizedBox(height: 12),
+
             _buildBenefitRow(
-              icon: Icons.monetization_on,
+              icon: Icons.trending_up,
               iconColor: Colors.green,
-              title: "Higher Monetization Rates",
-              subtitle: "Earn extra revenue per watch hour and unlocked content.",
+              title: "Higher Visibility",
+              subtitle:
+                  "Your videos and shorts receive increased exposure across Home, Shorts, and Search.",
             ),
             const SizedBox(height: 12),
+
             _buildBenefitRow(
-              icon: Icons.star,
-              iconColor: Colors.amber,
-              title: "Featured Directory Placement",
-              subtitle: "Featured in the main Influencer List for thousands of users to discover.",
+              icon: Icons.payments,
+              iconColor: Colors.teal,
+              title: "Earn More Income",
+              subtitle:
+                  "Generate additional earnings through paid brand promotions and influencer campaigns.",
             ),
             const SizedBox(height: 12),
+
             _buildBenefitRow(
-              icon: Icons.headset_mic,
+              icon: Icons.people,
               iconColor: Colors.orange,
-              title: "Priority Support & Perks",
-              subtitle: "Dedicated VIP creator support and early access to new features.",
+              title: "Grow Your Audience Faster",
+              subtitle:
+                  "Reach more viewers and gain followers more quickly with influencer status.",
+            ),
+            const SizedBox(height: 12),
+
+            _buildBenefitRow(
+              icon: Icons.handshake,
+              iconColor: Colors.indigo,
+              title: "Business Partnerships",
+              subtitle:
+                  "Build long-term collaborations with companies for regular sponsored content and promotions.",
             ),
             const SizedBox(height: 25),
           ],
@@ -305,12 +331,15 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
                 onPressed: (isInfluencer.value || isLoading.value)
                     ? null
                     : () {
-          if (!AuthService.checkLogin()) return;
-          _handleSubscribeInfluencer();
-        },
+                        if (!AuthService.checkLogin()) return;
+                        _handleSubscribeInfluencer();
+                      },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isInfluencer.value ? Colors.green : AppColor.primaryColor,
-                  disabledBackgroundColor: isInfluencer.value ? Colors.green.shade700 : Colors.grey.shade400,
+                  backgroundColor:
+                      isInfluencer.value ? Colors.green : AppColor.primaryColor,
+                  disabledBackgroundColor: isInfluencer.value
+                      ? Colors.green.shade700
+                      : Colors.grey.shade400,
                   disabledForegroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(26),
@@ -321,13 +350,15 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
                     ? const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2.5),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           if (isInfluencer.value) ...[
-                            const Icon(Icons.verified, color: Colors.white, size: 22),
+                            const Icon(Icons.verified,
+                                color: Colors.white, size: 22),
                             const SizedBox(width: 8),
                             Text(
                               "You are already an influencer",
@@ -369,7 +400,8 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
       () => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDarkMode.value ? AppColor.secondDarkMode : Colors.grey.shade100,
+          color:
+              isDarkMode.value ? AppColor.secondDarkMode : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isDarkMode.value ? Colors.white12 : Colors.grey.shade200,
@@ -402,7 +434,9 @@ class _BecomeInfluencerViewState extends State<BecomeInfluencerView> {
                     subtitle,
                     style: GoogleFonts.urbanist(
                       fontSize: 12,
-                      color: isDarkMode.value ? Colors.grey.shade400 : Colors.grey.shade600,
+                      color: isDarkMode.value
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
                     ),
                   ),
                 ],

@@ -235,9 +235,15 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
     isPrivateContent.value =
         (shorts.videoPrivacyType == 2 && shorts.isSubscribed == false);
 
-    isLike.value = shorts.isLike ?? false;
-    isDisLike.value = shorts.isDislike ?? false;
-    isSubscribe.value = shorts.isSubscribed ?? false;
+    if (GuestLikeStorage.isGuest) {
+      isLike.value = false;
+      isDisLike.value = false;
+      isSubscribe.value = false;
+    } else {
+      isLike.value = shorts.isLike ?? false;
+      isDisLike.value = shorts.isDislike ?? false;
+      isSubscribe.value = shorts.isSubscribed ?? false;
+    }
 
     customChanges["like"] =
         int.parse(controller.mainShortsVideos[widget.index].like.toString());
@@ -247,13 +253,6 @@ class _NavShortsDetailViewState extends State<NavShortsDetailView> {
         controller.mainShortsVideos[widget.index].shareCount.toString());
     customChanges["comment"] = int.parse(
         controller.mainShortsVideos[widget.index].totalComments.toString());
-
-    GuestLikeStorage.applyToUi(
-      videoId: shorts.id ?? '',
-      isLike: isLike,
-      isDisLike: isDisLike,
-      customChanges: customChanges,
-    );
   }
 
   Future<void> onCreateHistory() async {

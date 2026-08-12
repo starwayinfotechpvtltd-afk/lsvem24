@@ -147,7 +147,7 @@ class _InfluencerViewState extends State<InfluencerView> {
                     ? const Icon(Icons.verified, size: 16, color: Colors.white)
                     : const Icon(Icons.star, size: 16, color: Colors.white),
                 label: Text(
-                  isInfluencer.value ? "You are already an influencer" : "Become Influencer",
+                  isInfluencer.value ? "Already an influencer" : "Become Influencer",
                   style: GoogleFonts.urbanist(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
